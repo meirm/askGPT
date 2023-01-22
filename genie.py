@@ -48,6 +48,7 @@ progConfig["userPrompt"] = progConfig.get("userPrompt"," Human: ")
 progConfig["aiPrompt"] = progConfig.get("aiPrompt"," AI: ")
 progConfig["maxTokens"] = progConfig.get("maxTokens","150")
 progConfig["engine"] = progConfig.get("engine","text-davinci-003")
+progConfig["temperature"] = progConfig.get("temperature","0.0")
 
 settingsPath=os.path.join(os.getenv("HOME"), ".genie")
 
@@ -108,12 +109,14 @@ Change config values"""
 @click.option("--user-prompt", prompt="User prompt", default=progConfig["userPrompt"], help="User prompt")
 @click.option("--ai-prompt", prompt="AI prompt", default=progConfig["aiPrompt"], help="AI prompt")
 @click.option("--max-tokens", prompt="Max tokens", type=int, default=progConfig["maxTokens"], help="Max tokens")
-@click.option("--engine", prompt="Default engine", default=progConfig["engine"], help="Default engine")
-def config(user_prompt, ai_prompt, max_tokens,engine):
+@click.option("--engine", default=progConfig["engine"], help="Set alternative engine")
+@click.option("--temperature", default=progConfig["temperature"], help="Set alternative temperature")
+def config(user_prompt, ai_prompt, max_tokens,engine, temperature):
     progConfig["userPrompt"] = user_prompt
     progConfig["aiPrompt"] = ai_prompt
     progConfig["maxTokens"] = max_tokens
     progConfig["engine"] = engine
+    progConfig["temperature"] = temperature
     show_config()
     with open(os.path.join(settingsPath, "config"), "w") as f:
         for key in progConfig:
@@ -190,7 +193,10 @@ Query the OpenAI API with the provided subject and enquiry"""
 @click.option("--subject", prompt="Subject", help="Subject of the conversation")
 @click.option("--enquiry", prompt="Enquiry", help="Your question")
 @click.option("--persona", prompt="Persona", default="Neutral", help="Subject of the conversation")
-def query(subject, enquiry, persona):
+@click.option("--engine", default=progConfig["engine"], help="Set alternative engine")
+@click.option("--temperature", default=progConfig["temperature"], help="Set alternative temperature")
+@click.option("--quiet/--verbose", default=True, help="Show verbose output or just the answer")
+def query(subject, enquiry, persona,engine, temperature, quiet):
     enquiry = progConfig["userPrompt"] + enquiry
     if subject:
         with open(os.path.join(conversations_path, sanitizeName(subject) + fileExtention), "a") as f:
@@ -202,9 +208,9 @@ def query(subject, enquiry, persona):
             else:
                 chat = chatRaw + enquiry + "\n" + progConfig["aiPrompt"]
             response = openai.Completion.create(
-                engine=progConfig["engine"],
+                engine=engine,
                 prompt=chat,
-                temperature=0.0,
+                temperature=float(temperature),
                 max_tokens=int(progConfig["maxTokens"]),
                 top_p=1,
                 frequency_penalty=0,
@@ -215,7 +221,10 @@ def query(subject, enquiry, persona):
             ai = response.choices[0].text
             if ai.startswith("\n\n"):
                 ai = ai[2:]
-            print(chat + ai)
+            if quiet:
+                print(ai)
+            else:
+                print(chat + ai)
             f.close()
         with open(os.path.join(conversations_path, sanitizeName(subject) + fileExtention), "a") as f:
             f.write(enquiry) 
