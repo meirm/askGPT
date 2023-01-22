@@ -1,21 +1,33 @@
 Genie is a simple command line tool for interacting with OpenAI's API.
 
 Usage:
+    
     genie.py query --subject <subject> --enquiry <enquiry>
+
     genie.py list
+    
     genie.py show --subject <subject>
+    
     genie.py delete --subject <subject>
+    
     genie.py delete --all
+    
     genie.py config
+    
     genie.py credentials
+    
     genie.py list_personas
 
     
 Options:
     -h --help     Show this screen.
+
     --version     Show version.
+    
     --subject     Subject of the conversation
+    
     --enquiry     Your question
+    
     --all         Delete all archived conversations
     
 
