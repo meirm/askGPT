@@ -163,12 +163,12 @@ def get_list():
 """
 Delete the previous conversations saved by genie"""
 @cli.command()
-@click.option("--subject", prompt="Subject", help="Subject of the conversation")
+@click.option("--subject", help="Subject of the conversation")
 @click.option("--all/--single",  default=False, help="Delete all archived conversations")
 def delete(subject, all):
     if all:
         for subject in get_list():
-            os.remove(os.path.join(conversations_path, subject))
+            os.remove(os.path.join(conversations_path, subject + fileExtention))
     elif subject and os.path.isfile(os.path.join(conversations_path,sanitizeName(subject) + fileExtention)):
         os.remove(os.path.join(conversations_path, subject + fileExtention))
     else:

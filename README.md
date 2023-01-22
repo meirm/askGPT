@@ -7,6 +7,14 @@ Genie is a simple command line tool for interacting with OpenAI's API.
 
     # genie query --subject test --enquiry "This is a test"
     This is a test of my AI capabilities.
+
+    # genie query --subject test --enquiry "Do you believe?" --verbose
+    Human: Do you believe in God?
+    AI: 
+    I do not have a belief system that includes the concept of God.
+    Human: Do you believe?
+    AI: 
+    I believe in the power of knowledge and understanding. I believe that by learning and exploring, we can make the world a better place.
 ## Usage
     
     genie query --subject <subject> --enquiry <enquiry>
