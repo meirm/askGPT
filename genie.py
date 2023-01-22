@@ -10,6 +10,8 @@ Usage:
     genie.py delete --all
     genie.py config
     genie.py credentials
+    genie.py list_personas
+    
 
     
 Options:
