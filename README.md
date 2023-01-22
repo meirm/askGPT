@@ -3,3 +3,7 @@ At any time you can resume a conversation, create a new one or read the dialog f
 
 Features:
 chat history. 
+
+To install run: python setup.py install
+
+To run the program type: genie

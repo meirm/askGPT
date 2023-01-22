@@ -195,8 +195,9 @@ Query the OpenAI API with the provided subject and enquiry"""
 @click.option("--persona", prompt="Persona", default="Neutral", help="Subject of the conversation")
 @click.option("--engine", default=progConfig["engine"], help="Set alternative engine")
 @click.option("--temperature", default=progConfig["temperature"], help="Set alternative temperature")
+@click.option("--max-tokens", default=progConfig["maxTokens"], help="Set alternative maxTokens")
 @click.option("--quiet/--verbose", default=True, help="Show verbose output or just the answer")
-def query(subject, enquiry, persona,engine, temperature, quiet):
+def query(subject, enquiry, persona,engine, temperature,max_tokens, quiet):
     enquiry = progConfig["userPrompt"] + enquiry
     if subject:
         with open(os.path.join(conversations_path, sanitizeName(subject) + fileExtention), "a") as f:
@@ -211,7 +212,7 @@ def query(subject, enquiry, persona,engine, temperature, quiet):
                 engine=engine,
                 prompt=chat,
                 temperature=float(temperature),
-                max_tokens=int(progConfig["maxTokens"]),
+                max_tokens=int(max_tokens),
                 top_p=1,
                 frequency_penalty=0,
                 presence_penalty=0.6,
