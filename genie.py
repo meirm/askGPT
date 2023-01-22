@@ -23,13 +23,14 @@ Author: Meir Michanie <meirm@riunx.com>
 License: MIT
 Date: 2023/01/23
 """
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 import os
 import openai
 import click
 from rich import print
 from pathlib import Path
+import json
 
 """
 Load the configuration file from ~/.genie/config"""
@@ -82,7 +83,27 @@ def sanitizeName(name):
 def cli(ctx):
     pass
 
+"""
+Load json from file"""
+def load_json(file):
+    with open(file, "r") as f:
+        try:
+            return json.load(f)
+        except:
+            return dict()
 
+
+personas = load_json(os.path.join(settingsPath,"personas.json"))
+
+
+"""List the available personas"""
+@cli.command()
+def list_personas():
+    for persona in personas.keys():
+        print(persona)
+
+"""
+Change config values"""
 @cli.command()
 @click.option("--user-prompt", prompt="User prompt", default=progConfig["userPrompt"], help="User prompt")
 @click.option("--ai-prompt", prompt="AI prompt", default=progConfig["aiPrompt"], help="AI prompt")
@@ -168,14 +189,18 @@ Query the OpenAI API with the provided subject and enquiry"""
 @cli.command()
 @click.option("--subject", prompt="Subject", help="Subject of the conversation")
 @click.option("--enquiry", prompt="Enquiry", help="Your question")
-def query(subject, enquiry):
+@click.option("--persona", prompt="Persona", default="Neutral", help="Subject of the conversation")
+def query(subject, enquiry, persona):
     enquiry = progConfig["userPrompt"] + enquiry
     if subject:
         with open(os.path.join(conversations_path, sanitizeName(subject) + fileExtention), "a") as f:
             pass
         with open(os.path.join(conversations_path, sanitizeName(subject) + fileExtention), "r") as f:
             chatRaw = f.read()
-            chat = chatRaw + enquiry + "\n" + progConfig["aiPrompt"]
+            if persona != "Neutral":
+                chat = progConfig["aiPrompt"] +  personas[persona]["greetings"] + "\n" + chatRaw  + enquiry + "\n" + progConfig["aiPrompt"]
+            else:
+                chat = chatRaw + enquiry + "\n" + progConfig["aiPrompt"]
             response = openai.Completion.create(
                 engine=progConfig["engine"],
                 prompt=chat,
