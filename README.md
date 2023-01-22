@@ -1,25 +1,32 @@
 Genie is a simple command line tool for interacting with OpenAI's API.
 
-Usage:
-    
-    genie.py query --subject <subject> --enquiry <enquiry>
+## Install 
+    python setup.py install
 
-    genie.py list
+## Examples
+
+    # genie query --subject test --enquiry "This is a test"
+    This is a test of my AI capabilities.
+## Usage
     
-    genie.py show --subject <subject>
+    genie query --subject <subject> --enquiry <enquiry>
+
+    genie list
     
-    genie.py delete --subject <subject>
+    genie show --subject <subject>
     
-    genie.py delete --all
+    genie delete --subject <subject>
     
-    genie.py config
+    genie delete --all
     
-    genie.py credentials
+    genie config
     
-    genie.py list_personas
+    genie credentials
+    
+    genie list_personas
 
     
-Options:
+### Options:
     -h --help     Show this screen.
 
     --version     Show version.
@@ -30,7 +37,7 @@ Options:
     
     --all         Delete all archived conversations
     
-
+## Summary
 "genie" is a program that allows you to interact with chatgpt on the command line and save the history of your conversation.
 At any time you can resume a conversation, create a new one or read the dialog from a previous session.
 

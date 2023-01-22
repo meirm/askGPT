@@ -11,7 +11,6 @@ Usage:
     genie.py config
     genie.py credentials
     genie.py list_personas
-    
 
     
 Options:
@@ -194,7 +193,7 @@ Query the OpenAI API with the provided subject and enquiry"""
 @cli.command()
 @click.option("--subject", prompt="Subject", help="Subject of the conversation")
 @click.option("--enquiry", prompt="Enquiry", help="Your question")
-@click.option("--persona", prompt="Persona", default="Neutral", help="Subject of the conversation")
+@click.option("--persona", default="Neutral", help="Subject of the conversation")
 @click.option("--engine", default=progConfig["engine"], help="Set alternative engine")
 @click.option("--temperature", default=progConfig["temperature"], help="Set alternative temperature")
 @click.option("--max-tokens", default=progConfig["maxTokens"], help="Set alternative maxTokens")
