@@ -1,8 +1,8 @@
 askGPT is a simple command line tool for interacting with OpenAI's API.
 
 ## Install 
-    git clone https://github.com/meirm/genie.git
-    cd genie
+    git clone https://github.com/meirm/askGPT.git
+    cd askGPT
     python setup.py install
 
 ## Examples
@@ -56,7 +56,7 @@ chat history.
 
 To install run: python setup.py install
 
-To load the available personas copy the file personas.json into your .genie directory.
+To load the available personas copy the file personas.json into your .askGPT directory.
 
 
-To run the program type: genie
+To run the program type: askGPT

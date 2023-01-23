@@ -5,10 +5,11 @@ setup(
     url='https://www.github.com/meirm/askGPT.git',
     author='Meir Michanie',
     author_email='meirm@riunx.com',
+    readme='README.md',
     description='A simple CLI for OpenAI GPT-3',
     license='MIT',
     package_dir={'':'src'},
-    version='0.2.0',
+    version='0.2.1',
     py_modules=['askGPT'],
     classifiers=[
         'Development Status :: 3 - Alpha',

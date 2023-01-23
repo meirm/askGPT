@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 """
-Genie is a simple command line tool for interacting with OpenAI's API.
+askGPT is a simple command line tool for interacting with OpenAI's API.
 
 Usage:
-    genie.py query --subject <subject> --enquiry <enquiry>
-    genie.py list
-    genie.py show --subject <subject>
-    genie.py delete --subject <subject>
-    genie.py delete --all
-    genie.py config
-    genie.py credentials
-    genie.py list_personas
+    askGPT.py query --subject <subject> --enquiry <enquiry>
+    askGPT.py list
+    askGPT.py show --subject <subject>
+    askGPT.py delete --subject <subject>
+    askGPT.py delete --all
+    askGPT.py config
+    askGPT.py credentials
+    askGPT.py list_personas
 
     
 Options:
@@ -24,11 +24,11 @@ Author: Meir Michanie <meirm@riunx.com>
 License: MIT
 Date: 2023/01/23
 """
-__title__ = 'genie'
+__title__ = 'askGPT'
 __author__ = 'Meir Michanie'
 __license__ = 'MIT'
 __credits__ = ''
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 import os
 import openai
@@ -38,9 +38,9 @@ from pathlib import Path
 import json
 
 """
-Load the configuration file from ~/.genie/config"""
-if os.path.isfile(os.path.join(os.getenv("HOME"), ".genie", "config")):
-    with open(os.path.join(os.getenv("HOME"), ".genie", "config"), "r") as f:
+Load the configuration file from ~/.askGPT/config"""
+if os.path.isfile(os.path.join(os.getenv("HOME"), ".askGPT", "config")):
+    with open(os.path.join(os.getenv("HOME"), ".askGPT", "config"), "r") as f:
         progConfig = dict()
         for line in f.readline():
             if line.startswith("#") or len(line) < 3:
@@ -55,7 +55,7 @@ progConfig["maxTokens"] = progConfig.get("maxTokens","150")
 progConfig["engine"] = progConfig.get("engine","text-davinci-003")
 progConfig["temperature"] = progConfig.get("temperature","0.0")
 
-settingsPath=os.path.join(os.getenv("HOME"), ".genie")
+settingsPath=os.path.join(os.getenv("HOME"), ".askGPT")
 
 conversations_path=os.path.join(settingsPath, "conversations")
 Path(conversations_path).mkdir(parents=True, exist_ok=True)
@@ -73,7 +73,7 @@ else:
             openai.organization = credentials.split(":")[1].strip()
     else:
         print("Please set OPENAI_API_KEY and OPENAI_ORGANIZATION environment variables.")
-        print("Or create a file at ~/.genie/credentials with the following format:")
+        print("Or create a file at ~/.askGPT/credentials with the following format:")
         print("OPENAI_API_KEY:OPENAI_ORGANIZATION")
         exit(1)
 
@@ -139,24 +139,24 @@ def show_config():
 Save the API keys to query OpenAI"""
 @cli.command()
 def credentials():
-    print("Welcome to Genie")
+    print("Welcome to askGPT")
     print("Please provide your OpenAI API key and organization")
     print("You can find these values at https://beta.openai.com/account/api-keys")
     openai.api_key = input("API_KEY:")
     openai.organization = input("ORGANIZATION:")
     with open(os.path.join(settingsPath, "credentials"), "w") as f:
         f.write(openai.api_key + ":" + openai.organization)
-    print("Genie is now ready to use")
+    print("askGPT is now ready to use")
 
 
 """
-Print the previous conversations saved by genie."""
+Print the previous conversations saved by askGPT."""
 @cli.command()
 def List():
     print(get_list())
 
 """
-list the previous conversations saved by genie."""
+list the previous conversations saved by askGPT."""
 def get_list():
     conv_array = list()
     for line in os.listdir(conversations_path):
@@ -165,7 +165,7 @@ def get_list():
     return conv_array
 
 """
-Delete the previous conversations saved by genie"""
+Delete the previous conversations saved by askGPT"""
 @cli.command()
 @click.option("--subject", help="Subject of the conversation")
 @click.option("--all/--single",  default=False, help="Delete all archived conversations")
@@ -180,7 +180,7 @@ def delete(subject, all):
         return
 
 """
-Show the previous conversations saved by genie"""
+Show the previous conversations saved by askGPT"""
 @cli.command()
 @click.option("--subject", prompt="Subject", help="Subject of the conversation")
 def show(subject):
@@ -242,5 +242,5 @@ def query(subject, enquiry, persona,engine, temperature,max_tokens, quiet):
         print("No subject provided")
         return
     
-    #  print("The genie is sleeping. [bold red]Next time, rub the lamp first.[/bold red]")
+    #  print("The askGPT is sleeping. [bold red]Next time, rub the lamp first.[/bold red]")
 
