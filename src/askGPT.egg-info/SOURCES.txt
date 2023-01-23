@@ -1,5 +1,6 @@
 LICENSE
 README.md
+pyproject.toml
 setup.py
 src/askGPT.py
 src/askGPT.egg-info/PKG-INFO
