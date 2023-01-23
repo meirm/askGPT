@@ -28,7 +28,7 @@ __title__ = 'askGPT'
 __author__ = 'Meir Michanie'
 __license__ = 'MIT'
 __credits__ = ''
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 import os
 import openai
@@ -98,7 +98,10 @@ def load_json(file):
         except:
             return dict()
 
-
+"""if there is not a file named personas.json, create it ad add the Neutral persona"""
+if not os.path.isfile(os.path.join(settingsPath,"personas.json")):
+    with open(os.path.join(settingsPath,"personas.json"), "w") as f:
+        f.write(json.dumps({"Neutral":{"name": "Neutral", "greetings": "I am a chatbot. How can I help you today?", "prompt": [], "max_tokens": 1000}}))
 personas = load_json(os.path.join(settingsPath,"personas.json"))
 
 

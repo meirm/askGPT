@@ -9,7 +9,7 @@ setup(
     description='A simple CLI for OpenAI GPT-3',
     license='MIT',
     package_dir={'':'src'},
-    version='0.2.1',
+    version='0.2.2',
     py_modules=['askGPT'],
     classifiers=[
         'Development Status :: 3 - Alpha',
