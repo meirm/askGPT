@@ -1,14 +1,16 @@
-Genie is a simple command line tool for interacting with OpenAI's API.
+askGPT is a simple command line tool for interacting with OpenAI's API.
 
 ## Install 
+    git clone https://github.com/meirm/genie.git
+    cd genie
     python setup.py install
 
 ## Examples
 
-    # genie query --subject test --enquiry "This is a test"
+    # askGPT query --subject test --enquiry "This is a test"
     This is a test of my AI capabilities.
 
-    # genie query --subject test --enquiry "Do you believe?" --verbose
+    # askGPT query --subject test --enquiry "Do you believe?" --verbose
     Human: Do you believe in God?
     AI: 
     I do not have a belief system that includes the concept of God.
@@ -17,21 +19,21 @@ Genie is a simple command line tool for interacting with OpenAI's API.
     I believe in the power of knowledge and understanding. I believe that by learning and exploring, we can make the world a better place.
 ## Usage
     
-    genie query --subject <subject> --enquiry <enquiry>
+    askGPT query --subject <subject> --enquiry <enquiry>
 
-    genie list
+    askGPT list
     
-    genie show --subject <subject>
+    askGPT show --subject <subject>
     
-    genie delete --subject <subject>
+    askGPT delete --subject <subject>
     
-    genie delete --all
+    askGPT delete --all
     
-    genie config
+    askGPT config
     
-    genie credentials
+    askGPT credentials
     
-    genie list_personas
+    askGPT list_personas
 
     
 ### Options:
@@ -46,7 +48,7 @@ Genie is a simple command line tool for interacting with OpenAI's API.
     --all         Delete all archived conversations
     
 ## Summary
-"genie" is a program that allows you to interact with chatgpt on the command line and save the history of your conversation.
+"askGPT" is a program that allows you to interact with chatgpt on the command line and save the history of your conversation.
 At any time you can resume a conversation, create a new one or read the dialog from a previous session.
 
 Features:

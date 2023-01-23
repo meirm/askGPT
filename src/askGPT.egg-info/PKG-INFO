@@ -1,0 +1,19 @@
+Metadata-Version: 2.1
+Name: askGPT
+Version: 0.2.0
+Summary: A simple CLI for OpenAI GPT-3
+Home-page: https://www.github.com/meirm/askGPT.git
+Author: Meir Michanie
+Author-email: meirm@riunx.com
+License: MIT
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+License-File: LICENSE
+
+UNKNOWN
+

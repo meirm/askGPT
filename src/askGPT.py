@@ -24,6 +24,10 @@ Author: Meir Michanie <meirm@riunx.com>
 License: MIT
 Date: 2023/01/23
 """
+__title__ = 'genie'
+__author__ = 'Meir Michanie'
+__license__ = 'MIT'
+__credits__ = ''
 __version__ = "0.2.0"
 
 import os
