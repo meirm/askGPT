@@ -1,6 +1,10 @@
 askGPT is a simple command line tool for interacting with OpenAI's API.
 
 ## Install 
+    pip install askGPT
+
+or
+
     git clone https://github.com/meirm/askGPT.git
     cd askGPT
     python setup.py install
