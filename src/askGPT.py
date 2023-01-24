@@ -83,11 +83,6 @@ Sanitize the name of the conversation to be saved."""
 def sanitizeName(name):
     return name.replace(" ", "_").replace("/", "_")
 
-@click.group()
-@click.version_option(__version__)
-@click.pass_context
-def cli(ctx):
-    pass
 
 """
 Load json from file"""
@@ -103,6 +98,13 @@ if not os.path.isfile(os.path.join(settingsPath,"personas.json")):
     with open(os.path.join(settingsPath,"personas.json"), "w") as f:
         f.write(json.dumps({"Neutral":{"name": "Neutral", "greetings": "I am a chatbot. How can I help you today?", "prompt": [], "max_tokens": 1000}}))
 personas = load_json(os.path.join(settingsPath,"personas.json"))
+
+
+@click.group()
+@click.version_option(__version__)
+@click.pass_context
+def cli(ctx):
+    pass
 
 
 """List the available personas"""

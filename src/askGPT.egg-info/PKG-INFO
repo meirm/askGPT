@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: askGPT
-Version: 0.2.1
+Version: 0.2.2
 Summary: askGPT is a simple command line tool for interacting with OpenAI's API.
 Home-page: https://github.com/meirm/askGPT
 Author: Meir Michanie
@@ -57,7 +57,7 @@ askGPT is a simple command line tool for interacting with OpenAI's API.
     askGPT list_personas
 
     
-### Options:
+### Options
     -h --help     Show this screen.
 
     --version     Show version.
@@ -68,6 +68,30 @@ askGPT is a simple command line tool for interacting with OpenAI's API.
     
     --all         Delete all archived conversations
     
+
+## Personas
+Personas is a way to provide the AI bot with a personality and some background information to respond to our enquires in a relevat way.
+In the git repository under config you have a sample json with a few personalities. Copy the file to $HOME/.askGPT
+If you do not have a personas.json file in the directory, the pogram will load with a Neutral persona without any background.
+
+### Creating new persona
+Edit the personas.json, add a new key which will be used to refere to the new persona. 
+The format of the new entry should be:
+    
+    {"<persona>": {"name": "<name>", "greetings": "<Initial sentence>", "prompt": [ {"user":"Human", "prompt":"<your initial prompt>"},{"user": "AI", "prompt": "<AI response>"}, ... ]}}
+
+i.e.
+
+    {"AlbertoKnox":{"Name": "Knox", "greetings":"I am Alberto Knox, the philosopher from Sophia's world. I am also a chatbot", "prompt":[
+        {"user" : "Human", "prompt", "What's your role in the book?"},
+        {"user": "AI", "prompt": "The ideal philosopher. I am never quick to judge and I always thinks about what I am doing."}
+    ]}}
+
+## API Key and Organization
+In order to communicate with openai API you need to register at https://www.openai.com and create an API key. If you don't have an organization code and it shows Organization: Personal, go to https://beta.openai.com/docs/api-reference/authentication and look for the code in the example.
+
+
+
 ## Summary
 "askGPT" is a program that allows you to interact with chatgpt on the command line and save the history of your conversation.
 At any time you can resume a conversation, create a new one or read the dialog from a previous session.
