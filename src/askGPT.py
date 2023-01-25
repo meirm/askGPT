@@ -4,6 +4,7 @@ askGPT is a simple command line tool for interacting with OpenAI's API.
 
 Usage:
     askGPT disclaimer 
+    askGPT edit --subject <subject>
     askGPT query --subject <subject> --enquiry <enquiry>
     askGPT show <config|personas|subjects|engines> 
     askGPT show subject <subject>
@@ -28,7 +29,7 @@ __title__ = 'askGPT'
 __author__ = 'Meir Michanie'
 __license__ = 'MIT'
 __credits__ = ''
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 import os
 import openai
@@ -156,6 +157,21 @@ Change config values"""
     with open(os.path.join(settingsPath,"config.toml"), 'w') as f:
         toml.dump({'name':'askGPT','default':progConfig},f)
         
+
+@cli.command()
+@click.option("--subject", prompt="Subject", help="Subject to use to save the conversation")
+def edit(subject):
+    """
+Edit a conversation"""
+    subject = sanitizeName(subject)
+    lines = list()
+    if os.path.isfile(os.path.join(conversations_path, subject + fileExtention)):
+        with open(os.path.join(conversations_path, subject + fileExtention), "r") as f:
+            lines = f.readlines()
+    lines = click.edit("".join(lines))
+    if lines is not None:
+        with open(os.path.join(conversations_path, subject + fileExtention), "w") as f:
+            f.write(lines)
 
 @cli.command()
 @click.argument("whatToShow", default="config")

@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: askGPT
-Version: 0.3.0
+Version: 0.3.1
 Summary: askGPT is a simple command line tool for interacting with OpenAI's API.
 Home-page: https://www.github.com/meirm/askGPT.git
 Author: Meir Michanie
@@ -71,9 +71,11 @@ or
     Human: Do you believe?
     AI: 
     I believe in the power of knowledge and understanding. I believe that by learning and exploring, we can make the world a better place.
-## Usage
+## Available commands
     
     askGPT  disclaimer
+
+    askGPT edit --subject <subject>
 
     askGPT  query --subject <subject> --enquiry <enquiry>
 
@@ -96,6 +98,7 @@ or
 ### Configuration
 
 ***askGPT*** will create a config.toml on your .askGPT folder. You can see or change values calling ***askGPT*** config
+
 The content of the file by default is the following:
 ```
 name = "askGPT"

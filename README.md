@@ -55,6 +55,8 @@ or
     
     askGPT  disclaimer
 
+    askGPT edit --subject <subject>
+
     askGPT  query --subject <subject> --enquiry <enquiry>
 
     askGPT  list
