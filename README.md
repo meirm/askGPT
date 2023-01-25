@@ -76,6 +76,7 @@ or
 ### Configuration
 
 ***askGPT*** will create a config.toml on your .askGPT folder. You can see or change values calling ***askGPT*** config
+
 The content of the file by default is the following:
 ```
 name = "askGPT"
