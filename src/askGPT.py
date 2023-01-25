@@ -27,7 +27,7 @@ __title__ = 'askGPT'
 __author__ = 'Meir Michanie'
 __license__ = 'MIT'
 __credits__ = ''
-__version__ = "0.2.3"
+__version__ = "0.2.4"
 
 import os
 import openai
@@ -53,7 +53,7 @@ progConfig["aiPrompt"] = progConfig.get("aiPrompt"," AI: ")
 progConfig["maxTokens"] = progConfig.get("maxTokens","150")
 progConfig["engine"] = progConfig.get("engine","text-davinci-003")
 progConfig["temperature"] = progConfig.get("temperature","0.0")
-progConfig["topP"] = progConfig.get("topP","1.0")
+progConfig["topP"] = progConfig.get("topP","1")
 progConfig["frequencyPenalty"] = progConfig.get("frequencyPenalty","0.0")
 progConfig["presencePenalty"] = progConfig.get("presencePenalty","0.0")
 
@@ -244,9 +244,9 @@ def query(subject, enquiry, persona,engine, temperature,max_tokens, top_p,  freq
                 prompt=chat,
                 temperature=float(temperature),
                 max_tokens=int(max_tokens),
-                top_p=top_p,
-                frequency_penalty=frequency_penalty,
-                presence_penalty=presence_penalty,
+                top_p=int(top_p),
+                frequency_penalty=float(frequency_penalty),
+                presence_penalty=float(presence_penalty),
                 stop=[ # "\n",
                  progConfig["userPrompt"], progConfig["aiPrompt"]],
             )
