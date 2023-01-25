@@ -36,9 +36,17 @@ from rich import print
 from pathlib import Path
 import json
 import backoff
+import time
 
 
-def completions_with_backoff(**kwargs):
+# Calculate the delay based on your rate limit
+rate_limit_per_minute = 20
+delay = 60.0 / rate_limit_per_minute
+
+def completions_with_backoff(delay_in_seconds: float = 1,**kwargs):
+    """Delay a completion by a specified amount of time."""
+    # Sleep for the delay
+    time.sleep(delay_in_seconds)
     return openai.Completion.create(**kwargs)
 
 """
@@ -246,6 +254,7 @@ def query(subject, enquiry, persona,engine, temperature,max_tokens, top_p,  freq
                 chat = chatRaw + enquiry + "\n" + progConfig["aiPrompt"]
             try:
                 response = completions_with_backoff(
+                    delay_in_seconds=delay,
                     engine=engine,
                     prompt=chat,
                     temperature=float(temperature),
