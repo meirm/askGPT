@@ -3,13 +3,14 @@
 askGPT is a simple command line tool for interacting with OpenAI's API.
 
 Usage:
-    askGPT.py query --subject <subject> --enquiry <enquiry>
-    askGPT.py show <config|personas|subjects|engines> 
-    askGPT.py show subject <subject>
-    askGPT.py delete --subject <subject>
-    askGPT.py delete --all
-    askGPT.py config
-    askGPT.py credentials
+    askGPT disclaimer 
+    askGPT query --subject <subject> --enquiry <enquiry>
+    askGPT show <config|personas|subjects|engines> 
+    askGPT show subject <subject>
+    askGPT delete --subject <subject>
+    askGPT delete --all
+    askGPT config
+    askGPT credentials
 
     
 Options:
@@ -94,15 +95,15 @@ else:
         exit(1)
 
 
-"""
-Sanitize the name of the conversation to be saved."""
 def sanitizeName(name):
+    """
+    Sanitize the name of the conversation to be saved."""
     return name.replace(" ", "_").replace("/", "_")
 
 
-"""
-Load json from file"""
 def load_json(file):
+    """
+Load json from file"""
     with open(file, "r") as f:
         try:
             return json.load(f)
@@ -127,8 +128,7 @@ def disclaimer():
     """Show the disclaimer"""
     print(disclaimer_note)
 
-"""
-Change config values"""
+
 @cli.command()
 @click.option("--user-prompt", prompt="User prompt", default=progConfig["userPrompt"], help="User prompt")
 @click.option("--ai-prompt", prompt="AI prompt", default=progConfig["aiPrompt"], help="AI prompt")
@@ -139,6 +139,8 @@ Change config values"""
 @click.option("--frequency-penalty", default=progConfig["frequencyPenalty"], help="Set alternative frequencyPenalty")
 @click.option("--presence-penalty", default=progConfig["presencePenalty"], help="Set alternative presencePenalty")
 def config(user_prompt, ai_prompt, max_tokens,engine, temperature, top_p, frequency_penalty, presence_penalty):
+    """
+Change config values"""
     progConfig["userPrompt"] = user_prompt
     progConfig["aiPrompt"] = ai_prompt
     progConfig["maxTokens"] = max_tokens
@@ -153,11 +155,11 @@ def config(user_prompt, ai_prompt, max_tokens,engine, temperature, top_p, freque
             f.write(key + "=" + str(progConfig[key]) + "\n")
         
 
-"""Show the current configuration"""
 @cli.command()
 @click.argument("whatToShow", default="config")
 @click.argument("subject", default="" )
 def show(whattoshow, subject):
+    """Show config|personas|subjects or the conversation inside a subject."""
     if subject == "":
         if whattoshow == "config":
             print("Current configuration:")
@@ -185,10 +187,11 @@ def show(whattoshow, subject):
         else:
             print("Subject not found")
 
-"""
-Save the API keys to query OpenAI"""
+
 @cli.command()
 def credentials():
+    """
+Save the API keys to query OpenAI"""
     print("Welcome to askGPT")
     print("Please provide your OpenAI API key and organization")
     print("You can find these values at https://beta.openai.com/account/api-keys")
@@ -199,21 +202,23 @@ def credentials():
     print("askGPT is now ready to use")
 
 
-"""
-list the previous conversations saved by askGPT."""
+
 def get_list():
+    """
+list the previous conversations saved by askGPT."""
     conv_array = list()
     for line in os.listdir(conversations_path):
         if (not line.startswith("."))  and line.endswith(fileExtention) and (os.path.isfile(os.path.join(conversations_path,line))):
             conv_array.append(line.replace(fileExtention,""))
     return conv_array
 
-"""
-Delete the previous conversations saved by askGPT"""
+
 @cli.command()
 @click.option("--subject", help="Subject of the conversation")
 @click.option("--all/--single",  default=False, help="Delete all archived conversations")
 def delete(subject, all):
+    """
+Delete the previous conversations saved by askGPT"""
     if all:
         for subject in get_list():
             os.remove(os.path.join(conversations_path, subject + fileExtention))
@@ -225,8 +230,7 @@ def delete(subject, all):
 
 
         
-"""
-Query the OpenAI API with the provided subject and enquiry"""
+
 @cli.command()
 @click.option("--subject", prompt="Subject", help="Subject of the conversation")
 @click.option("--enquiry", prompt="Enquiry", help="Your question")
@@ -239,6 +243,8 @@ Query the OpenAI API with the provided subject and enquiry"""
 @click.option("--max-tokens", default=progConfig["maxTokens"], help="Set alternative maxTokens")
 @click.option("--quiet/--verbose", default=True, help="Show verbose output or just the answer")
 def query(subject, enquiry, persona,engine, temperature,max_tokens, top_p,  frequency_penalty, presence_penalty, quiet): 
+    """
+Query the OpenAI API with the provided subject and enquiry"""
     enquiry = progConfig["userPrompt"] + enquiry
     if subject:
         with open(os.path.join(conversations_path, sanitizeName(subject) + fileExtention), "a") as f:
