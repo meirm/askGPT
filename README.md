@@ -51,7 +51,7 @@ or
     Human: Do you believe?
     AI: 
     I believe in the power of knowledge and understanding. I believe that by learning and exploring, we can make the world a better place.
-## Usage
+## Available commands
     
     askGPT  disclaimer
 
