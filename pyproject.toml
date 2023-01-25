@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "askGPT"
-version = "0.2.2"
+version = "0.2.3"
 authors = [
   { name="Meir Michanie", email="meirm@riunx.com" },
 ]
@@ -22,4 +22,4 @@ classifiers=[
 
 [project.urls]
 "Homepage" = "https://github.com/meirm/askGPT"
-"Bug Tracker" = "https://github.com/meirm/askGT/issues"
+"Bug Tracker" = "https://github.com/meirm/askGPT/issues"

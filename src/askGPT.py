@@ -4,13 +4,12 @@ askGPT is a simple command line tool for interacting with OpenAI's API.
 
 Usage:
     askGPT.py query --subject <subject> --enquiry <enquiry>
-    askGPT.py list
-    askGPT.py show --subject <subject>
+    askGPT.py show <config|personas|subjects|engines> 
+    askGPT.py show subject <subject>
     askGPT.py delete --subject <subject>
     askGPT.py delete --all
     askGPT.py config
     askGPT.py credentials
-    askGPT.py list_personas
 
     
 Options:
@@ -28,7 +27,7 @@ __title__ = 'askGPT'
 __author__ = 'Meir Michanie'
 __license__ = 'MIT'
 __credits__ = ''
-__version__ = "0.2.2"
+__version__ = "0.2.3"
 
 import os
 import openai
@@ -54,6 +53,9 @@ progConfig["aiPrompt"] = progConfig.get("aiPrompt"," AI: ")
 progConfig["maxTokens"] = progConfig.get("maxTokens","150")
 progConfig["engine"] = progConfig.get("engine","text-davinci-003")
 progConfig["temperature"] = progConfig.get("temperature","0.0")
+progConfig["topP"] = progConfig.get("topP","1.0")
+progConfig["frequencyPenalty"] = progConfig.get("frequencyPenalty","0.0")
+progConfig["presencePenalty"] = progConfig.get("presencePenalty","0.0")
 
 settingsPath=os.path.join(os.getenv("HOME"), ".askGPT")
 
@@ -107,12 +109,6 @@ def cli(ctx):
     pass
 
 
-"""List the available personas"""
-@cli.command()
-def list_personas():
-    for persona in personas.keys():
-        print(persona)
-
 """
 Change config values"""
 @cli.command()
@@ -121,24 +117,57 @@ Change config values"""
 @click.option("--max-tokens", prompt="Max tokens", type=int, default=progConfig["maxTokens"], help="Max tokens")
 @click.option("--engine", default=progConfig["engine"], help="Set alternative engine")
 @click.option("--temperature", default=progConfig["temperature"], help="Set alternative temperature")
-def config(user_prompt, ai_prompt, max_tokens,engine, temperature):
+@click.option("--top-p", default=progConfig["topP"], help="Set alternative topP")
+@click.option("--frequency-penalty", default=progConfig["frequencyPenalty"], help="Set alternative frequencyPenalty")
+@click.option("--presence-penalty", default=progConfig["presencePenalty"], help="Set alternative presencePenalty")
+def config(user_prompt, ai_prompt, max_tokens,engine, temperature, top_p, frequency_penalty, presence_penalty):
     progConfig["userPrompt"] = user_prompt
     progConfig["aiPrompt"] = ai_prompt
     progConfig["maxTokens"] = max_tokens
     progConfig["engine"] = engine
     progConfig["temperature"] = temperature
-    show_config()
+    progConfig["topP"] = top_p
+    progConfig["frequencyPenalty"] = frequency_penalty
+    progConfig["presencePenalty"] = presence_penalty
+    show('config')
     with open(os.path.join(settingsPath, "config"), "w") as f:
         for key in progConfig:
             f.write(key + "=" + str(progConfig[key]) + "\n")
         
 
 """Show the current configuration"""
-def show_config():
-    print("Current configuration:")
-    for key in progConfig:
-        print(key + "=" + str(progConfig[key]))
-    
+@cli.command()
+@click.argument("whatToShow", default="config")
+@click.argument("subject", default="" )
+def show(whattoshow, subject):
+    if subject == "":
+        if whattoshow == "config":
+            print("Current configuration:")
+            for key in progConfig:
+                print(key + "=" + str(progConfig[key]))
+        elif whattoshow == "subjects":
+            print("Current subjects:")
+            for subject in os.listdir(os.path.join(settingsPath, 'conversations')):
+                if os.path.isfile(os.path.join(settingsPath, 'conversations', subject)):
+                    subject = subject.replace(fileExtention,"")
+                    print(subject)
+        elif whattoshow == 'personas':
+            print("Current personas:")
+            for persona in personas:
+                print(persona)
+        elif whattoshow == 'engines':
+            print("Current engines:")
+            for engine in openai.Engine.list():
+                print(engine.id)
+        else:
+            print("Please specify what to show. Valid options are: config, subjects, personas, subject")
+            print("In case of passing the option 'subject' please pass as well the subject's name")
+    else:
+        if os.path.isfile(os.path.join(settingsPath, 'conversations', subject + fileExtention)):
+            with open(os.path.join(settingsPath, 'conversations', subject + fileExtention), 'r') as f:
+                print(f.read())
+        else:
+            print("Subject not found")
 
 """
 Save the API keys to query OpenAI"""
@@ -184,18 +213,7 @@ def delete(subject, all):
         print("No chat history with that subject")
         return
 
-"""
-Show the previous conversations saved by askGPT"""
-@cli.command()
-@click.option("--subject", prompt="Subject", help="Subject of the conversation")
-def show(subject):
-    if subject:
-        with open(os.path.join(conversations_path, sanitizeName(subject) + fileExtention), "r") as f:
-            chat = f.read()
-            print(chat)
-    else:
-        print("No subject provided")
-        return
+
         
 """
 Query the OpenAI API with the provided subject and enquiry"""
@@ -205,9 +223,12 @@ Query the OpenAI API with the provided subject and enquiry"""
 @click.option("--persona", default="Neutral", help="Subject of the conversation")
 @click.option("--engine", default=progConfig["engine"], help="Set alternative engine")
 @click.option("--temperature", default=progConfig["temperature"], help="Set alternative temperature")
+@click.option("--top-p", default=progConfig["topP"], help="Set alternative topP")
+@click.option("--frequency-penalty", default=progConfig["frequencyPenalty"], help="Set alternative frequencyPenalty")
+@click.option("--presence-penalty", default=progConfig["presencePenalty"], help="Set alternative presencePenalty")
 @click.option("--max-tokens", default=progConfig["maxTokens"], help="Set alternative maxTokens")
 @click.option("--quiet/--verbose", default=True, help="Show verbose output or just the answer")
-def query(subject, enquiry, persona,engine, temperature,max_tokens, quiet):
+def query(subject, enquiry, persona,engine, temperature,max_tokens, top_p,  frequency_penalty, presence_penalty, quiet): 
     enquiry = progConfig["userPrompt"] + enquiry
     if subject:
         with open(os.path.join(conversations_path, sanitizeName(subject) + fileExtention), "a") as f:
@@ -223,9 +244,9 @@ def query(subject, enquiry, persona,engine, temperature,max_tokens, quiet):
                 prompt=chat,
                 temperature=float(temperature),
                 max_tokens=int(max_tokens),
-                top_p=1,
-                frequency_penalty=0,
-                presence_penalty=0.6,
+                top_p=top_p,
+                frequency_penalty=frequency_penalty,
+                presence_penalty=presence_penalty,
                 stop=[ # "\n",
                  progConfig["userPrompt"], progConfig["aiPrompt"]],
             )
