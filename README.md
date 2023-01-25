@@ -10,7 +10,12 @@ To install askGPT , simply run the following command:
 ```
 pip install askGPT 
 ```
-
+or
+'''
+git clone https://github.com/meirm/askGPT.git
+cd askGPT 
+python setup.py install
+'''
 ## Usage
 
 Once installed, you can use ***askGPT***  by running the following command:
@@ -23,7 +28,7 @@ Where `<subject>` is the title used for logging the conversation and `<enquiry>`
 
 
 ## Install 
-    pip install ***askGPT*** 
+    pip install askGPT
 
 or
 
