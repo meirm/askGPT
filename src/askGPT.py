@@ -56,7 +56,8 @@ Load the configuration file from ~/.askGPT/config"""
 if os.path.isfile(os.path.join(os.getenv("HOME"), ".askGPT", "config")):
     with open(os.path.join(os.getenv("HOME"), ".askGPT", "config"), "r") as f:
         progConfig = dict()
-        for line in f.readline():
+        for line in f.readlines():
+            line = line.strip()
             if line.startswith("#") or len(line) < 3:
                 continue
             progConfig[line.split("=")[0]] = line.split("=")[1]
@@ -71,6 +72,7 @@ progConfig["temperature"] = progConfig.get("temperature","0.0")
 progConfig["topP"] = progConfig.get("topP","1")
 progConfig["frequencyPenalty"] = progConfig.get("frequencyPenalty","0.0")
 progConfig["presencePenalty"] = progConfig.get("presencePenalty","0.0")
+progConfig["showDisclaimer"] = progConfig.get("showDisclaimer","True")
 
 settingsPath=os.path.join(os.getenv("HOME"), ".askGPT")
 
@@ -121,7 +123,8 @@ personas = load_json(os.path.join(settingsPath,"personas.json"))
 @click.version_option(__version__)
 @click.pass_context
 def cli(ctx):
-    pass
+    if progConfig.get("showDisclaimer","True") == "True":
+        print(disclaimer_note)
 
 @cli.command()
 def disclaimer():
@@ -130,15 +133,16 @@ def disclaimer():
 
 
 @cli.command()
-@click.option("--user-prompt", prompt="User prompt", default=progConfig["userPrompt"], help="User prompt")
-@click.option("--ai-prompt", prompt="AI prompt", default=progConfig["aiPrompt"], help="AI prompt")
-@click.option("--max-tokens", prompt="Max tokens", type=int, default=progConfig["maxTokens"], help="Max tokens")
+@click.option("--user-prompt",  default=progConfig["userPrompt"], help="User prompt")
+@click.option("--ai-prompt", default=progConfig["aiPrompt"], help="AI prompt")
+@click.option("--max-tokens",  default=progConfig["maxTokens"], help="Max tokens")
 @click.option("--engine", default=progConfig["engine"], help="Set alternative engine")
 @click.option("--temperature", default=progConfig["temperature"], help="Set alternative temperature")
 @click.option("--top-p", default=progConfig["topP"], help="Set alternative topP")
 @click.option("--frequency-penalty", default=progConfig["frequencyPenalty"], help="Set alternative frequencyPenalty")
 @click.option("--presence-penalty", default=progConfig["presencePenalty"], help="Set alternative presencePenalty")
-def config(user_prompt, ai_prompt, max_tokens,engine, temperature, top_p, frequency_penalty, presence_penalty):
+@click.option("--show-disclaimer/--hide-disclaimer", default=progConfig["showDisclaimer"], help="Show disclaimer on startup")
+def config(user_prompt, ai_prompt, max_tokens,engine, temperature, top_p, frequency_penalty, presence_penalty, show_disclaimer):
     """
 Change config values"""
     progConfig["userPrompt"] = user_prompt
@@ -149,7 +153,10 @@ Change config values"""
     progConfig["topP"] = top_p
     progConfig["frequencyPenalty"] = frequency_penalty
     progConfig["presencePenalty"] = presence_penalty
-    show('config')
+    progConfig["showDisclaimer"] = str(show_disclaimer) == "True"
+    for conf in progConfig:
+        print(conf + "=" + str(progConfig[conf]))
+    
     with open(os.path.join(settingsPath, "config"), "w") as f:
         for key in progConfig:
             f.write(key + "=" + str(progConfig[key]) + "\n")
@@ -241,8 +248,8 @@ Delete the previous conversations saved by askGPT"""
 @click.option("--frequency-penalty", default=progConfig["frequencyPenalty"], help="Set alternative frequencyPenalty")
 @click.option("--presence-penalty", default=progConfig["presencePenalty"], help="Set alternative presencePenalty")
 @click.option("--max-tokens", default=progConfig["maxTokens"], help="Set alternative maxTokens")
-@click.option("--quiet/--verbose", default=True, help="Show verbose output or just the answer")
-def query(subject, enquiry, persona,engine, temperature,max_tokens, top_p,  frequency_penalty, presence_penalty, quiet): 
+@click.option("--verbose", is_flag=True, help="Show verbose output or just the answer")
+def query(subject, enquiry, persona,engine, temperature,max_tokens, top_p,  frequency_penalty, presence_penalty, verbose): 
     """
 Query the OpenAI API with the provided subject and enquiry"""
     enquiry = progConfig["userPrompt"] + enquiry
@@ -271,10 +278,10 @@ Query the OpenAI API with the provided subject and enquiry"""
                 ai = response.choices[0].text
                 if ai.startswith("\n\n"):
                     ai = ai[2:]
-                if quiet:
-                    print(ai)
-                else:
+                if verbose:
                     print(chat + ai)
+                else:
+                    print(ai)
                 f.close()
             except Exception as e:
                 if str(e) == "openai.error.RateLimitError":
