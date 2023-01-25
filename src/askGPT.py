@@ -28,7 +28,7 @@ __title__ = 'askGPT'
 __author__ = 'Meir Michanie'
 __license__ = 'MIT'
 __credits__ = ''
-__version__ = "0.2.6"
+__version__ = "0.2.7"
 
 import os
 import openai
