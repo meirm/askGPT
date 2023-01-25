@@ -27,7 +27,7 @@ __title__ = 'askGPT'
 __author__ = 'Meir Michanie'
 __license__ = 'MIT'
 __credits__ = ''
-__version__ = "0.2.4"
+__version__ = "0.2.5"
 
 import os
 import openai
@@ -35,6 +35,11 @@ import click
 from rich import print
 from pathlib import Path
 import json
+import backoff
+
+
+def completions_with_backoff(**kwargs):
+    return openai.Completion.create(**kwargs)
 
 """
 Load the configuration file from ~/.askGPT/config"""
@@ -239,25 +244,31 @@ def query(subject, enquiry, persona,engine, temperature,max_tokens, top_p,  freq
                 chat = progConfig["aiPrompt"] +  personas[persona]["greetings"] + "\n" + chatRaw  + enquiry + "\n" + progConfig["aiPrompt"]
             else:
                 chat = chatRaw + enquiry + "\n" + progConfig["aiPrompt"]
-            response = openai.Completion.create(
-                engine=engine,
-                prompt=chat,
-                temperature=float(temperature),
-                max_tokens=int(max_tokens),
-                top_p=int(top_p),
-                frequency_penalty=float(frequency_penalty),
-                presence_penalty=float(presence_penalty),
-                stop=[ # "\n",
-                 progConfig["userPrompt"], progConfig["aiPrompt"]],
-            )
-            ai = response.choices[0].text
-            if ai.startswith("\n\n"):
-                ai = ai[2:]
-            if quiet:
-                print(ai)
-            else:
-                print(chat + ai)
-            f.close()
+            try:
+                response = completions_with_backoff(
+                    engine=engine,
+                    prompt=chat,
+                    temperature=float(temperature),
+                    max_tokens=int(max_tokens),
+                    top_p=int(top_p),
+                    frequency_penalty=float(frequency_penalty),
+                    presence_penalty=float(presence_penalty),
+                    stop=[ # "\n",
+                    progConfig["userPrompt"], progConfig["aiPrompt"]],
+                )
+                ai = response.choices[0].text
+                if ai.startswith("\n\n"):
+                    ai = ai[2:]
+                if quiet:
+                    print(ai)
+                else:
+                    print(chat + ai)
+                f.close()
+            except Exception as e:
+                if str(e) == "openai.error.RateLimitError":
+                    print("Error: Too many requests. Please wait a few minutes and try again")
+                print("Error: " + str(e))
+                return
         with open(os.path.join(conversations_path, sanitizeName(subject) + fileExtention), "a") as f:
             f.write(enquiry) 
             f.write("\n")
