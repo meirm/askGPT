@@ -1,1 +1,3 @@
-python setup.py build_ext --inplace
+## Upcomming features:
+* Language support
+* Create avatars

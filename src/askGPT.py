@@ -27,7 +27,7 @@ __title__ = 'askGPT'
 __author__ = 'Meir Michanie'
 __license__ = 'MIT'
 __credits__ = ''
-__version__ = "0.2.5"
+__version__ = "0.2.6"
 
 import os
 import openai
@@ -38,6 +38,7 @@ import json
 import backoff
 import time
 
+disclaimer_note = "Disclaimer: The advice provided by askGPT is intended for informational and entertainment purposes only. It should not be used as a substitute for professional advice, and we cannot be held liable for any damages or losses arising from the use of the advice provided by askGPT."
 
 # Calculate the delay based on your rate limit
 rate_limit_per_minute = 20
@@ -121,6 +122,10 @@ personas = load_json(os.path.join(settingsPath,"personas.json"))
 def cli(ctx):
     pass
 
+@cli.command()
+def disclaimer():
+    """Show the disclaimer"""
+    print(disclaimer_note)
 
 """
 Change config values"""
@@ -160,9 +165,7 @@ def show(whattoshow, subject):
                 print(key + "=" + str(progConfig[key]))
         elif whattoshow == "subjects":
             print("Current subjects:")
-            for subject in os.listdir(os.path.join(settingsPath, 'conversations')):
-                if os.path.isfile(os.path.join(settingsPath, 'conversations', subject)):
-                    subject = subject.replace(fileExtention,"")
+            for subject in get_list():
                     print(subject)
         elif whattoshow == 'personas':
             print("Current personas:")
@@ -195,12 +198,6 @@ def credentials():
         f.write(openai.api_key + ":" + openai.organization)
     print("askGPT is now ready to use")
 
-
-"""
-Print the previous conversations saved by askGPT."""
-@cli.command()
-def List():
-    print(get_list())
 
 """
 list the previous conversations saved by askGPT."""

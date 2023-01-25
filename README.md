@@ -1,6 +1,9 @@
 askGPT
 ======
 
+***Disclaimer***: The advice provided by askGPT is intended for informational and entertainment purposes only. It should not be used as a substitute for professional advice, and we cannot be held liable for any
+damages or losses arising from the use of the advice provided by askGPT.
+
 ***askGPT***  is a command line program written in Python that allows you to query the chatGPT API. It keeps track of conversations and has a set of personas to focus the conversation.
 
 ## Installation
@@ -10,7 +13,7 @@ To install askGPT , simply run the following command:
 ```
 pip install askGPT 
 ```
-or
+or for cutting edge code, not to be used in production:
 ```
 git clone https://github.com/meirm/askGPT.git
 cd askGPT 
@@ -49,6 +52,8 @@ or
     AI: 
     I believe in the power of knowledge and understanding. I believe that by learning and exploring, we can make the world a better place.
 ## Usage
+    
+    askGPT  disclaimer
     
     askGPT  query --subject <subject> --enquiry <enquiry>
 
