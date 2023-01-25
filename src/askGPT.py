@@ -28,7 +28,7 @@ __title__ = 'askGPT'
 __author__ = 'Meir Michanie'
 __license__ = 'MIT'
 __credits__ = ''
-__version__ = "0.2.7"
+__version__ = "0.3.0"
 
 import os
 import openai
@@ -38,7 +38,7 @@ from pathlib import Path
 import json
 import backoff
 import time
-
+import toml
 disclaimer_note = "Disclaimer: The advice provided by askGPT is intended for informational and entertainment purposes only. It should not be used as a substitute for professional advice, and we cannot be held liable for any damages or losses arising from the use of the advice provided by askGPT."
 
 # Calculate the delay based on your rate limit
@@ -51,18 +51,15 @@ def completions_with_backoff(delay_in_seconds: float = 1,**kwargs):
     time.sleep(delay_in_seconds)
     return openai.Completion.create(**kwargs)
 
+
+settingsPath=os.path.join(os.getenv("HOME"), ".askGPT")
 """
-Load the configuration file from ~/.askGPT/config"""
-if os.path.isfile(os.path.join(os.getenv("HOME"), ".askGPT", "config")):
-    with open(os.path.join(os.getenv("HOME"), ".askGPT", "config"), "r") as f:
-        progConfig = dict()
-        for line in f.readlines():
-            line = line.strip()
-            if line.startswith("#") or len(line) < 3:
-                continue
-            progConfig[line.split("=")[0]] = line.split("=")[1]
-else:
-    progConfig = dict()
+Load the configuration file from ~/.askGPT/config.toml"""
+progConfig = dict()
+if os.path.isfile(os.path.join(settingsPath, "config.toml")):
+    tomlConfig = toml.load(os.path.join(settingsPath,"config.toml"))
+    progConfig = tomlConfig["default"]
+    
 
 progConfig["userPrompt"] = progConfig.get("userPrompt"," Human: ")
 progConfig["aiPrompt"] = progConfig.get("aiPrompt"," AI: ")
@@ -72,9 +69,8 @@ progConfig["temperature"] = progConfig.get("temperature","0.0")
 progConfig["topP"] = progConfig.get("topP","1")
 progConfig["frequencyPenalty"] = progConfig.get("frequencyPenalty","0.0")
 progConfig["presencePenalty"] = progConfig.get("presencePenalty","0.0")
-progConfig["showDisclaimer"] = progConfig.get("showDisclaimer","True")
+progConfig["showDisclaimer"] = progConfig.get("showDisclaimer",True)
 
-settingsPath=os.path.join(os.getenv("HOME"), ".askGPT")
 
 conversations_path=os.path.join(settingsPath, "conversations")
 Path(conversations_path).mkdir(parents=True, exist_ok=True)
@@ -95,6 +91,7 @@ else:
         print("Or create a file at ~/.askGPT/credentials with the following format:")
         print("OPENAI_API_KEY:OPENAI_ORGANIZATION")
         exit(1)
+
 
 
 def sanitizeName(name):
@@ -135,12 +132,12 @@ def disclaimer():
 @cli.command()
 @click.option("--user-prompt",  default=progConfig["userPrompt"], help="User prompt")
 @click.option("--ai-prompt", default=progConfig["aiPrompt"], help="AI prompt")
-@click.option("--max-tokens",  default=progConfig["maxTokens"], help="Max tokens")
 @click.option("--engine", default=progConfig["engine"], help="Set alternative engine")
-@click.option("--temperature", default=progConfig["temperature"], help="Set alternative temperature")
-@click.option("--top-p", default=progConfig["topP"], help="Set alternative topP")
-@click.option("--frequency-penalty", default=progConfig["frequencyPenalty"], help="Set alternative frequencyPenalty")
-@click.option("--presence-penalty", default=progConfig["presencePenalty"], help="Set alternative presencePenalty")
+@click.option("--temperature", default=progConfig["temperature"], type=float, help="Set alternative temperature")
+@click.option("--top-p", default=progConfig["topP"], type=int, help="Set alternative topP")
+@click.option("--frequency-penalty", default=progConfig["frequencyPenalty"], type=float, help="Set alternative frequencyPenalty")
+@click.option("--presence-penalty", default=progConfig["presencePenalty"], type=float, help="Set alternative presencePenalty")
+@click.option("--max-tokens", default=progConfig["maxTokens"], type=int, help="Set alternative maxTokens")
 @click.option("--show-disclaimer/--hide-disclaimer", default=progConfig["showDisclaimer"], help="Show disclaimer on startup")
 def config(user_prompt, ai_prompt, max_tokens,engine, temperature, top_p, frequency_penalty, presence_penalty, show_disclaimer):
     """
@@ -153,13 +150,11 @@ Change config values"""
     progConfig["topP"] = top_p
     progConfig["frequencyPenalty"] = frequency_penalty
     progConfig["presencePenalty"] = presence_penalty
-    progConfig["showDisclaimer"] = str(show_disclaimer) == "True"
+    progConfig["showDisclaimer"] = show_disclaimer
     for conf in progConfig:
         print(conf + "=" + str(progConfig[conf]))
-    
-    with open(os.path.join(settingsPath, "config"), "w") as f:
-        for key in progConfig:
-            f.write(key + "=" + str(progConfig[key]) + "\n")
+    with open(os.path.join(settingsPath,"config.toml"), 'w') as f:
+        toml.dump({'name':'askGPT','default':progConfig},f)
         
 
 @cli.command()
@@ -243,11 +238,11 @@ Delete the previous conversations saved by askGPT"""
 @click.option("--enquiry", prompt="Enquiry", help="Your question")
 @click.option("--persona", default="Neutral", help="Subject of the conversation")
 @click.option("--engine", default=progConfig["engine"], help="Set alternative engine")
-@click.option("--temperature", default=progConfig["temperature"], help="Set alternative temperature")
-@click.option("--top-p", default=progConfig["topP"], help="Set alternative topP")
-@click.option("--frequency-penalty", default=progConfig["frequencyPenalty"], help="Set alternative frequencyPenalty")
-@click.option("--presence-penalty", default=progConfig["presencePenalty"], help="Set alternative presencePenalty")
-@click.option("--max-tokens", default=progConfig["maxTokens"], help="Set alternative maxTokens")
+@click.option("--temperature", default=progConfig["temperature"], type=float, help="Set alternative temperature")
+@click.option("--top-p", default=progConfig["topP"], type=int, help="Set alternative topP")
+@click.option("--frequency-penalty", default=progConfig["frequencyPenalty"], type=float, help="Set alternative frequencyPenalty")
+@click.option("--presence-penalty", default=progConfig["presencePenalty"], type=float, help="Set alternative presencePenalty")
+@click.option("--max-tokens", default=progConfig["maxTokens"], type=int, help="Set alternative maxTokens")
 @click.option("--verbose", is_flag=True, help="Show verbose output or just the answer")
 def query(subject, enquiry, persona,engine, temperature,max_tokens, top_p,  frequency_penalty, presence_penalty, verbose): 
     """
@@ -267,11 +262,11 @@ Query the OpenAI API with the provided subject and enquiry"""
                     delay_in_seconds=delay,
                     engine=engine,
                     prompt=chat,
-                    temperature=float(temperature),
-                    max_tokens=int(max_tokens),
-                    top_p=int(top_p),
-                    frequency_penalty=float(frequency_penalty),
-                    presence_penalty=float(presence_penalty),
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    top_p=top_p,
+                    frequency_penalty=frequency_penalty,
+                    presence_penalty=presence_penalty,
                     stop=[ # "\n",
                     progConfig["userPrompt"], progConfig["aiPrompt"]],
                 )

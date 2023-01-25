@@ -22,7 +22,9 @@ setup(
     install_requires=[
         'Click',
         'rich',
-        'openai'
+        'openai',
+        'backoff',
+        'toml'
     ],
     include_package_data=True,
     include_dirs=[

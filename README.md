@@ -54,7 +54,7 @@ or
 ## Usage
     
     askGPT  disclaimer
-    
+
     askGPT  query --subject <subject> --enquiry <enquiry>
 
     askGPT  list
@@ -73,16 +73,24 @@ or
     
 
     
-### Options
-    -h --help     Show this screen.
+### Configuration
 
-    --version     Show version.
-    
-    --subject     Subject of the conversation
-    
-    --enquiry     Your question
-    
-    --all         Delete all archived conversations
+***askGPT*** will create a config.toml on your .askGPT folder. You can see or change values calling ***askGPT*** config
+The content of the file by default is the following:
+```
+name = "askGPT"
+
+[default]
+userPrompt = " Human: "
+aiPrompt = " AI: "
+maxTokens = 150
+engine = "text-davinci-003"
+temperature = 0.0
+topP = 1
+frequencyPenalty = 0.0
+presencePenalty = 0.0
+showDisclaimer = true
+```
     
 ## Personas
 

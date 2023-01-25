@@ -1,4 +1,0 @@
-userPrompt= " Human: "
-aiPrompt=" AI: "
-maxTokens=150
-engine="text-davinci-003"
