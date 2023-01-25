@@ -73,8 +73,6 @@ or
     
     --all         Delete all archived conversations
     
-
-## Personas
 ## Personas
 
 askGPT allows you to use personas to focus the conversation. Personas are defined as follows:
