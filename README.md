@@ -84,7 +84,7 @@ or
 
     askGPT  list
     
-    askGPT  show  <config|personas|subjects|engines>
+    askGPT  show  <config|personas|subjects|models>
 
     askGPT  show subject <subject>
     
@@ -110,7 +110,7 @@ name = "askGPT"
 userPrompt = " Human: "
 aiPrompt = " AI: "
 maxTokens = 150
-engine = "text-davinci-003"
+model = "text-davinci-003"
 temperature = 0.0
 topP = 1
 frequencyPenalty = 0.0
