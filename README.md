@@ -132,6 +132,7 @@ retryMaxDelay = 60.0
 * VocationalTest
 * PersonalityAssessment
 * DiaryAssistance
+* veganCheff
 
 In the git repository under ***config*** you can find a file named ***personas.json*** 
 

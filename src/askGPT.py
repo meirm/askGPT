@@ -112,7 +112,7 @@ personas = load_json(os.path.join(settingsPath,"personas.json"))
 @click.version_option(__version__)
 @click.pass_context
 def cli(ctx):
-    if progConfig.get("showDisclaimer","True") == "True":
+    if progConfig.get("showDisclaimer",True):
         print(disclaimer_note)
 
 @cli.command()
@@ -154,10 +154,10 @@ Change config values"""
     progConfig["retryMultiplier"] = retry_multiplier
     progConfig["retryMaxDelay"] = retry_max_delay
 
-    for conf in progConfig:
-        print(conf + "=" + str(progConfig[conf]))
+    jsonConfig = {'name':'askGPT','default':progConfig}
+    print(toml.dumps(jsonConfig))
     with open(os.path.join(settingsPath,"config.toml"), 'w') as f:
-        toml.dump({'name':'askGPT','default':progConfig},f)
+        toml.dump(jsonConfig,f)
         
 
 @cli.command()
