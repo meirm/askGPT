@@ -3,5 +3,6 @@ __pycache__
 venv/
 build/
 dist/
-MyNotes.*
+MyNotes.pdf
+MyNotes.md
 docs/

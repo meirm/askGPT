@@ -8,7 +8,7 @@ __title__ = 'askGPT'
 __author__ = 'Meir Michanie'
 __license__ = 'MIT'
 __credits__ = ''
-__version__ = "0.3.3"
+__version__ = "0.3.4"
 
 import os
 import openai
@@ -223,7 +223,7 @@ def show(config, whattoshow, subject):
                 print(persona)
         elif whattoshow == 'engines':
             print("Current engines:")
-            for engine in openai.Engine.list():
+            for engine in openai.Model.list().data:
                 print(engine.id)
         else:
             print("Please specify what to show. Valid options are: config, subjects, personas, subject")
