@@ -1,5 +1,28 @@
 askGPT
 ======
+```
+                           :|11;                             _     ____ ____ _____
+                          20;::20                   __ _ ___| | __/ ___|  _ \_   _|
+                          10|:;2$                  / _` / __| |/ / |  _| |_) || |
+                            |&2'                  | (_| \__ \   <| |_| |  __/ | |
+                '''''''''''':&1 '''''''''''        \__,_|___/_|\_\\____|_|    |_|
+             |21111111111111111111111111111121
+            18:                              20
+            0$     ';;;             :;;:     |&:
+         2218$    22|;101         :01;;10:   |&12
+        :&; $$    82:':02         ;8|''|8;   |&
+        :&; $$     ;111:           '|11|'    |&
+         1218$           :211|112|           |&22
+            $$             ':::'             |&:
+            18;                             '$$
+             ;2212:    ';11111111111111111112|
+                 82 ;1221:
+                 0021;
+                 ''
+ 
+                                                            
+
+ ```
 
 ***Disclaimer***: The advice provided by askGPT is intended for informational and entertainment purposes only. It should not be used as a substitute for professional advice, and we cannot be held liable for any
 damages or losses arising from the use of the advice provided by askGPT.
@@ -93,9 +116,26 @@ topP = 1
 frequencyPenalty = 0.0
 presencePenalty = 0.0
 showDisclaimer = true
+maxRetries = 3
+retryDelay = 5.0
+retryMultiplier = 2.0
+retryMaxDelay = 60.0
+
 ```
     
 ## Personas
+***askGPT*** repository includes a sample of several personas which you can use to preset your bot.
+* Doctor
+* Psychotherapist
+* Lawyer
+* Marv (from The HitchHicker guide to the galaxy)
+* VocationalTest
+* PersonalityAssessment
+* DiaryAssistance
+
+In the git repository under ***config*** you can find a file named ***personas.json*** 
+
+copy this file to ***.askGPT*** directory
 
 ***askGPT***  allows you to use personas to focus the conversation. Personas are defined as follows:
 
@@ -126,6 +166,8 @@ In order to communicate with openai API you need to register at https://www.open
 simply run `pip install askGPT ` and you're ready to go. Authentication requires an API key and organization code from OpenAI. With ***askGPT*** , you can easily query the chatGPT API and have meaningful conversations with AI. 
 You can also list the personas, list conversations, show the content of a conversation, delete it, and fine tune parameters such as temperature for more personalized conversations.
 
+## Contributing
+Please keep sending us new persona's pull request and help us write documentation and tutorials.
 ## Next
 
 * Adding support for other languages.

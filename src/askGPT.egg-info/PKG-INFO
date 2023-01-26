@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: askGPT
-Version: 0.3.1
+Version: 0.3.2
 Summary: askGPT is a simple command line tool for interacting with OpenAI's API.
 Home-page: https://www.github.com/meirm/askGPT.git
 Author: Meir Michanie
@@ -20,6 +20,29 @@ License-File: LICENSE
 
 askGPT
 ======
+```
+                           :|11;                             _     ____ ____ _____
+                          20;::20                   __ _ ___| | __/ ___|  _ \_   _|
+                          10|:;2$                  / _` / __| |/ / |  _| |_) || |
+                            |&2'                  | (_| \__ \   <| |_| |  __/ | |
+                '''''''''''':&1 '''''''''''        \__,_|___/_|\_\\____|_|    |_|
+             |21111111111111111111111111111121
+            18:                              20
+            0$     ';;;             :;;:     |&:
+         2218$    22|;101         :01;;10:   |&12
+        :&; $$    82:':02         ;8|''|8;   |&
+        :&; $$     ;111:           '|11|'    |&
+         1218$           :211|112|           |&22
+            $$             ':::'             |&:
+            18;                             '$$
+             ;2212:    ';11111111111111111112|
+                 82 ;1221:
+                 0021;
+                 ''
+ 
+                                                            
+
+ ```
 
 ***Disclaimer***: The advice provided by askGPT is intended for informational and entertainment purposes only. It should not be used as a substitute for professional advice, and we cannot be held liable for any
 damages or losses arising from the use of the advice provided by askGPT.
@@ -113,6 +136,10 @@ topP = 1
 frequencyPenalty = 0.0
 presencePenalty = 0.0
 showDisclaimer = true
+maxRetries = 3
+retryDelay = 5
+retryPenaltyDecay = 2
+
 ```
     
 ## Personas

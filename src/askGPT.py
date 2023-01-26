@@ -1,35 +1,14 @@
 #!/usr/bin/env python
 """
 askGPT is a simple command line tool for interacting with OpenAI's API.
-
-Usage:
-    askGPT disclaimer 
-    askGPT edit --subject <subject>
-    askGPT query --subject <subject> --enquiry <enquiry>
-    askGPT show <config|personas|subjects|engines> 
-    askGPT show subject <subject>
-    askGPT delete --subject <subject>
-    askGPT delete --all
-    askGPT config
-    askGPT credentials
-
-    
-Options:
-    -h --help     Show this screen.
-    --version     Show version.
-    --subject     Subject of the conversation
-    --enquiry     Your question
-    --all         Delete all archived conversations
-    
-Author: Meir Michanie <meirm@riunx.com>
-License: MIT
+It is based on the example provided by OpenAI at https://beta.openai.com/docs/developer-quickstart/1-introduction
 Date: 2023/01/23
 """
 __title__ = 'askGPT'
 __author__ = 'Meir Michanie'
 __license__ = 'MIT'
 __credits__ = ''
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 
 import os
 import openai
@@ -71,6 +50,11 @@ progConfig["topP"] = progConfig.get("topP","1")
 progConfig["frequencyPenalty"] = progConfig.get("frequencyPenalty","0.0")
 progConfig["presencePenalty"] = progConfig.get("presencePenalty","0.0")
 progConfig["showDisclaimer"] = progConfig.get("showDisclaimer",True)
+progConfig["maxRetries"] = progConfig.get("maxRetries",3)
+progConfig["retryDelay"] = progConfig.get("retryDelay",15.0)
+progConfig["retryMaxDelay"] = progConfig.get("retryMaxDelay",60)
+progConfig["retryMultiplier"] = progConfig.get("retryMultiplier",2)
+
 
 
 conversations_path=os.path.join(settingsPath, "conversations")
@@ -140,7 +124,13 @@ def disclaimer():
 @click.option("--presence-penalty", default=progConfig["presencePenalty"], type=float, help="Set alternative presencePenalty")
 @click.option("--max-tokens", default=progConfig["maxTokens"], type=int, help="Set alternative maxTokens")
 @click.option("--show-disclaimer/--hide-disclaimer", default=progConfig["showDisclaimer"], help="Show disclaimer on startup")
-def config(user_prompt, ai_prompt, max_tokens,engine, temperature, top_p, frequency_penalty, presence_penalty, show_disclaimer):
+@click.option("--max-retries", default=progConfig["maxRetries"], type=int, help="Set alternative maxRetries")
+@click.option("--retry_delay", default=progConfig["retryDelay"], type=float, help="seconds between retries")
+@click.option("--retry-multiplier", default=progConfig["retryMultiplier"], type=float, help="multiplier")
+@click.option("--retry-max-delay", default=progConfig["retryMaxDelay"], type=float, help="max delay between retries")
+def config(user_prompt, ai_prompt, max_tokens,engine, temperature, top_p, 
+frequency_penalty, presence_penalty, show_disclaimer,max_retries,
+retry_delay,retry_multiplier,retry_max_delay):
     """
 Change config values"""
     progConfig["userPrompt"] = user_prompt
@@ -152,6 +142,11 @@ Change config values"""
     progConfig["frequencyPenalty"] = frequency_penalty
     progConfig["presencePenalty"] = presence_penalty
     progConfig["showDisclaimer"] = show_disclaimer
+    progConfig["maxRetries"] = max_retries
+    progConfig["retryDelay"] = retry_delay
+    progConfig["retryMultiplier"] = retry_multiplier
+    progConfig["retryMaxDelay"] = retry_max_delay
+
     for conf in progConfig:
         print(conf + "=" + str(progConfig[conf]))
     with open(os.path.join(settingsPath,"config.toml"), 'w') as f:
@@ -260,7 +255,10 @@ Delete the previous conversations saved by askGPT"""
 @click.option("--presence-penalty", default=progConfig["presencePenalty"], type=float, help="Set alternative presencePenalty")
 @click.option("--max-tokens", default=progConfig["maxTokens"], type=int, help="Set alternative maxTokens")
 @click.option("--verbose", is_flag=True, help="Show verbose output or just the answer")
-def query(subject, enquiry, persona,engine, temperature,max_tokens, top_p,  frequency_penalty, presence_penalty, verbose): 
+@click.option("--save/--no-save", default=True, help="Save the conversation")
+@click.option("--retry", is_flag=True, help="In case of error retry the post.")
+
+def query(subject, enquiry, persona,engine, temperature,max_tokens, top_p,  frequency_penalty, presence_penalty, verbose, save, retry): 
     """
 Query the OpenAI API with the provided subject and enquiry"""
     enquiry = progConfig["userPrompt"] + enquiry
@@ -273,38 +271,56 @@ Query the OpenAI API with the provided subject and enquiry"""
                 chat = progConfig["aiPrompt"] +  personas[persona]["greetings"] + "\n" + chatRaw  + enquiry + "\n" + progConfig["aiPrompt"]
             else:
                 chat = chatRaw + enquiry + "\n" + progConfig["aiPrompt"]
-            try:
-                response = completions_with_backoff(
-                    delay_in_seconds=delay,
-                    engine=engine,
-                    prompt=chat,
-                    temperature=temperature,
-                    max_tokens=max_tokens,
-                    top_p=top_p,
-                    frequency_penalty=frequency_penalty,
-                    presence_penalty=presence_penalty,
-                    stop=[ # "\n",
-                    progConfig["userPrompt"], progConfig["aiPrompt"]],
-                )
-                ai = response.choices[0].text
-                if ai.startswith("\n\n"):
-                    ai = ai[2:]
-                if verbose:
-                    print(chat + ai)
-                else:
-                    print(ai)
+            tries = 1
+            if retry:
+                tries = progConfig["maxRetries"]
+            success = False
+            sleepBetweenRetries = progConfig["retryDelay"]
+            while tries > 0:
+                try:
+                    response = completions_with_backoff(
+                        delay_in_seconds=delay,
+                        engine=engine,
+                        prompt=chat,
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                        top_p=top_p,
+                        frequency_penalty=frequency_penalty,
+                        presence_penalty=presence_penalty,
+                        stop=[ # "\n",
+                        progConfig["userPrompt"], progConfig["aiPrompt"]],
+                    )
+                    ai = response.choices[0].text
+                    if ai.startswith("\n\n"):
+                        ai = ai[2:]
+                    if verbose:
+                        print(chat + ai)
+                    else:
+                        print(ai)
+                    f.close()
+                    success = True
+                    break
+                except Exception as e:
+                    tries -= 1
+
+                    if str(e) == "openai.error.RateLimitError":
+                        print("Error: Too many requests. We will try again")
+                    print("Error: " + str(e))
+                    print(f"Retrying again in {sleepBetweenRetries} seconds...")
+                    time.sleep(sleepBetweenRetries)
+                    sleepBetweenRetries *= progConfig["retryMultiplier"] 
+                    if sleepBetweenRetries > progConfig["retryMaxDelay"]:
+                        sleepBetweenRetries = progConfig["retryMaxDelay"]
+        if success == False:
+            print("Error: Too many requests. Please wait a few minutes and try again")
+            return
+        if save:               
+            with open(os.path.join(conversations_path, sanitizeName(subject) + fileExtention), "a") as f:
+                f.write(enquiry) 
+                f.write("\n")
+                f.write(progConfig["aiPrompt"] + ai)
+                f.write("\n")
                 f.close()
-            except Exception as e:
-                if str(e) == "openai.error.RateLimitError":
-                    print("Error: Too many requests. Please wait a few minutes and try again")
-                print("Error: " + str(e))
-                return
-        with open(os.path.join(conversations_path, sanitizeName(subject) + fileExtention), "a") as f:
-            f.write(enquiry) 
-            f.write("\n")
-            f.write(progConfig["aiPrompt"] + ai)
-            f.write("\n")
-            f.close()
     else:
         print("No subject provided")
         return
