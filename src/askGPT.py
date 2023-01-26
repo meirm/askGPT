@@ -223,8 +223,8 @@ def show(config, whattoshow, subject):
                 print(persona)
         elif whattoshow == 'models':
             print("Current models:")
-            for model in openai.Model.list().data:
-                print(model.id)
+            for model in sorted(list(map(lambda n: n.id,openai.Model.list().data))):
+                print(model)
         else:
             print("Please specify what to show. Valid options are: config, subjects, personas, subject")
             print("In case of passing the option 'subject' please pass as well the subject's name")
