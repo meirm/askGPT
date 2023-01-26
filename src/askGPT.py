@@ -25,7 +25,7 @@ basicConfig = dict()
 basicConfig["userPrompt"] = basicConfig.get("userPrompt"," Human: ")
 basicConfig["aiPrompt"] = basicConfig.get("aiPrompt"," AI: ")
 basicConfig["maxTokens"] = basicConfig.get("maxTokens","150")
-basicConfig["engine"] = basicConfig.get("engine","text-davinci-003")
+basicConfig["model"] = basicConfig.get("model","text-davinci-003")
 basicConfig["temperature"] = basicConfig.get("temperature","0.0")
 basicConfig["topP"] = basicConfig.get("topP","1")
 basicConfig["frequencyPenalty"] = basicConfig.get("frequencyPenalty","0.0")
@@ -61,7 +61,7 @@ class Config(object):
         self.progConfig["userPrompt"] = self.progConfig.get("userPrompt"," Human: ")
         self.progConfig["aiPrompt"] = self.progConfig.get("aiPrompt"," AI: ")
         self.progConfig["maxTokens"] = self.progConfig.get("maxTokens","150")
-        self.progConfig["engine"] = self.progConfig.get("engine","text-davinci-003")
+        self.progConfig["model"] = self.progConfig.get("model","text-davinci-003")
         self.progConfig["temperature"] = self.progConfig.get("temperature","0.0")
         self.progConfig["topP"] = self.progConfig.get("topP","1")
         self.progConfig["frequencyPenalty"] = self.progConfig.get("frequencyPenalty","0.0")
@@ -151,7 +151,7 @@ def disclaimer(config):
 @pass_config
 @click.option("--user-prompt",  default=basicConfig["userPrompt"], help="User prompt")
 @click.option("--ai-prompt", default=basicConfig["aiPrompt"], help="AI prompt")
-@click.option("--engine", default=basicConfig["engine"], help="Set alternative engine")
+@click.option("--model", default=basicConfig["model"], help="Set alternative model")
 @click.option("--temperature", default=basicConfig["temperature"], type=float, help="Set alternative temperature")
 @click.option("--top-p", default=basicConfig["topP"], type=int, help="Set alternative topP")
 @click.option("--frequency-penalty", default=basicConfig["frequencyPenalty"], type=float, help="Set alternative frequencyPenalty")
@@ -162,7 +162,7 @@ def disclaimer(config):
 @click.option("--retry_delay", default=basicConfig["retryDelay"], type=float, help="seconds between retries")
 @click.option("--retry-multiplier", default=basicConfig["retryMultiplier"], type=float, help="multiplier")
 @click.option("--retry-max-delay", default=basicConfig["retryMaxDelay"], type=float, help="max delay between retries")
-def config(config, user_prompt, ai_prompt, max_tokens,engine, temperature, top_p, 
+def config(config, user_prompt, ai_prompt, max_tokens,model, temperature, top_p, 
 frequency_penalty, presence_penalty, show_disclaimer,max_retries,
 retry_delay,retry_multiplier,retry_max_delay):
     """
@@ -170,7 +170,7 @@ Change config values"""
     config.progConfig["userPrompt"] = user_prompt
     config.progConfig["aiPrompt"] = ai_prompt
     config.progConfig["maxTokens"] = max_tokens
-    config.progConfig["engine"] = engine
+    config.progConfig["model"] = model
     config.progConfig["temperature"] = temperature
     config.progConfig["topP"] = top_p
     config.progConfig["frequencyPenalty"] = frequency_penalty
@@ -221,10 +221,10 @@ def show(config, whattoshow, subject):
             print("Current personas:")
             for persona in config.personas.keys():
                 print(persona)
-        elif whattoshow == 'engines':
-            print("Current engines:")
-            for engine in openai.Model.list().data:
-                print(engine.id)
+        elif whattoshow == 'models':
+            print("Current models:")
+            for model in openai.Model.list().data:
+                print(model.id)
         else:
             print("Please specify what to show. Valid options are: config, subjects, personas, subject")
             print("In case of passing the option 'subject' please pass as well the subject's name")
@@ -286,7 +286,7 @@ Delete the previous conversations saved by askGPT"""
 @click.option("--subject", prompt="Subject", help="Subject of the conversation")
 @click.option("--enquiry", prompt="Enquiry", help="Your question")
 @click.option("--persona", default="Neutral", help="Persona to use in the conversation")
-@click.option("--engine", default=basicConfig["engine"], help="Set alternative engine")
+@click.option("--model", default=basicConfig["model"], help="Set alternative model")
 @click.option("--temperature", default=basicConfig["temperature"], type=float, help="Set alternative temperature")
 @click.option("--top-p", default=basicConfig["topP"], type=int, help="Set alternative topP")
 @click.option("--frequency-penalty", default=basicConfig["frequencyPenalty"], type=float, help="Set alternative frequencyPenalty")
@@ -296,7 +296,7 @@ Delete the previous conversations saved by askGPT"""
 @click.option("--save/--no-save", default=True, help="Save the conversation")
 @click.option("--retry", is_flag=True, help="In case of error retry the post.")
 
-def query(config, subject, enquiry, persona,engine, temperature,max_tokens, top_p,  frequency_penalty, presence_penalty, verbose, save, retry): 
+def query(config, subject, enquiry, persona,model, temperature,max_tokens, top_p,  frequency_penalty, presence_penalty, verbose, save, retry): 
     """
 Query the OpenAI API with the provided subject and enquiry"""
     enquiry = config.progConfig["userPrompt"] + enquiry
@@ -318,7 +318,7 @@ Query the OpenAI API with the provided subject and enquiry"""
                 try:
                     response = completions_with_backoff(
                         delay_in_seconds=config.delay,
-                        engine=engine,
+                        model=model,
                         prompt=chat,
                         temperature=temperature,
                         max_tokens=max_tokens,
