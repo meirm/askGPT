@@ -19,11 +19,19 @@ import json
 import backoff
 import time
 import toml
+import sys
+
 disclaimer_note = "Disclaimer: The advice provided by askGPT is intended for informational and entertainment purposes only. It should not be used as a substitute for professional advice, and we cannot be held liable for any damages or losses arising from the use of the advice provided by askGPT."
 
 # Calculate the delay based on your rate limit
 rate_limit_per_minute = 20
 delay = 60.0 / rate_limit_per_minute
+
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+
 
 def completions_with_backoff(delay_in_seconds: float = 1,**kwargs):
     """Delay a completion by a specified amount of time."""
@@ -56,7 +64,6 @@ progConfig["retryMaxDelay"] = progConfig.get("retryMaxDelay",60)
 progConfig["retryMultiplier"] = progConfig.get("retryMultiplier",2)
 
 
-
 conversations_path=os.path.join(settingsPath, "conversations")
 Path(conversations_path).mkdir(parents=True, exist_ok=True)
 fileExtention=".ai.txt"
@@ -72,9 +79,9 @@ else:
             openai.api_key = credentials.split(":")[0]
             openai.organization = credentials.split(":")[1].strip()
     else:
-        print("Please set OPENAI_API_KEY and OPENAI_ORGANIZATION environment variables.")
-        print("Or create a file at ~/.askGPT/credentials with the following format:")
-        print("OPENAI_API_KEY:OPENAI_ORGANIZATION")
+        eprint("Please set OPENAI_API_KEY and OPENAI_ORGANIZATION environment variables.")
+        eprint("Or create a file at ~/.askGPT/credentials with the following format:")
+        eprint("OPENAI_API_KEY:OPENAI_ORGANIZATION")
         exit(1)
 
 
@@ -198,7 +205,7 @@ def show(whattoshow, subject):
             with open(os.path.join(settingsPath, 'conversations', subject + fileExtention), 'r') as f:
                 print(f.read())
         else:
-            print("Subject not found")
+            eprint("Subject not found")
 
 
 @cli.command()
@@ -238,7 +245,7 @@ Delete the previous conversations saved by askGPT"""
     elif subject and os.path.isfile(os.path.join(conversations_path,sanitizeName(subject) + fileExtention)):
         os.remove(os.path.join(conversations_path, subject + fileExtention))
     else:
-        print("No chat history with that subject")
+        eprint("No chat history with that subject")
         return
 
 
@@ -304,15 +311,15 @@ Query the OpenAI API with the provided subject and enquiry"""
                     tries -= 1
 
                     if str(e) == "openai.error.RateLimitError":
-                        print("Error: Too many requests. We will try again")
-                    print("Error: " + str(e))
-                    print(f"Retrying again in {sleepBetweenRetries} seconds...")
+                        eprint("Error: Too many requests. We will try again")
+                    eprint("Error: " + str(e))
+                    eprint(f"Retrying again in {sleepBetweenRetries} seconds...")
                     time.sleep(sleepBetweenRetries)
                     sleepBetweenRetries *= progConfig["retryMultiplier"] 
                     if sleepBetweenRetries > progConfig["retryMaxDelay"]:
                         sleepBetweenRetries = progConfig["retryMaxDelay"]
         if success == False:
-            print("Error: Too many requests. Please wait a few minutes and try again")
+            eprint("Error: Too many requests. Please wait a few minutes and try again")
             return
         if save:               
             with open(os.path.join(conversations_path, sanitizeName(subject) + fileExtention), "a") as f:
