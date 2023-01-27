@@ -1,20 +1,38 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "askGPT"
-version = "0.3.4"
+version = "0.4.0"
 authors = [
   { name="Meir Michanie", email="meirm@riunx.com" },
 ]
 description = "askGPT is a simple command line tool for interacting with OpenAI's API."
 readme = "README.md"
 requires-python = ">=3.7"
+keywords = [
+  "openai",
+  "gpt-3",
+  "cli"
+  ]
+
+dependencies = [
+'openai',
+'toml',
+'click',
+'rich',
+'backoff'
+]
+        
 classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Intended Audience :: Developers',
+       'Development Status :: 3 - Alpha',
+        'Intended Audience ::  End Users/Desktop',
+        'Topic :: Scientific/Engineering :: Artificial Intelligence',
+        'Topic :: Terminals',
+        'Topic :: Utilities',
         'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8'
@@ -23,3 +41,9 @@ classifiers=[
 [project.urls]
 "Homepage" = "https://github.com/meirm/askGPT"
 "Bug Tracker" = "https://github.com/meirm/askGPT/issues"
+
+[project.scripts]
+askgpt = "askGPT.main:cli"
+askGPT = "askGPT.main:cli"
+
+

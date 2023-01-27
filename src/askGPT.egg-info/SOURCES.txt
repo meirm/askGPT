@@ -1,8 +1,13 @@
 LICENSE
+MANIFEST.in
 README.md
 pyproject.toml
-setup.py
-src/askGPT.py
+config/config.toml.example
+config/credentials.example
+config/env.example
+config/personas.json
+src/askGPT/__init__.py
+src/askGPT/main.py
 src/askGPT.egg-info/PKG-INFO
 src/askGPT.egg-info/SOURCES.txt
 src/askGPT.egg-info/dependency_links.txt

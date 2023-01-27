@@ -1,4 +1,5 @@
 .env
+*.ignore
 __pycache__
 venv/
 build/
