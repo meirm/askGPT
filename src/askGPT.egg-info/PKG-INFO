@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: askGPT
-Version: 0.3.4
+Version: 0.4.0
 Summary: askGPT is a simple command line tool for interacting with OpenAI's API.
 Home-page: https://github.com/meirm/askGPT
 Author: Meir Michanie
