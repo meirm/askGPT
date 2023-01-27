@@ -1,3 +1,2 @@
 [console_scripts]
-askGPT = askGPT.main:cli
 askgpt = askGPT.main:cli

@@ -2,10 +2,7 @@ LICENSE
 MANIFEST.in
 README.md
 pyproject.toml
-config/config.toml.example
-config/credentials.example
-config/env.example
-config/personas.json
+src/askGPT.py
 src/askGPT/__init__.py
 src/askGPT/main.py
 src/askGPT.egg-info/PKG-INFO
@@ -14,3 +11,7 @@ src/askGPT.egg-info/dependency_links.txt
 src/askGPT.egg-info/entry_points.txt
 src/askGPT.egg-info/requires.txt
 src/askGPT.egg-info/top_level.txt
+src/askGPT/data/config.toml.example
+src/askGPT/data/credentials.example
+src/askGPT/data/env.example
+src/askGPT/data/personas.json

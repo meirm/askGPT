@@ -1,17 +1,18 @@
 Metadata-Version: 2.1
 Name: askGPT
-Version: 0.3.4
+Version: 0.4.0
 Summary: askGPT is a simple command line tool for interacting with OpenAI's API.
-Home-page: https://github.com/meirm/askGPT
-Author: Meir Michanie
 Author-email: Meir Michanie <meirm@riunx.com>
-License: MIT
 Project-URL: Homepage, https://github.com/meirm/askGPT
 Project-URL: Bug Tracker, https://github.com/meirm/askGPT/issues
-Platform: UNKNOWN
+Keywords: openai,gpt-3,cli
 Classifier: Development Status :: 3 - Alpha
-Classifier: Intended Audience :: Developers
+Classifier: Intended Audience ::  End Users/Desktop
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Classifier: Topic :: Terminals
+Classifier: Topic :: Utilities
 Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
@@ -197,4 +198,3 @@ Please keep sending us new persona's pull request and help us write documentatio
 ## Note
 
    This project is under active development.
-

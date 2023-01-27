@@ -21,6 +21,9 @@ import time
 import toml
 import sys
 import platform
+import pkg_resources
+
+DATA_PATH = pkg_resources.resource_filename('askGPT', 'data/')
 # use pyreadline3 instead of readline on windows
 is_windows = platform.system() == "Windows"
 if is_windows:
@@ -51,6 +54,7 @@ class Config(object):
         self.progConfig = dict()
         self.conversations_path=os.path.join(self.settingsPath, "conversations")
         Path(self.conversations_path).mkdir(parents=True, exist_ok=True)
+        self.loadPersonas()
         self.fileExtention=".ai.txt"
         self.loadLicense()
         self.loadDefaults()
@@ -59,8 +63,11 @@ class Config(object):
     def loadPersonas(self):
         """if there is not a file named personas.json, create it ad add the Neutral persona"""
         if not os.path.isfile(os.path.join(self.settingsPath,"personas.json")):
+            # copy the file from PATH
+            with open(os.path.join(DATA_PATH,"personas.json"), "r") as f:
+                data = f.read()
             with open(os.path.join(self.settingsPath,"personas.json"), "w") as f:
-                f.write(json.dumps({"Neutral":{"name": "Neutral", "greetings": "I am a chatbot. How can I help you today?", "prompt": [], "max_tokens": 1000}}))
+                f.write(data)
         self.personas = load_json(os.path.join(self.settingsPath,"personas.json"))
 
 

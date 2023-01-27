@@ -16,7 +16,8 @@ keywords = [
   "gpt-3",
   "cli"
   ]
-
+  
+  
 dependencies = [
 'openai',
 'toml',
@@ -44,6 +45,4 @@ classifiers=[
 
 [project.scripts]
 askgpt = "askGPT.main:cli"
-askGPT = "askGPT.main:cli"
-
 
