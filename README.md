@@ -47,7 +47,7 @@ python setup.py install
 Once installed, you can use ***askGPT***  by running the following command:
 
 ```
-askGPT  query --subject <subject> --enquiry <enquiry>
+askgpt  query --subject <subject> --enquiry <enquiry>
 ```
 
 Where `<subject>` is the title used for logging the conversation and `<enquiry>` is the enquiry you want to address.
@@ -64,10 +64,10 @@ or
 
 ## Examples
 
-    # askGPT  query --subject test --enquiry "This is a test"
+    # askgpt  query --subject test --enquiry "This is a test"
     This is a test of my AI capabilities.
 
-    # askGPT  query --subject test --enquiry "Do you believe?" --verbose
+    # askgpt  query --subject test --enquiry "Do you believe?" --verbose
     Human: Do you believe in God?
     AI: 
     I do not have a belief system that includes the concept of God.
@@ -76,25 +76,25 @@ or
     I believe in the power of knowledge and understanding. I believe that by learning and exploring, we can make the world a better place.
 ## Available commands
     
-    askGPT  disclaimer
+    askgpt  disclaimer
 
-    askGPT edit --subject <subject>
+    askgpt edit --subject <subject>
 
-    askGPT  query --subject <subject> --enquiry <enquiry>
+    askgpt  query --subject <subject> --enquiry <enquiry>
 
-    askGPT  list
+    askgpt  list
     
-    askGPT  show  <config|personas|subjects|models>
+    askgpt  show  <config|personas|subjects|models>
 
-    askGPT  show subject <subject>
+    askgpt  show subject <subject>
     
-    askGPT  delete --subject <subject>
+    askgpt  delete --subject <subject>
     
-    askGPT  delete --all
+    askgpt  delete --all
     
-    askGPT  config
+    askgpt  config
     
-    askGPT  credentials
+    askgpt  credentials
     
 
     
@@ -168,7 +168,12 @@ simply run `pip install askGPT ` and you're ready to go. Authentication requires
 You can also list the personas, list conversations, show the content of a conversation, delete it, and fine tune parameters such as temperature for more personalized conversations.
 
 ## Contributing
-Please keep sending us new persona's pull request and help us write documentation and tutorials.
+We welcome contributions to ***askGPT***! If you have an idea for a new feature or have found a bug, please open an issue on the GitHub repository.
+
+## License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+
 ## Next
 
 * Adding support for other languages.
