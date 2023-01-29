@@ -27,7 +27,7 @@ askGPT
 ***Disclaimer***: The advice provided by askGPT is intended for informational and entertainment purposes only. It should not be used as a substitute for professional advice, and we cannot be held liable for any
 damages or losses arising from the use of the advice provided by askGPT.
 
-***askGPT***  is a command line program written in Python that allows you to query the chatGPT API. It keeps track of conversations and has a set of personas to focus the conversation.
+***askGPT***  is a command line program written in Python that allows you to query the chatGPT API. It keeps track of conversations and has a set of scenarios to focus the conversation.
 
 ## Installation
 
@@ -84,7 +84,7 @@ or
 
     askgpt  list
     
-    askgpt  show  <config|personas|subjects|models>
+    askgpt  show  <config|scenarios|subjects|models>
 
     askgpt  show subject <subject>
     
@@ -123,49 +123,49 @@ retryMaxDelay = 60.0
 
 ```
     
-## Personas
-***askGPT*** repository includes a sample of several personas which you can use to preset your bot.
+## scenarios
+***askGPT*** repository includes a sample of several scenarios which you can use to preset your bot.
 * Doctor
 * Psychotherapist
 * Lawyer
 * Marv (from The HitchHicker guide to the galaxy)
 * VocationalTest
-* PersonalityAssessment
+* scenariolityAssessment
 * DiaryAssistance
 * veganCheff
 
-In the git repository under ***config*** you can find a file named ***personas.json*** 
+In the git repository under ***config*** you can find a file named ***scenarios.json*** 
 
 copy this file to ***.askGPT*** directory
 
-***askGPT***  allows you to use personas to focus the conversation. Personas are defined as follows:
+***askGPT***  allows you to use scenarios to focus the conversation. scenarios are defined as follows:
 
 ```
-{"<persona>": {"name": "<name>", "greetings": "<Initial sentence>", "prompt": [ {"user":"Human", "prompt":"<your initial prompt>"},{"user": "AI", "prompt": "<AI response>"}, ... ]}}
+{"<scenario>": {"name": "<name>", "scenario": "<Initial sentence>", "prompt": [ {"user":"Human", "prompt":"<your initial prompt>"},{"user": "AI", "prompt": "<AI response>"}, ... ]}}
 ```
 
-Where `<persona>` is the name of the persona, `<name>` is the name of the character, `<initial sentence>` is the initial sentence used to start the conversation, and `<prompt>` is an array of sentences between the user and ***askGPT*** .
+Where `<scenario>` is the name of the scenario, `<name>` is the name of the character, `<initial sentence>` is the initial sentence used to start the conversation, and `<prompt>` is an array of sentences between the user and ***askGPT*** .
 
 
 i.e.
 ```
-"AlbertoKnox":{"Name": "Knox", "greetings":"I am Alberto Knox, the philosopher from Sophia's world. I am also a chatbot", "prompt":[
+"AlbertoKnox":{"Name": "Knox", "scenario":"I am Alberto Knox, the philosopher from Sophia's world. I am also a chatbot", "prompt":[
     {"user" : "Human", "prompt": "What's your role in the book?"},
     {"user": "AI", "prompt": "The ideal philosopher. I am never quick to judge and I always thinks about what I am doing."}
 ]}
 ```
 
-In the git repository under config you have a sample json with a few personalities. Copy the file to $HOME/.***askGPT*** 
-If you do not have a personas.json file in the directory, the pogram will load with a Neutral persona without any background.
+In the git repository under config you have a sample json with a few scenariolities. Copy the file to $HOME/.***askGPT*** 
+If you do not have a scenarios.json file in the directory, the pogram will load with a Neutral scenario without any background.
 
 ## API Key and Organization
-In order to communicate with openai API you need to register at https://www.openai.com and create an API key. If you don't have an organization code and it shows Organization: Personal, go to https://beta.openai.com/docs/api-reference/authentication and look for the code in the example. Once you have your API key and organization code, you can use them to authenticate with ***askGPT*** .
+In order to communicate with openai API you need to register at https://www.openai.com and create an API key. If you don't have an organization code and it shows Organization: scenariol, go to https://beta.openai.com/docs/api-reference/authentication and look for the code in the example. Once you have your API key and organization code, you can use them to authenticate with ***askGPT*** .
 
 ## Summary
 
-***askGPT***  is a command line program written in Python that allows you to query the chatGPT API. It keeps track of conversations and has a set of personas to focus the conversation. Installation is easy, 
+***askGPT***  is a command line program written in Python that allows you to query the chatGPT API. It keeps track of conversations and has a set of scenarios to focus the conversation. Installation is easy, 
 simply run `pip install askGPT ` and you're ready to go. Authentication requires an API key and organization code from OpenAI. With ***askGPT*** , you can easily query the chatGPT API and have meaningful conversations with AI. 
-You can also list the personas, list conversations, show the content of a conversation, delete it, and fine tune parameters such as temperature for more personalized conversations.
+You can also list the scenarios, list conversations, show the content of a conversation, delete it, and fine tune parameters such as temperature for more scenariolized conversations.
 
 ## Contributing
 We welcome contributions to ***askGPT***! If you have an idea for a new feature or have found a bug, please open an issue on the GitHub repository.

@@ -8,7 +8,7 @@ __title__ = 'askGPT'
 __author__ = 'Meir Michanie'
 __license__ = 'MIT'
 __credits__ = ''
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 import os
 import openai
@@ -54,21 +54,21 @@ class Config(object):
         self.progConfig = dict()
         self.conversations_path=os.path.join(self.settingsPath, "conversations")
         Path(self.conversations_path).mkdir(parents=True, exist_ok=True)
-        self.loadPersonas()
+        self.loadScenarios()
         self.fileExtention=".ai.txt"
         self.loadLicense()
         self.loadDefaults()
         self.update()
 
-    def loadPersonas(self):
-        """if there is not a file named personas.json, create it ad add the Neutral persona"""
-        if not os.path.isfile(os.path.join(self.settingsPath,"personas.json")):
+    def loadScenarios(self):
+        """if there is not a file named scenarios.json, create it ad add the Neutral scenario"""
+        if not os.path.isfile(os.path.join(self.settingsPath,"scenarios.json")):
             # copy the file from PATH
-            with open(os.path.join(DATA_PATH,"personas.json"), "r") as f:
+            with open(os.path.join(DATA_PATH,"scenarios.json"), "r") as f:
                 data = f.read()
-            with open(os.path.join(self.settingsPath,"personas.json"), "w") as f:
+            with open(os.path.join(self.settingsPath,"scenarios.json"), "w") as f:
                 f.write(data)
-        self.personas = load_json(os.path.join(self.settingsPath,"personas.json"))
+        self.scenarios = load_json(os.path.join(self.settingsPath,"scenarios.json"))
 
 
     def loadDefaults(self):
@@ -222,7 +222,7 @@ Edit a conversation"""
 @click.argument("whatToShow", default="config")
 @click.argument("subject", default="" )
 def show(config, whattoshow, subject):
-    """Show config|personas|subjects or the conversation inside a subject."""
+    """Show config|scenarios|subjects or the conversation inside a subject."""
     if subject == "":
         if whattoshow == "config":
             print("Current configuration:")
@@ -231,16 +231,16 @@ def show(config, whattoshow, subject):
             print("Current subjects:")
             for subject in get_list():
                     print(subject)
-        elif whattoshow == 'personas':
-            print("Current personas:")
-            for persona in config.personas.keys():
-                print(persona)
+        elif whattoshow == 'scenarios':
+            print("Current scenarios:")
+            for scenario in config.scenarios.keys():
+                print(scenario)
         elif whattoshow == 'models':
             print("Current models:")
             for model in sorted(list(map(lambda n: n.id,openai.Model.list().data))):
                 print(model)
         else:
-            print("Please specify what to show. Valid options are: config, subjects, personas, subject")
+            print("Please specify what to show. Valid options are: config, subjects, scenarios, subject")
             print("In case of passing the option 'subject' please pass as well the subject's name")
     else:
         if os.path.isfile(os.path.join(config.settingsPath, 'conversations', subject + config.fileExtention)):
@@ -299,7 +299,7 @@ Delete the previous conversations saved by askGPT"""
 @pass_config
 @click.option("--subject", prompt="Subject", help="Subject of the conversation")
 @click.option("--enquiry", prompt="Enquiry", help="Your question")
-@click.option("--persona", default="Neutral", help="Persona to use in the conversation")
+@click.option("--scenario", default="Neutral", help="scenario to use in the conversation")
 @click.option("--model", default=basicConfig["model"], help="Set alternative model")
 @click.option("--temperature", default=basicConfig["temperature"], type=float, help="Set alternative temperature")
 @click.option("--top-p", default=basicConfig["topP"], type=int, help="Set alternative topP")
@@ -310,7 +310,7 @@ Delete the previous conversations saved by askGPT"""
 @click.option("--save/--no-save", default=True, help="Save the conversation")
 @click.option("--retry", is_flag=True, help="In case of error retry the post.")
 
-def query(config, subject, enquiry, persona,model, temperature,max_tokens, top_p,  frequency_penalty, presence_penalty, verbose, save, retry): 
+def query(config, subject, enquiry, scenario,model, temperature,max_tokens, top_p,  frequency_penalty, presence_penalty, verbose, save, retry): 
     """
 Query the OpenAI API with the provided subject and enquiry"""
     enquiry = config.progConfig["userPrompt"] + enquiry
@@ -319,8 +319,8 @@ Query the OpenAI API with the provided subject and enquiry"""
             pass
         with open(os.path.join(config.conversations_path, sanitizeName(subject) + config.fileExtention), "r") as f:
             chatRaw = f.read()
-            if persona != "Neutral":
-                chat = config.progConfig["aiPrompt"] +  config.personas[persona]["greetings"] + "\n" + chatRaw  + enquiry + "\n" + config.progConfig["aiPrompt"]
+            if scenario != "Neutral":
+                chat = config.progConfig["aiPrompt"] +  config.scenarios[scenario]["scenario"] + "\n" + chatRaw  + enquiry + "\n" + config.progConfig["aiPrompt"]
             else:
                 chat = chatRaw + enquiry + "\n" + config.progConfig["aiPrompt"]
             tries = 1
