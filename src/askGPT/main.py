@@ -8,7 +8,7 @@ __title__ = 'askGPT'
 __author__ = 'Meir Michanie'
 __license__ = 'MIT'
 __credits__ = ''
-__version__ = "0.4.1"
+__version__ = "0.4.3"
 
 import os
 import openai
@@ -39,8 +39,8 @@ basicConfig["maxTokens"] = basicConfig.get("maxTokens","150")
 basicConfig["model"] = basicConfig.get("model","text-davinci-003")
 basicConfig["temperature"] = basicConfig.get("temperature","0.0")
 basicConfig["topP"] = basicConfig.get("topP","1")
-basicConfig["frequencyPenalty"] = basicConfig.get("frequencyPenalty","0.0")
-basicConfig["presencePenalty"] = basicConfig.get("presencePenalty","0.0")
+basicConfig["frequencyPenalty"] = basicConfig.get("frequencyPenalty","0.5")
+basicConfig["presencePenalty"] = basicConfig.get("presencePenalty","0.5")
 basicConfig["showDisclaimer"] = basicConfig.get("showDisclaimer",True)
 basicConfig["maxRetries"] = basicConfig.get("maxRetries",3)
 basicConfig["retryDelay"] = basicConfig.get("retryDelay",15.0)
@@ -206,8 +206,9 @@ Change config values"""
 @pass_config
 @click.option("--subject", prompt="Subject", help="Subject to use to save the conversation")
 @click.option("--submit", is_flag=True, help="Submit the dialog")
+@click.option("--scenario", default="Neutral", help="scenario to use in the conversation")
 
-def edit(config,subject,submit):
+def edit(config,subject,submit, scenario):
     """
 Edit a conversation"""
     subject = sanitizeName(subject)
@@ -220,21 +221,26 @@ Edit a conversation"""
         with open(os.path.join(config.conversations_path, subject + config.fileExtention), "w") as f:
             f.write(lines)
     if submit:
-        submitDialog(config,subject)
+        submitDialog(config,subject, scenario)
 
-def submitDialog(config, subject):
+def submitDialog(config, subject, scenario):
     """Send the dialog to openai and save the response"""
     subject = sanitizeName(subject)
-    with open(os.path.join(config.conversations_path, subject + config.fileExtention), "r") as f:
-        lines = f.readlines()
-    lines = list(map(lambda l: l.strip(), lines))
-    lines = list(filter(lambda l: l != "", lines))
-    chat = "\n".join(lines)
+    if subject:
+        with open(os.path.join(config.conversations_path, sanitizeName(subject) + config.fileExtention), "a") as f:
+            pass
+        with open(os.path.join(config.conversations_path, sanitizeName(subject) + config.fileExtention), "r") as f:
+            chatRaw = f.read()
+            if scenario != "Neutral":
+                bootstrappedChat = bootStrapChat(config, scenario)
+                chat = bootstrappedChat + "\n" + chatRaw  + "\n" + config.progConfig["aiPrompt"]
+            else:
+                chat = chatRaw + "\n" + config.progConfig["aiPrompt"]
+                    
     if chat == "":
         print("Empty conversation")
         return
-    
-    
+
     tries = config.progConfig.get("maxRetries",1)
     success = False
     sleepBetweenRetries = config.progConfig["retryDelay"]
@@ -358,11 +364,11 @@ def bootStrapChat(config, scenario):
     chat = list()
     conversationChat = list()
     if scenario in config.scenarios:
-        chat = config.scenarios[scenario]["conversation"]
+        chat=config.scenarios[scenario]["conversation"]
         """read the array conversation, for each row join the user and the prompt. append the line to the conversationChat"""
         for line in chat:
             conversationChat.append(config.progConfig.get(line["user"],"userPrompt") + line["prompt"])
-    return "\n".join(conversationChat)
+    return config.progConfig["aiPrompt"] +  config.scenarios[scenario]["greetings"] + "\n" + "\n".join(conversationChat)
 
 
 @cli.command()
@@ -392,7 +398,7 @@ Query the OpenAI API with the provided subject and enquiry"""
             chatRaw = f.read()
             if scenario != "Neutral":
                 bootstrappedChat = bootStrapChat(config, scenario)
-                chat = config.progConfig["aiPrompt"] +  config.scenarios[scenario]["greetings"] + "\n" + bootstrappedChat + "\n" + chatRaw  + enquiry + "\n" + config.progConfig["aiPrompt"]
+                chat = bootstrappedChat + "\n" + chatRaw  + enquiry + "\n" + config.progConfig["aiPrompt"]
             else:
                 chat = chatRaw + enquiry + "\n" + config.progConfig["aiPrompt"]
             tries = 1
