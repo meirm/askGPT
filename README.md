@@ -134,14 +134,15 @@ retryMaxDelay = 60.0
 * DiaryAssistance
 * veganCheff
 
-In the git repository under ***config*** you can find a file named ***scenarios.json*** 
+When you first run askGPT, it will copy the ***scenario.json*** file from the package into your .askGPT directory
+In the git repository under ***config*** you can find the latest file named ***scenarios.json*** 
 
 copy this file to ***.askGPT*** directory
 
 ***askGPT***  allows you to use scenarios to focus the conversation. scenarios are defined as follows:
 
 ```
-{"<scenario>": {"name": "<name>", "scenario": "<Initial sentence>", "prompt": [ {"user":"Human", "prompt":"<your initial prompt>"},{"user": "AI", "prompt": "<AI response>"}, ... ]}}
+{"<scenario>": {"name": "<name>", "greetings": "<Initial sentence>", "conversation": [ {"user":"userPrompt", "prompt":"<your initial prompt>"},{"user": "aiPrompt", "prompt": "<AI response>"}, ... ]}}
 ```
 
 Where `<scenario>` is the name of the scenario, `<name>` is the name of the character, `<initial sentence>` is the initial sentence used to start the conversation, and `<prompt>` is an array of sentences between the user and ***askGPT*** .
@@ -149,14 +150,13 @@ Where `<scenario>` is the name of the scenario, `<name>` is the name of the char
 
 i.e.
 ```
-"AlbertoKnox":{"Name": "Knox", "scenario":"I am Alberto Knox, the philosopher from Sophia's world. I am also a chatbot", "prompt":[
-    {"user" : "Human", "prompt": "What's your role in the book?"},
-    {"user": "AI", "prompt": "The ideal philosopher. I am never quick to judge and I always thinks about what I am doing."}
+"AlbertoKnox":{"Name": "Knox", "greetings":"I am Alberto Knox, the philosopher from Sophia's world. I am also a chatbot", "conversation":[
+    {"user" : "userPrompt", "prompt": "What's your role in the book?"},
+    {"user": "aiPrompt", "prompt": "The ideal philosopher. I am never quick to judge and I always thinks about what I am doing."}
 ]}
 ```
 
 In the git repository under config you have a sample json with a few scenariolities. Copy the file to $HOME/.***askGPT*** 
-If you do not have a scenarios.json file in the directory, the pogram will load with a Neutral scenario without any background.
 
 ## API Key and Organization
 In order to communicate with openai API you need to register at https://www.openai.com and create an API key. If you don't have an organization code and it shows Organization: scenariol, go to https://beta.openai.com/docs/api-reference/authentication and look for the code in the example. Once you have your API key and organization code, you can use them to authenticate with ***askGPT*** .
