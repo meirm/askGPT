@@ -8,7 +8,11 @@ __title__ = 'askGPT'
 __author__ = 'Meir Michanie'
 __license__ = 'MIT'
 __credits__ = ''
+<<<<<<< HEAD:src/askGPT.py
 __version__ = "0.4.0"
+=======
+__version__ = "0.4.1"
+>>>>>>> development:src/askGPT/main.py
 
 import os
 import openai
@@ -20,6 +24,17 @@ import backoff
 import time
 import toml
 import sys
+import platform
+import pkg_resources
+import subprocess
+
+DATA_PATH = pkg_resources.resource_filename('askGPT', 'data/')
+# use pyreadline3 instead of readline on windows
+is_windows = platform.system() == "Windows"
+if is_windows:
+    import pyreadline3  # noqa: F401
+else:
+    import readline
 
 basicConfig = dict()
 basicConfig["userPrompt"] = basicConfig.get("userPrompt"," Human: ")
@@ -44,17 +59,21 @@ class Config(object):
         self.progConfig = dict()
         self.conversations_path=os.path.join(self.settingsPath, "conversations")
         Path(self.conversations_path).mkdir(parents=True, exist_ok=True)
+        self.loadScenarios()
         self.fileExtention=".ai.txt"
         self.loadLicense()
         self.loadDefaults()
         self.update()
 
-    def loadPersonas(self):
-        """if there is not a file named personas.json, create it ad add the Neutral persona"""
-        if not os.path.isfile(os.path.join(self.settingsPath,"personas.json")):
-            with open(os.path.join(self.settingsPath,"personas.json"), "w") as f:
-                f.write(json.dumps({"Neutral":{"name": "Neutral", "greetings": "I am a chatbot. How can I help you today?", "prompt": [], "max_tokens": 1000}}))
-        self.personas = load_json(os.path.join(self.settingsPath,"personas.json"))
+    def loadScenarios(self):
+        """if there is not a file named scenarios.json, create it ad add the Neutral scenario"""
+        if not os.path.isfile(os.path.join(self.settingsPath,"scenarios.json")):
+            # copy the file from PATH
+            with open(os.path.join(DATA_PATH,"scenarios.json"), "r") as f:
+                data = f.read()
+            with open(os.path.join(self.settingsPath,"scenarios.json"), "w") as f:
+                f.write(data)
+        self.scenarios = load_json(os.path.join(self.settingsPath,"scenarios.json"))
 
 
     def loadDefaults(self):
@@ -208,7 +227,7 @@ Edit a conversation"""
 @click.argument("whatToShow", default="config")
 @click.argument("subject", default="" )
 def show(config, whattoshow, subject):
-    """Show config|personas|subjects or the conversation inside a subject."""
+    """Show config|scenarios|subjects or the conversation inside a subject."""
     if subject == "":
         if whattoshow == "config":
             print("Current configuration:")
@@ -217,16 +236,16 @@ def show(config, whattoshow, subject):
             print("Current subjects:")
             for subject in get_list():
                     print(subject)
-        elif whattoshow == 'personas':
-            print("Current personas:")
-            for persona in config.personas.keys():
-                print(persona)
+        elif whattoshow == 'scenarios':
+            print("Current scenarios:")
+            for scenario in config.scenarios.keys():
+                print(scenario)
         elif whattoshow == 'models':
             print("Current models:")
             for model in sorted(list(map(lambda n: n.id,openai.Model.list().data))):
                 print(model)
         else:
-            print("Please specify what to show. Valid options are: config, subjects, personas, subject")
+            print("Please specify what to show. Valid options are: config, subjects, scenarios, subject")
             print("In case of passing the option 'subject' please pass as well the subject's name")
     else:
         if os.path.isfile(os.path.join(config.settingsPath, 'conversations', subject + config.fileExtention)):
@@ -278,14 +297,23 @@ Delete the previous conversations saved by askGPT"""
         eprint("No chat history with that subject")
         return
 
+def bootStrapChat(config, scenario):
+    """Read the scenario and return the initial chat"""
+    chat = list()
+    conversationChat = list()
+    if scenario in config.scenarios:
+        chat = config.scenarios[scenario]["conversation"]
+        """read the array conversation, for each row join the user and the prompt. append the line to the conversationChat"""
+        for line in chat:
+            conversationChat.append(config.progConfig.get(line["user"],"userPrompt") + line["prompt"])
+    return "\n".join(conversationChat)
 
-        
 
 @cli.command()
 @pass_config
 @click.option("--subject", prompt="Subject", help="Subject of the conversation")
 @click.option("--enquiry", prompt="Enquiry", help="Your question")
-@click.option("--persona", default="Neutral", help="Persona to use in the conversation")
+@click.option("--scenario", default="Neutral", help="scenario to use in the conversation")
 @click.option("--model", default=basicConfig["model"], help="Set alternative model")
 @click.option("--temperature", default=basicConfig["temperature"], type=float, help="Set alternative temperature")
 @click.option("--top-p", default=basicConfig["topP"], type=int, help="Set alternative topP")
@@ -295,8 +323,9 @@ Delete the previous conversations saved by askGPT"""
 @click.option("--verbose", is_flag=True, help="Show verbose output or just the answer")
 @click.option("--save/--no-save", default=True, help="Save the conversation")
 @click.option("--retry", is_flag=True, help="In case of error retry the post.")
+@click.option("--execute", is_flag=True, help="Parse the AI response and execute it")
 
-def query(config, subject, enquiry, persona,model, temperature,max_tokens, top_p,  frequency_penalty, presence_penalty, verbose, save, retry): 
+def query(config, subject, enquiry, scenario,model, temperature,max_tokens, top_p,  frequency_penalty, presence_penalty, verbose, save, retry, execute): 
     """
 Query the OpenAI API with the provided subject and enquiry"""
     enquiry = config.progConfig["userPrompt"] + enquiry
@@ -305,8 +334,9 @@ Query the OpenAI API with the provided subject and enquiry"""
             pass
         with open(os.path.join(config.conversations_path, sanitizeName(subject) + config.fileExtention), "r") as f:
             chatRaw = f.read()
-            if persona != "Neutral":
-                chat = config.progConfig["aiPrompt"] +  config.personas[persona]["greetings"] + "\n" + chatRaw  + enquiry + "\n" + config.progConfig["aiPrompt"]
+            if scenario != "Neutral":
+                bootstrappedChat = bootStrapChat(config, scenario)
+                chat = config.progConfig["aiPrompt"] +  config.scenarios[scenario]["greetings"] + "\n" + bootstrappedChat + "\n" + chatRaw  + enquiry + "\n" + config.progConfig["aiPrompt"]
             else:
                 chat = chatRaw + enquiry + "\n" + config.progConfig["aiPrompt"]
             tries = 1
@@ -331,11 +361,6 @@ Query the OpenAI API with the provided subject and enquiry"""
                     ai = response.choices[0].text
                     if ai.startswith("\n\n"):
                         ai = ai[2:]
-                    if verbose:
-                        print(chat + ai)
-                    else:
-                        print(ai)
-                    f.close()
                     success = True
                     break
                 except Exception as e:
@@ -359,6 +384,33 @@ Query the OpenAI API with the provided subject and enquiry"""
                 f.write(config.progConfig["aiPrompt"] + ai)
                 f.write("\n")
                 f.close()
+        if execute:
+            editPrompt = click.prompt(f"{ai}\nedit command? [y/n]", type=click.Choice(["y", "n"]), default="n")
+            if editPrompt == "y":
+                edited = click.edit(ai)
+                if edited:
+                    ai = edited
+            doExec = click.prompt(f"{ai}\nExecute command? [y/n]", type=click.Choice(["y", "n"]), default="y")
+            """execute the command in the terminal and edit the response before saving it."""
+            if doExec == "y":
+                result  = subprocess.run(ai, stdout=subprocess.PIPE, shell=True, stderr=subprocess.STDOUT)
+                result = result.stdout.decode("utf-8")
+                print(result)
+                saveOutput = click.prompt(f"save output? [Y/e/n]", type=click.Choice(["y", "e", "n"]), default="y")
+                if saveOutput == "e":
+                    edited = click.edit(result.stdout.decode("utf-8"))
+                    if edited:
+                        result = edited
+                if saveOutput != "n":
+                    with open(os.path.join(config.conversations_path, sanitizeName(subject) + config.fileExtention), "a") as f:
+                        f.write(config.progConfig["userPrompt"] + str(result))
+                        f.write("\n")
+                        f.close()
+        else:
+            if verbose:
+                print(chat + ai)
+            else:
+                print(ai)
     else:
         print("No subject provided")
         return
