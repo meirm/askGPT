@@ -205,7 +205,9 @@ Change config values"""
 @cli.command()
 @pass_config
 @click.option("--subject", prompt="Subject", help="Subject to use to save the conversation")
-def edit(config,subject):
+@click.option("--submit", is_flag=True, help="Submit the dialog")
+
+def edit(config,subject,submit):
     """
 Edit a conversation"""
     subject = sanitizeName(subject)
@@ -217,6 +219,64 @@ Edit a conversation"""
     if lines is not None:
         with open(os.path.join(config.conversations_path, subject + config.fileExtention), "w") as f:
             f.write(lines)
+    if submit:
+        submitDialog(config,subject)
+
+def submitDialog(config, subject):
+    """Send the dialog to openai and save the response"""
+    subject = sanitizeName(subject)
+    with open(os.path.join(config.conversations_path, subject + config.fileExtention), "r") as f:
+        lines = f.readlines()
+    lines = list(map(lambda l: l.strip(), lines))
+    lines = list(filter(lambda l: l != "", lines))
+    chat = "\n".join(lines)
+    if chat == "":
+        print("Empty conversation")
+        return
+    
+    
+    tries = config.progConfig.get("maxRetries",1)
+    success = False
+    sleepBetweenRetries = config.progConfig["retryDelay"]
+    
+    while tries > 0:
+        try:
+            print("Sending to openai")
+            response = completions_with_backoff(
+                delay_in_seconds=config.delay,
+                model=config.progConfig["model"],
+                prompt=chat,
+                temperature=config.progConfig["temperature"],
+                max_tokens=config.progConfig["maxTokens"],
+                top_p=config.progConfig["topP"],
+                frequency_penalty=config.progConfig["frequencyPenalty"],
+                presence_penalty=config.progConfig["presencePenalty"],
+                stop=[ # "\n",
+                config.progConfig["userPrompt"], config.progConfig["aiPrompt"]],
+            )
+            ai = response.choices[0].text
+            if ai.startswith("\n\n"):
+                ai = ai[2:]
+            success = True
+            break
+        except Exception as e:
+            tries -= 1
+            if str(e) == "openai.error.RateLimitError":
+                eprint("Error: Too many requests. We will try again")
+            eprint("Error: " + str(e))
+            eprint(f"Retrying again in {sleepBetweenRetries} seconds...")
+            time.sleep(sleepBetweenRetries)
+            sleepBetweenRetries *= config.progConfig["retryMultiplier"] 
+            if sleepBetweenRetries > config.progConfig["retryMaxDelay"]:
+                sleepBetweenRetries = config.progConfig["retryMaxDelay"]
+    if success == False:
+        eprint("Error: Could not send the dialog")
+        return
+    print("Saving response")
+    with open(os.path.join(config.conversations_path, subject + config.fileExtention), "a") as f:
+        f.write(config.progConfig["aiPrompt"] + ai)
+    print(ai)
+
 
 @cli.command()
 @pass_config
@@ -337,7 +397,7 @@ Query the OpenAI API with the provided subject and enquiry"""
                 chat = chatRaw + enquiry + "\n" + config.progConfig["aiPrompt"]
             tries = 1
             if retry:
-                tries = config.progConfig["maxRetries"]
+                tries = config.progConfig.get("maxRetries",1)
             success = False
             sleepBetweenRetries = config.progConfig["retryDelay"]
             while tries > 0:
