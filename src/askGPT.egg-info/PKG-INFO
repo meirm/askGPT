@@ -7,7 +7,7 @@ Project-URL: Homepage, https://github.com/meirm/askGPT
 Project-URL: Bug Tracker, https://github.com/meirm/askGPT/issues
 Keywords: openai,gpt-3,cli
 Classifier: Development Status :: 3 - Alpha
-Classifier: Intended Audience ::  End Users/Desktop
+Classifier: Intended Audience :: Developers
 Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
 Classifier: Topic :: Terminals
 Classifier: Topic :: Utilities

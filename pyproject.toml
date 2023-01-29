@@ -28,7 +28,7 @@ dependencies = [
         
 classifiers=[
        'Development Status :: 3 - Alpha',
-        'Intended Audience ::  End Users/Desktop',
+        'Intended Audience :: Developers',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
         'Topic :: Terminals',
         'Topic :: Utilities',
