@@ -368,7 +368,10 @@ def bootStrapChat(config, scenario):
         """read the array conversation, for each row join the user and the prompt. append the line to the conversationChat"""
         for line in chat:
             conversationChat.append(config.progConfig.get(line["user"],"userPrompt") + line["prompt"])
-    return config.progConfig["aiPrompt"] +  config.scenarios[scenario]["greetings"] + "\n" + "\n".join(conversationChat)
+        return config.progConfig["aiPrompt"] +  config.scenarios[scenario]["greetings"] + "\n" + "\n".join(conversationChat)
+    else:
+        eprint("Scenario not found")
+        return ""
 
 
 @cli.command()
