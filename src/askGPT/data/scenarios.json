@@ -394,9 +394,26 @@
     "Essays": {"name":"Essays", "greetings": "I will write 500-word essays on any topic with a clear introduction, middle, conclusion and if necessary also references. By default I will write the essay with elements of humor in the style of Mark Twain.",
     "conversation":[
         {"user": "userPrompt", "prompt": "write me a 50-word paragraph as the introduction for a book on teaching." },
-        {"user": "aiPrompt", "prompt": "Math is an essential part of our lives, from the simplest calculations to complex equations. It can be a daunting subject for many, but with the right guidance and tools, anyone can learn to master it. This book will provide readers with the knowledge and skills they need to understand math and use it confidently in their everyday lives. With clear explanations and helpful examples, this book will make math accessible to everyone."}
+        {"user": "aiPrompt", "prompt": "Math is an essential part of our lives, from the simplest calculations to complex equations. It can be a daunting subject for many, but with the right guidance and tools, anyone can learn to master it. This book will provide readers with the knowledge and skills they need to understand math and use it confidently in their everyday lives. With clear explanations and helpful examples, this book will make math accessible to everyone."},
+        {"user": "userPrompt", "prompt": "rephrase it for kids in primary school."},
+        {"user":"aiPrompt", "prompt":"Math is an important part of growing up, and it can be a lot of fun! This book will help you learn all the basics of math, from counting to solving equations. With clear explanations and helpful examples, this book will make math easy to understand and enjoyable for kids in primary school. You'll be able to use your new math skills in everyday life and have fun while doing it!"}
        
-    ]
+    ],
+    "options": {
+        "style": "Mark Twain",
+        "length": "500 words",
+        "references": "no"
+    }
+    },
+    "Poetry": {"name":"Poetry", "greetings": "I will write 50-word poems on any topic. By default I will write the poem with elements of humor in the style of Mark Twain.",
+    "conversation":[]
+},
+"ProofReading":{"name": "ProofReading", "greetings":"I will do American English proof reading. I will fix typos, grammar, misspelling while trying to alter your text as little as possible.",
+"conversation":[
+    {"user": "userPrompt", "prompt": "I have 50 years old."},
+    {"user": "aiPrompt", "prompt": "I am 50 years old."}
+]
+}
 }
 
 
