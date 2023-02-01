@@ -1,4 +1,5 @@
 import cmd
+
 """Here we will define the class Shell which is a child of cmd.cmd which will allow us to run all the commands interactively such as query, config, edit."""
 class Shell(cmd.Cmd):
     def __init__(self, config) -> None:
@@ -72,7 +73,7 @@ class Shell(cmd.Cmd):
             self.print_topics(self.doc_header, cmds_doc, 15, 80)
             self.print_topics(self.misc_header, cmds_misc, 15, 80)
             self.print_topics(self.undoc_header, cmds_undoc, 15, 80)
-            
+
     def emptyline(self):
         """emptyline: do nothing."""
         pass

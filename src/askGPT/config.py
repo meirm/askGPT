@@ -1,0 +1,76 @@
+""""""
+import os
+import click
+from pathlib import Path
+from .tools import load_json, eprint
+from .api.openai import ChatGPT
+from askGPT import DATA_PATH
+import toml
+
+basicConfig = dict()
+basicConfig["userPrompt"] = basicConfig.get("userPrompt"," Human: ")
+basicConfig["aiPrompt"] = basicConfig.get("aiPrompt"," AI: ")
+basicConfig["maxTokens"] = basicConfig.get("maxTokens","150")
+basicConfig["model"] = basicConfig.get("model","text-davinci-003")
+basicConfig["temperature"] = basicConfig.get("temperature","0.0")
+basicConfig["topP"] = basicConfig.get("topP","1")
+basicConfig["frequencyPenalty"] = basicConfig.get("frequencyPenalty","0.5")
+basicConfig["presencePenalty"] = basicConfig.get("presencePenalty","0.5")
+basicConfig["showDisclaimer"] = basicConfig.get("showDisclaimer",True)
+basicConfig["maxRetries"] = basicConfig.get("maxRetries",3)
+basicConfig["retryDelay"] = basicConfig.get("retryDelay",15.0)
+basicConfig["retryMaxDelay"] = basicConfig.get("retryMaxDelay",60)
+basicConfig["retryMultiplier"] = basicConfig.get("retryMultiplier",2)
+
+class Config(object):
+    def __init__(self):
+        
+        self.rate_limit_per_minute = 20
+        self.delay = 60.0 / self.rate_limit_per_minute
+        self.disclaimer = "Disclaimer: The advice provided by askGPT is intended for informational and entertainment purposes only. It should not be used as a substitute for professional advice, and we cannot be held liable for any damages or losses arising from the use of the advice provided by askGPT."
+        self.settingsPath=os.path.join(os.getenv("HOME"), ".askGPT")
+        self.progConfig = dict()
+        self.conversations_path=os.path.join(self.settingsPath, "conversations")
+        Path(self.conversations_path).mkdir(parents=True, exist_ok=True)
+        self.loadScenarios()
+        self.fileExtention=".ai.txt"
+        self.loadDefaults()
+        self.update()
+        self.chat = ChatGPT(self)
+        self.chat.loadLicense()
+
+    def loadScenarios(self):
+        """if there is not a file named scenarios.json, create it ad add the Neutral scenario"""
+        if not os.path.isfile(os.path.join(self.settingsPath,"scenarios.json")):
+            # copy the file from PATH
+            with open(os.path.join(DATA_PATH,"scenarios.json"), "r") as f:
+                data = f.read()
+            with open(os.path.join(self.settingsPath,"scenarios.json"), "w") as f:
+                f.write(data)
+        self.scenarios = load_json(os.path.join(self.settingsPath,"scenarios.json"))
+
+
+    def loadDefaults(self):
+        self.progConfig["userPrompt"] = self.progConfig.get("userPrompt"," Human: ")
+        self.progConfig["aiPrompt"] = self.progConfig.get("aiPrompt"," AI: ")
+        self.progConfig["maxTokens"] = self.progConfig.get("maxTokens","150")
+        self.progConfig["model"] = self.progConfig.get("model","text-davinci-003")
+        self.progConfig["temperature"] = self.progConfig.get("temperature","0.0")
+        self.progConfig["topP"] = self.progConfig.get("topP","1")
+        self.progConfig["frequencyPenalty"] = self.progConfig.get("frequencyPenalty","0.0")
+        self.progConfig["presencePenalty"] = self.progConfig.get("presencePenalty","0.0")
+        self.progConfig["showDisclaimer"] = self.progConfig.get("showDisclaimer",True)
+        self.progConfig["maxRetries"] = self.progConfig.get("maxRetries",3)
+        self.progConfig["retryDelay"] = self.progConfig.get("retryDelay",15.0)
+        self.progConfig["retryMaxDelay"] = self.progConfig.get("retryMaxDelay",60)
+        self.progConfig["retryMultiplier"] = self.progConfig.get("retryMultiplier",2)
+
+    
+
+    def update(self):
+        """
+Load the configuration file from ~/.askGPT/config.toml"""
+        if os.path.isfile(os.path.join(self.settingsPath, "config.toml")):
+            tomlConfig = toml.load(os.path.join(self.settingsPath,"config.toml"))
+            self.progConfig.update(tomlConfig["default"])
+            # self.progConfig.update(tomlConfig["askGPT"])

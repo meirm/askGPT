@@ -10,8 +10,35 @@ __license__ = 'MIT'
 __credits__ = ''
 __version__ = "0.4.3"
 
+"""askgpt query --subject quest1 --scenario Zork 
+Traceback (most recent call last):
+  File "/opt/homebrew/bin/askgpt", line 8, in <module>
+    sys.exit(cli())
+  File "/opt/homebrew/lib/python3.9/site-packages/click/core.py", line 722, in __call__
+    return self.main(*args, **kwargs)
+  File "/opt/homebrew/lib/python3.9/site-packages/click/core.py", line 697, in main
+    rv = self.invoke(ctx)
+  File "/opt/homebrew/lib/python3.9/site-packages/click/core.py", line 1063, in invoke
+    Command.invoke(self, ctx)
+  File "/opt/homebrew/lib/python3.9/site-packages/click/core.py", line 895, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "/opt/homebrew/lib/python3.9/site-packages/click/core.py", line 535, in invoke
+    return callback(*args, **kwargs)
+  File "/opt/homebrew/lib/python3.9/site-packages/click/decorators.py", line 57, in new_func
+    obj = ctx.ensure_object(object_type)
+  File "/opt/homebrew/lib/python3.9/site-packages/click/core.py", line 455, in ensure_object
+    rv = self.find_object(object_type)
+  File "/opt/homebrew/lib/python3.9/site-packages/click/core.py", line 447, in find_object
+    if isinstance(node.obj, object_type):
+TypeError: isinstance() arg 2 must be a type or tuple of types
+
+
+"""
+
 import os
-import openai
+"""We will import .api/openai and we will make an instance of the class to use to interact with openai."""
+from .api.openai import ChatGPT
+from .config import Config, basicConfig
 import click
 from rich import print
 from pathlib import Path
@@ -21,12 +48,12 @@ import time
 import toml
 import sys
 import platform
-import pkg_resources
 import subprocess
 import cmd
 from .shell import Shell
+from .tools import eprint, sanitizeName
 
-DATA_PATH = pkg_resources.resource_filename('askGPT', 'data/')
+
 # use pyreadline3 instead of readline on windows
 is_windows = platform.system() == "Windows"
 if is_windows:
@@ -34,120 +61,7 @@ if is_windows:
 else:
     import readline
 
-basicConfig = dict()
-basicConfig["userPrompt"] = basicConfig.get("userPrompt"," Human: ")
-basicConfig["aiPrompt"] = basicConfig.get("aiPrompt"," AI: ")
-basicConfig["maxTokens"] = basicConfig.get("maxTokens","150")
-basicConfig["model"] = basicConfig.get("model","text-davinci-003")
-basicConfig["temperature"] = basicConfig.get("temperature","0.0")
-basicConfig["topP"] = basicConfig.get("topP","1")
-basicConfig["frequencyPenalty"] = basicConfig.get("frequencyPenalty","0.5")
-basicConfig["presencePenalty"] = basicConfig.get("presencePenalty","0.5")
-basicConfig["showDisclaimer"] = basicConfig.get("showDisclaimer",True)
-basicConfig["maxRetries"] = basicConfig.get("maxRetries",3)
-basicConfig["retryDelay"] = basicConfig.get("retryDelay",15.0)
-basicConfig["retryMaxDelay"] = basicConfig.get("retryMaxDelay",60)
-basicConfig["retryMultiplier"] = basicConfig.get("retryMultiplier",2)
-class Config(object):
-    def __init__(self):
-        self.rate_limit_per_minute = 20
-        self.delay = 60.0 / self.rate_limit_per_minute
-        self.disclaimer = "Disclaimer: The advice provided by askGPT is intended for informational and entertainment purposes only. It should not be used as a substitute for professional advice, and we cannot be held liable for any damages or losses arising from the use of the advice provided by askGPT."
-        self.settingsPath=os.path.join(os.getenv("HOME"), ".askGPT")
-        self.progConfig = dict()
-        self.conversations_path=os.path.join(self.settingsPath, "conversations")
-        Path(self.conversations_path).mkdir(parents=True, exist_ok=True)
-        self.loadScenarios()
-        self.fileExtention=".ai.txt"
-        self.loadLicense()
-        self.loadDefaults()
-        self.update()
-
-    def loadScenarios(self):
-        """if there is not a file named scenarios.json, create it ad add the Neutral scenario"""
-        if not os.path.isfile(os.path.join(self.settingsPath,"scenarios.json")):
-            # copy the file from PATH
-            with open(os.path.join(DATA_PATH,"scenarios.json"), "r") as f:
-                data = f.read()
-            with open(os.path.join(self.settingsPath,"scenarios.json"), "w") as f:
-                f.write(data)
-        self.scenarios = load_json(os.path.join(self.settingsPath,"scenarios.json"))
-
-
-    def loadDefaults(self):
-        self.progConfig["userPrompt"] = self.progConfig.get("userPrompt"," Human: ")
-        self.progConfig["aiPrompt"] = self.progConfig.get("aiPrompt"," AI: ")
-        self.progConfig["maxTokens"] = self.progConfig.get("maxTokens","150")
-        self.progConfig["model"] = self.progConfig.get("model","text-davinci-003")
-        self.progConfig["temperature"] = self.progConfig.get("temperature","0.0")
-        self.progConfig["topP"] = self.progConfig.get("topP","1")
-        self.progConfig["frequencyPenalty"] = self.progConfig.get("frequencyPenalty","0.0")
-        self.progConfig["presencePenalty"] = self.progConfig.get("presencePenalty","0.0")
-        self.progConfig["showDisclaimer"] = self.progConfig.get("showDisclaimer",True)
-        self.progConfig["maxRetries"] = self.progConfig.get("maxRetries",3)
-        self.progConfig["retryDelay"] = self.progConfig.get("retryDelay",15.0)
-        self.progConfig["retryMaxDelay"] = self.progConfig.get("retryMaxDelay",60)
-        self.progConfig["retryMultiplier"] = self.progConfig.get("retryMultiplier",2)
-
-    def loadLicense(self):
-        # Load your API key from an environment variable or secret management service
-        if os.getenv("OPENAI_API_KEY") and os.getenv("OPENAI_ORGANIZATION"):
-            openai.api_key = os.getenv("OPENAI_API_KEY")
-            openai.organization = os.getenv("OPENAI_ORGANIZATION")
-        else:
-            if os.path.isfile(os.path.join(self.settingsPath, "credentials")):
-                with open(os.path.join(self.settingsPath, "credentials"), "r") as f:
-                    credentials = f.read()
-                    openai.api_key = credentials.split(":")[0]
-                    openai.organization = credentials.split(":")[1].strip()
-            else:
-                eprint("Please set OPENAI_API_KEY and OPENAI_ORGANIZATION environment variables.")
-                eprint("Or create a file at ~/.askGPT/credentials with the following format:")
-                eprint("OPENAI_API_KEY:OPENAI_ORGANIZATION")
-                exit(1)
-
-    def update(self):
-        """
-Load the configuration file from ~/.askGPT/config.toml"""
-        if os.path.isfile(os.path.join(self.settingsPath, "config.toml")):
-            tomlConfig = toml.load(os.path.join(self.settingsPath,"config.toml"))
-            self.progConfig.update(tomlConfig["default"])
-
-
-# Calculate the delay based on your rate limit
-
-
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
-
-
-
-def completions_with_backoff(delay_in_seconds: float = 1,**kwargs):
-    """Delay a completion by a specified amount of time."""
-    # Sleep for the delay
-    time.sleep(delay_in_seconds)
-    return openai.Completion.create(**kwargs)
-
-
-def sanitizeName(name):
-    """
-    Sanitize the name of the conversation to be saved."""
-    return name.replace(" ", "_").replace("/", "_")
-
-
-def load_json(file):
-    """
-Load json from file"""
-    with open(file, "r") as f:
-        try:
-            return json.load(f)
-        except:
-            return dict()
-
-
-
-pass_config = click.make_pass_decorator(Config, ensure=True)
-
+pass_config = click.make_pass_decorator(Config(), ensure=True)
 
 @click.group()
 @click.version_option(__version__)
@@ -155,6 +69,7 @@ pass_config = click.make_pass_decorator(Config, ensure=True)
 def cli(config):
     if config.progConfig.get("showDisclaimer",True):
         print(config.disclaimer)
+    exit()
 
 @cli.command()
 @pass_config
@@ -214,6 +129,17 @@ Change config values"""
         
 
 @cli.command()
+@click.option("--subject", "-s", default="quest1", help="The subject of the query. This is used to determine the model to use.")
+@click.option("--scenario", "-sc", default="Zork", help="The scenario of the query. This is used to determine the model to use.")
+@click.option("--prompt", "-p", default="You are in a maze of twisty little passages, all alike.", help="The prompt to use for the query.")
+@click.option("--max_tokens", "-m", default=64, help="The maximum number of tokens to return.")
+@pass_config
+def query(config, subject, scenario, prompt, max_tokens):
+    """Query the model for a response."""
+    print(config.chatGPT.query(subject, scenario, prompt, max_tokens))
+
+
+@cli.command()
 @pass_config
 @click.option("--subject", prompt="Subject", help="Subject to use to save the conversation")
 @click.option("--submit", is_flag=True, help="Submit the dialog")
@@ -232,7 +158,7 @@ Edit a conversation"""
         with open(os.path.join(config.conversations_path, subject + config.fileExtention), "w") as f:
             f.write(lines)
     if submit:
-        submitDialog(config,subject, scenario)
+        config.chat.submitDialog(config,subject, scenario)
 
 @cli.command()
 @pass_config
@@ -243,7 +169,7 @@ Edit a conversation"""
 def train(config, subject, scenario, temperature):
     """Train the model with the conversation"""
     config.progConfig["temperature"] = temperature
-    submitDialog(config, subject, scenario)
+    config.chat.submitDialog(config, subject, scenario)
 
 @cli.command()
 @pass_config
@@ -254,66 +180,9 @@ def train(config, subject, scenario, temperature):
 def submit(config, subject, scenario, temperature):
     """Submit without editing the scenario file to openAi api and print out the response."""
     config.progConfig["temperature"] = temperature
-    submitDialog(config, subject, scenario)
+    config.chat.submitDialog(config, subject, scenario)
 
 
-def submitDialog(config, subject, scenario):
-    """Send the dialog to openai and save the response"""
-    subject = sanitizeName(subject)
-    if subject:
-        with open(os.path.join(config.conversations_path, sanitizeName(subject) + config.fileExtention), "a") as f:
-            pass
-        with open(os.path.join(config.conversations_path, sanitizeName(subject) + config.fileExtention), "r") as f:
-            chatRaw = f.read()
-            if scenario != "Neutral":
-                bootstrappedChat = bootStrapChat(config, scenario)
-                chat = bootstrappedChat + "\n" + chatRaw  + "\n" + config.progConfig["aiPrompt"]
-            else:
-                chat = chatRaw + "\n" + config.progConfig["aiPrompt"]
-                    
-    if chat == "":
-        print("Empty conversation")
-        return
-
-    tries = config.progConfig.get("maxRetries",1)
-    success = False
-    sleepBetweenRetries = config.progConfig["retryDelay"]
-    
-    while tries > 0:
-        try:
-            response = completions_with_backoff(
-                delay_in_seconds=config.delay,
-                model=config.progConfig["model"],
-                prompt=chat,
-                temperature=config.progConfig["temperature"],
-                max_tokens=config.progConfig["maxTokens"],
-                top_p=config.progConfig["topP"],
-                frequency_penalty=config.progConfig["frequencyPenalty"],
-                presence_penalty=config.progConfig["presencePenalty"],
-                stop=[ # "\n",
-                config.progConfig["userPrompt"], config.progConfig["aiPrompt"]],
-            )
-            ai = response.choices[0].text
-            if ai.startswith("\n\n"):
-                ai = ai[2:]
-            success = True
-            break
-        except Exception as e:
-            tries -= 1
-            if str(e) == "openai.error.RateLimitError":
-                eprint("Error: Too many requests. We will try again")
-            eprint("Error: " + str(e))
-            eprint(f"Retrying again in {sleepBetweenRetries} seconds...")
-            time.sleep(sleepBetweenRetries)
-            sleepBetweenRetries *= config.progConfig["retryMultiplier"] 
-            if sleepBetweenRetries > config.progConfig["retryMaxDelay"]:
-                sleepBetweenRetries = config.progConfig["retryMaxDelay"]
-    if success == False:
-        eprint("Error: Could not send the dialog")
-        return
-    with open(os.path.join(config.conversations_path, subject + config.fileExtention), "a") as f:
-        f.write(config.progConfig["aiPrompt"] + ai)
-    print(ai)
 
 
 @cli.command()
@@ -336,7 +205,7 @@ def show(config, whattoshow, subject):
                 print(scenario)
         elif whattoshow == 'models':
             print("Current models:")
-            for model in sorted(list(map(lambda n: n.id,openai.Model.list().data))):
+            for model in sorted(list(map(lambda n: n.id,config.chat.Model.list().data))):
                 print(model)
         else:
             print("Please specify what to show. Valid options are: config, subjects, scenarios, subject")
@@ -357,10 +226,10 @@ Save the API keys to query OpenAI"""
     print("Welcome to askGPT")
     print("Please provide your OpenAI API key and organization")
     print("You can find these values at https://beta.openai.com/account/api-keys")
-    openai.api_key = input("API_KEY:")
-    openai.organization = input("ORGANIZATION:")
+    config.chat.api_key = input("API_KEY:")
+    config.chat.organization = input("ORGANIZATION:")
     with open(os.path.join(config.settingsPath, "credentials"), "w") as f:
-        f.write(openai.api_key + ":" + openai.organization)
+        f.write(config.chat.api_key + ":" + config.chat.organization)
     print("askGPT is now ready to use")
 
 
@@ -391,21 +260,6 @@ Delete the previous conversations saved by askGPT"""
         eprint("No chat history with that subject")
         return
 
-def bootStrapChat(config, scenario):
-    """Read the scenario and return the initial chat"""
-    chat = list()
-    conversationChat = list()
-    if scenario in config.scenarios:
-        chat=config.scenarios[scenario]["conversation"]
-        """read the array conversation, for each row join the user and the prompt. append the line to the conversationChat"""
-        for line in chat:
-            conversationChat.append(config.progConfig.get(line["user"],"userPrompt") + line["prompt"])
-        return config.progConfig["aiPrompt"] +  config.scenarios[scenario]["greetings"] + "\n" + "\n".join(conversationChat)
-    else:
-        eprint("Scenario not found")
-        return ""
-
-
 @cli.command()
 @pass_config
 @click.option("--subject", prompt="Subject", help="Subject of the conversation")
@@ -432,7 +286,7 @@ Query the OpenAI API with the provided subject and enquiry"""
         with open(os.path.join(config.conversations_path, sanitizeName(subject) + config.fileExtention), "r") as f:
             chatRaw = f.read()
             if scenario != "Neutral":
-                bootstrappedChat = bootStrapChat(config, scenario)
+                bootstrappedChat = config.chat.bootStrapChat(config, scenario)
                 chat = bootstrappedChat + "\n" + chatRaw  + enquiry + "\n" + config.progConfig["aiPrompt"]
             else:
                 chat = chatRaw + enquiry + "\n" + config.progConfig["aiPrompt"]
@@ -443,7 +297,7 @@ Query the OpenAI API with the provided subject and enquiry"""
             sleepBetweenRetries = config.progConfig["retryDelay"]
             while tries > 0:
                 try:
-                    response = completions_with_backoff(
+                    response = config.chat.completions_with_backoff(
                         delay_in_seconds=config.delay,
                         model=model,
                         prompt=chat,
