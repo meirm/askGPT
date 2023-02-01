@@ -1,11 +1,10 @@
 """"""
 import os
-import click
 from pathlib import Path
 from .tools import load_json, eprint
-from .api.openai import ChatGPT
 from askGPT import DATA_PATH
 import toml
+from .api.openai import ChatGPT
 
 basicConfig = dict()
 basicConfig["userPrompt"] = basicConfig.get("userPrompt"," Human: ")
@@ -24,7 +23,6 @@ basicConfig["retryMultiplier"] = basicConfig.get("retryMultiplier",2)
 
 class Config(object):
     def __init__(self):
-        
         self.rate_limit_per_minute = 20
         self.delay = 60.0 / self.rate_limit_per_minute
         self.disclaimer = "Disclaimer: The advice provided by askGPT is intended for informational and entertainment purposes only. It should not be used as a substitute for professional advice, and we cannot be held liable for any damages or losses arising from the use of the advice provided by askGPT."
@@ -35,9 +33,53 @@ class Config(object):
         self.loadScenarios()
         self.fileExtention=".ai.txt"
         self.loadDefaults()
+        self.loadConfig()
         self.update()
         self.chat = ChatGPT(self)
         self.chat.loadLicense()
+
+    def loadConfig(self):
+        if os.path.isfile(os.path.join(self.settingsPath, "config.toml")):
+            tomlConfig = toml.load(os.path.join(self.settingsPath,"config.toml"))
+            self.progConfig.update(tomlConfig["default"])
+        else:
+            self.saveConfig()
+
+
+    def updateParameter(self,key, val):
+        if val == "true":
+            val = True
+        elif val == "false":
+            val = False
+        elif val.isnumeric():
+            val = int(val)
+        elif val.replace(".","",1).isnumeric():
+            val = float(val)
+        if self.progConfig[key] != val:
+            print(f"{key}] = {val}")
+        self.progConfig[key] = val
+        
+
+
+    def saveConfig(self):
+        """Save the configuration file"""
+        jsonConfig = {'name':'askGPT','default':self.progConfig}
+        with open(os.path.join(self.settingsPath,"config.toml"), 'w') as f:
+            toml.dump(jsonConfig,f)
+        self.update()
+
+    def reloadConfig(self):
+        """Reload the configuration file"""
+        self.update()
+
+    def get_list(self):
+        """
+        list the previous conversations saved by askGPT."""
+        conv_array = list()
+        for line in os.listdir(self.conversations_path):
+            if (not line.startswith("."))  and line.endswith(self.fileExtention) and (os.path.isfile(os.path.join(self.conversations_path,line))):
+                conv_array.append(line.replace(self.fileExtention,""))
+        return conv_array
 
     def loadScenarios(self):
         """if there is not a file named scenarios.json, create it ad add the Neutral scenario"""
@@ -65,12 +107,12 @@ class Config(object):
         self.progConfig["retryMaxDelay"] = self.progConfig.get("retryMaxDelay",60)
         self.progConfig["retryMultiplier"] = self.progConfig.get("retryMultiplier",2)
 
-    
+    def printConfig(self):
+        """Print the configuration file"""
+        print(toml.dumps(self.progConfig))
 
     def update(self):
         """
 Load the configuration file from ~/.askGPT/config.toml"""
-        if os.path.isfile(os.path.join(self.settingsPath, "config.toml")):
-            tomlConfig = toml.load(os.path.join(self.settingsPath,"config.toml"))
-            self.progConfig.update(tomlConfig["default"])
+        self.loadConfig()
             # self.progConfig.update(tomlConfig["askGPT"])

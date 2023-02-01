@@ -14,7 +14,8 @@ requires-python = ">=3.7"
 keywords = [
   "openai",
   "gpt-3",
-  "cli"
+  "cli",
+  "cmd2"
   ]
   
   

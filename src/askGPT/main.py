@@ -32,24 +32,21 @@ Traceback (most recent call last):
     if isinstance(node.obj, object_type):
 TypeError: isinstance() arg 2 must be a type or tuple of types
 
+solution:
+
 
 """
 
 import os
-"""We will import .api/openai and we will make an instance of the class to use to interact with openai."""
 from .api.openai import ChatGPT
 from .config import Config, basicConfig
 import click
 from rich import print
-from pathlib import Path
-import json
 import backoff
 import time
 import toml
-import sys
 import platform
 import subprocess
-import cmd
 from .shell import Shell
 from .tools import eprint, sanitizeName
 
@@ -61,7 +58,7 @@ if is_windows:
 else:
     import readline
 
-pass_config = click.make_pass_decorator(Config(), ensure=True)
+pass_config = click.make_pass_decorator(Config, ensure=True)
 
 @click.group()
 @click.version_option(__version__)
@@ -69,7 +66,13 @@ pass_config = click.make_pass_decorator(Config(), ensure=True)
 def cli(config):
     if config.progConfig.get("showDisclaimer",True):
         print(config.disclaimer)
-    exit()
+
+@cli.command()
+@pass_config
+def disclaimer(config):
+    """Show the disclaimer"""
+    if not config.progConfig.get("showDisclaimer",False):
+        print(config.disclaimer)
 
 @cli.command()
 @pass_config
@@ -79,13 +82,6 @@ def shell(config):
     shell = Shell(config)
     shell.cmdloop()
 
-
-@cli.command()
-@pass_config
-def disclaimer(config):
-    """Show the disclaimer"""
-    if not config.progConfig.get("showDisclaimer",False):
-        print(config.disclaimer)
 
 
 @cli.command()
@@ -197,7 +193,7 @@ def show(config, whattoshow, subject):
             print(toml.dumps(config.progConfig))
         elif whattoshow == "subjects":
             print("Current subjects:")
-            for subject in get_list():
+            for subject in config.get_list():
                     print(subject)
         elif whattoshow == 'scenarios':
             print("Current scenarios:")
@@ -234,14 +230,7 @@ Save the API keys to query OpenAI"""
 
 
 @pass_config
-def get_list(config):
-    """
-list the previous conversations saved by askGPT."""
-    conv_array = list()
-    for line in os.listdir(config.conversations_path):
-        if (not line.startswith("."))  and line.endswith(config.fileExtention) and (os.path.isfile(os.path.join(config.conversations_path,line))):
-            conv_array.append(line.replace(config.fileExtention,""))
-    return conv_array
+
 
 
 @cli.command()
@@ -252,7 +241,7 @@ def delete(config, subject, all):
     """
 Delete the previous conversations saved by askGPT"""
     if all:
-        for subject in get_list():
+        for subject in config.get_list():
             os.remove(os.path.join(config.conversations_path, subject + config.fileExtention))
     elif subject and os.path.isfile(os.path.join(config.conversations_path,sanitizeName(subject) + config.fileExtention)):
         os.remove(os.path.join(config.conversations_path, subject + config.fileExtention))

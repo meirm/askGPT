@@ -3,10 +3,10 @@ import os
 from askGPT.tools import eprint, sanitizeName
 import time
 import backoff
-from openai import api_resources
+import click
 
 """This is a class that inherit from openai class that will allow us to query chatgpt. By using a class we can share the object between modules passing it as an argument."""
-class ChatGPT(openai.api_resources.abstract.api_resource.APIResource):
+class ChatGPT(object):
     def __init__(self, config) -> None:
         super().__init__()
         self._model = "davinci"
@@ -19,6 +19,29 @@ class ChatGPT(openai.api_resources.abstract.api_resource.APIResource):
         self._chat_log = []
         self._config = config
         self.settingsPath = os.path.join(os.getenv("HOME"),".askGPT")
+
+    def listModels(self):
+        models = list()
+        for model in sorted(list(map(lambda n: n.id,openai.Model.list().data))):
+            models.append(model)
+        return models
+       
+    def editDialog(self,subject):
+        """
+        Edit a conversation"""
+        subject = sanitizeName(subject)
+        lines = list()
+        if os.path.isfile(os.path.join(self._config.conversations_path, subject + self._config.fileExtention)):
+            with open(os.path.join(config.conversations_path, subject + config.fileExtention), "r") as f:
+                lines = f.readlines()
+        lines = click.edit("".join(lines))
+        if lines is not None:
+            with open(os.path.join(self._config.conversations_path, subject + self._config.fileExtention), "w") as f:
+                f.write(lines)
+        else:
+            eprint("No changes made")
+
+
 
     def bootStrapChat(self,scenario):
         """Read the scenario and return the initial chat"""
@@ -38,19 +61,41 @@ class ChatGPT(openai.api_resources.abstract.api_resource.APIResource):
         """Delay a completion by a specified amount of time."""
         # Sleep for the delay
         time.sleep(delay_in_seconds)
-        return self.Completion.create(**kwargs)
+        return openai.Completion.create(**kwargs)
 
-    def query(self, prompt: str, max_tokens: int = 150, temperature: float = 0.9, top_p: float = 1, frequency_penalty: float = 0, presence_penalty: float = 0, stop: list = ["\n", " Human:", " AI:"]):
+    def createPrompt(self, subject: str, scenario: str, enquiry: str):
+        subject = sanitizeName(subject)
+        enquiry = self._config.progConfig["userPrompt"] + enquiry
+        chat = ""
+        if subject:
+            with open(os.path.join(self._config.conversations_path, sanitizeName(subject) + self._config.fileExtention), "a") as f:
+                pass
+            with open(os.path.join(self._config.conversations_path, sanitizeName(subject) + self._config.fileExtention), "r") as f:
+                chatRaw = f.read()
+                if scenario != "Neutral":
+                    bootstrappedChat = self.bootStrapChat(scenario)
+                    chat = bootstrappedChat + "\n" + chatRaw  + enquiry + "\n" + self._config.progConfig["aiPrompt"]
+                else:
+                    chat = chatRaw + enquiry + "\n" + self._config.progConfig["aiPrompt"]
+                return chat
+        else:
+            eprint("Please set a subject")
+            return ""
+
+
+    def query(self, subject: str, scenario: str, enquiry: str, max_tokens: int = 150, temperature: float = 0.9, top_p: float = 1, frequency_penalty: float = 0, presence_penalty: float = 0, stop: list = ["\n", " Human:", " AI:"]):
         """Query the model with the given prompt."""
         # Load the license
         if not self.loadLicense():
             return
         # Create the prompt
-        prompt = self.createPrompt(prompt)
+        response = None
+        prompt = self.createPrompt(subject, scenario, enquiry)
         try:
             # Query the model
             response = self.completions_with_backoff(
                 prompt=prompt,
+                model=self._config.progConfig.get("model", "text-davinci-003"),
                 max_tokens=max_tokens,
                 temperature=temperature,
                 top_p=top_p,
@@ -70,15 +115,15 @@ class ChatGPT(openai.api_resources.abstract.api_resource.APIResource):
         # Load your API key from an environment variable or secret management service
         if os.getenv("OPENAI_API_KEY") and os.getenv("OPENAI_ORGANIZATION"):
 
-            self.api_key = os.getenv("OPENAI_API_KEY")
-            self.organization = os.getenv("OPENAI_ORGANIZATION")
+            openai.api_key = os.getenv("OPENAI_API_KEY")
+            openai.organization = os.getenv("OPENAI_ORGANIZATION")
             return True
         else:
             if os.path.isfile(os.path.join(self.settingsPath, "credentials")):
                 with open(os.path.join(self.settingsPath, "credentials"), "r") as f:
                     credentials = f.read()
-                    self.api_key = credentials.split(":")[0]
-                    self.organization = credentials.split(":")[1].strip()
+                    openai.api_key = credentials.split(":")[0]
+                    openai.organization = credentials.split(":")[1].strip()
                     return True
             else:
                 eprint("Please set OPENAI_API_KEY and OPENAI_ORGANIZATION environment variables.")
@@ -146,12 +191,6 @@ class ChatGPT(openai.api_resources.abstract.api_resource.APIResource):
         print(ai)
 
 
-    def query(self, prompt):
-        """Query the model with the given prompt."""
-        response = super().query(prompt)
-        self._chat_log.append(response.choices[0].text)
-        return response
-    
     def get_chat_log(self):
         """Get the chat log."""
         return self._chat_log
