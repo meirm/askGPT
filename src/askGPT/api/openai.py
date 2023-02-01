@@ -9,7 +9,7 @@ import click
 class ChatGPT(object):
     def __init__(self, config) -> None:
         super().__init__()
-        self._model = "davinci"
+        self._model = "text-davinci-003"
         self._temperature = 0.9
         self._max_tokens = 150
         self._top_p = 1
@@ -32,7 +32,7 @@ class ChatGPT(object):
         subject = sanitizeName(subject)
         lines = list()
         if os.path.isfile(os.path.join(self._config.conversations_path, subject + self._config.fileExtention)):
-            with open(os.path.join(config.conversations_path, subject + config.fileExtention), "r") as f:
+            with open(os.path.join(self._config.conversations_path, subject + self._config.fileExtention), "r") as f:
                 lines = f.readlines()
         lines = click.edit("".join(lines))
         if lines is not None:

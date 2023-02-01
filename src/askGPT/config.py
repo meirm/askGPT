@@ -28,17 +28,18 @@ class Config(object):
         self.disclaimer = "Disclaimer: The advice provided by askGPT is intended for informational and entertainment purposes only. It should not be used as a substitute for professional advice, and we cannot be held liable for any damages or losses arising from the use of the advice provided by askGPT."
         self.settingsPath=os.path.join(os.getenv("HOME"), ".askGPT")
         self.progConfig = dict()
+        self.sessionConfig = dict()
         self.conversations_path=os.path.join(self.settingsPath, "conversations")
         Path(self.conversations_path).mkdir(parents=True, exist_ok=True)
         self.loadScenarios()
         self.fileExtention=".ai.txt"
         self.loadDefaults()
-        self.loadConfig()
+        self.loadProgConfig()
         self.update()
         self.chat = ChatGPT(self)
         self.chat.loadLicense()
 
-    def loadConfig(self):
+    def loadProgConfig(self):
         if os.path.isfile(os.path.join(self.settingsPath, "config.toml")):
             tomlConfig = toml.load(os.path.join(self.settingsPath,"config.toml"))
             self.progConfig.update(tomlConfig["default"])
@@ -55,9 +56,14 @@ class Config(object):
             val = int(val)
         elif val.replace(".","",1).isnumeric():
             val = float(val)
-        if self.progConfig[key] != val:
-            print(f"{key}] = {val}")
-        self.progConfig[key] = val
+        elif key in self.sessionConfig: # order matters
+            if self.sessionConfig[key] != val:
+                print(f"{key}] = {val}")
+                self.sessionConfig[key] = val
+        elif key in self.progConfig:
+            if self.progConfig[key] != val:
+                print(f"{key}] = {val}")
+                self.progConfig[key] = val
         
 
 
@@ -114,5 +120,5 @@ class Config(object):
     def update(self):
         """
 Load the configuration file from ~/.askGPT/config.toml"""
-        self.loadConfig()
+        self.loadProgConfig()
             # self.progConfig.update(tomlConfig["askGPT"])

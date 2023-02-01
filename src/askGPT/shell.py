@@ -27,9 +27,13 @@ class Shell(cmd.Cmd):
         }
 
 
-    def set(self,args):
+    def do_set(self,args):
         """Set conversation_parameters checking that the keys exist and that the values are valid"""
         args = shlex.split(args)
+        if len(args) == 0:
+            for key in self.conversation_parameters:
+                print(f"{key} = {self.conversation_parameters[key]}")
+            return
         if len(args) == 2:
             key = args[0]
             val = args[1]
