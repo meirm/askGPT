@@ -23,6 +23,8 @@ import sys
 import platform
 import pkg_resources
 import subprocess
+import cmd
+from .shell import Shell
 
 DATA_PATH = pkg_resources.resource_filename('askGPT', 'data/')
 # use pyreadline3 instead of readline on windows
@@ -156,6 +158,15 @@ def cli(config):
 
 @cli.command()
 @pass_config
+
+def shell(config):
+    """Use the cmd module to create an interactive shell where the user can all the commands such as query, edit, config, show. We will call a class which we will write later as a child of cmd.cmd"""
+    shell = Shell(config)
+    shell.cmdloop()
+
+
+@cli.command()
+@pass_config
 def disclaimer(config):
     """Show the disclaimer"""
     if not config.progConfig.get("showDisclaimer",False):
@@ -223,6 +234,29 @@ Edit a conversation"""
     if submit:
         submitDialog(config,subject, scenario)
 
+@cli.command()
+@pass_config
+@click.option("--subject", prompt="Subject", help="Subject to use to save the conversation")
+@click.option("--scenario", default="Neutral", help="scenario to use in the conversation")
+@click.option("--temperature", default=basicConfig["temperature"], type=float, help="Set alternative temperature")
+
+def train(config, subject, scenario, temperature):
+    """Train the model with the conversation"""
+    config.progConfig["temperature"] = temperature
+    submitDialog(config, subject, scenario)
+
+@cli.command()
+@pass_config
+@click.option("--subject", prompt="Subject", help="Subject to use to save the conversation")
+@click.option("--scenario", default="Neutral", help="scenario to use in the conversation")
+@click.option("--temperature", default=basicConfig["temperature"], type=float, help="Set alternative temperature")
+
+def submit(config, subject, scenario, temperature):
+    """Submit without editing the scenario file to openAi api and print out the response."""
+    config.progConfig["temperature"] = temperature
+    submitDialog(config, subject, scenario)
+
+
 def submitDialog(config, subject, scenario):
     """Send the dialog to openai and save the response"""
     subject = sanitizeName(subject)
@@ -247,7 +281,6 @@ def submitDialog(config, subject, scenario):
     
     while tries > 0:
         try:
-            print("Sending to openai")
             response = completions_with_backoff(
                 delay_in_seconds=config.delay,
                 model=config.progConfig["model"],
@@ -278,7 +311,6 @@ def submitDialog(config, subject, scenario):
     if success == False:
         eprint("Error: Could not send the dialog")
         return
-    print("Saving response")
     with open(os.path.join(config.conversations_path, subject + config.fileExtention), "a") as f:
         f.write(config.progConfig["aiPrompt"] + ai)
     print(ai)

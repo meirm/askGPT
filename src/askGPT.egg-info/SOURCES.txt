@@ -4,6 +4,7 @@ README.md
 pyproject.toml
 src/askGPT/__init__.py
 src/askGPT/main.py
+src/askGPT/shell.py
 src/askGPT.egg-info/PKG-INFO
 src/askGPT.egg-info/SOURCES.txt
 src/askGPT.egg-info/dependency_links.txt
