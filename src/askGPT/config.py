@@ -41,7 +41,7 @@ class Config(object):
         self.update()
         self.chat = ChatGPT(self)
         self.chat.loadLicense()
-        self.version="0.4.10"
+        self.version="0.4.11"
 
     def loadProgConfig(self):
         if os.path.isfile(os.path.join(self.settingsPath, "config.toml")):
@@ -49,7 +49,6 @@ class Config(object):
             self.progConfig.update(tomlConfig["default"])
         else:
             self.saveConfig()
-
 
     def updateParameter(self,key, val):
         if val == "true":

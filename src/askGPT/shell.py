@@ -132,6 +132,20 @@ class Shell(cmd.Cmd):
                         eprint("Model not found")
                 else:
                     self.conversation_parameters[key] = val
+            elif key in self._config.progConfig:
+                if key == "fileExtention":
+                    if val[0] != ".":
+                        val = "." + val
+                self._config.progConfig[key] = val
+                if val.isnumeric():
+                    val = int(val)
+                    self._config.progConfig[key] = val
+                elif val.replace(".","").isnumeric():
+                    val = float(val)
+                    self._config.progConfig[key] = val
+                else:
+                    self._config.progConfig[key] = val
+                self._config.saveConfig()
             else:
                 eprint("Key not found")
         else:

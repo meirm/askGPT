@@ -8,7 +8,7 @@ __title__ = 'askGPT'
 __author__ = 'Meir Michanie'
 __license__ = 'MIT'
 __credits__ = ''
-__version__ = "0.4.10"
+__version__ = "0.4.11"
 
 """askgpt query --subject quest1 --scenario Zork 
 Traceback (most recent call last):
