@@ -22,7 +22,8 @@ class Shell(cmd.Cmd):
         self.conversation_parameters = {
             "subject": "test",
             "scenario": "Neutral",
-            "model": "text-davinci-003"
+            "model": "text-davinci-003",
+            "defaultCommand": "query"
 
         }
 
@@ -247,8 +248,11 @@ class Shell(cmd.Cmd):
         pass
 
     def default(self, line):
-        """default: print the error message."""
-        print("Unrecognized command:", line)
+        if self.conversation_parameters.get("defaultCommand","query") == "query":
+            self.do_query(line)
+        else:
+            """default: print the error message."""
+            print("Unrecognized command:", line)
 
     def postloop(self):
         """postloop: print the exit message."""
