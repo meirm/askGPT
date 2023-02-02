@@ -158,10 +158,13 @@ class Shell(cmd.Cmd):
         else:
             eprint("Subject not found")
 
-    def do_edit(self, subject):
+    def do_edit(self, args):
         """edit: edit a subject."""
-        subject = sanitizeName(subject)
-        if subject in self._config.subjects:
+        if len(args) == 0:
+            subject = self.conversation_parameters["subject"]
+        else:
+            subject = sanitizeName(args[0])
+        if subject in self._config.get_list():
             self._config.chat.editDialog(subject)
         else:
             eprint("Subject not found")
@@ -273,10 +276,6 @@ class Shell(cmd.Cmd):
         with open(os.path.join(os.path.join(self._config.settingsPath, "last.toml")), "w") as f:
             toml.dump(self.conversation_parameters, f)
 
-    def do_edit(self, arg):
-        """edit: edit the config file."""
-        print("editing the config file...")
-        print("TODO: implement the edit function.")
 
     def do_EOF(self, arg):
         self.saveSession()
@@ -284,10 +283,12 @@ class Shell(cmd.Cmd):
 
     def do_exit(self, arg):
         """exit: exit the shell."""
+        self.saveSession()
         return True
 
     def do_quit(self, arg):
         """quit: exit the shell."""
+        self.saveSession()
         return True
     
     def do_help(self, arg):
@@ -318,7 +319,9 @@ class Shell(cmd.Cmd):
         pass
 
     def default(self, line):
-        if self.conversation_parameters.get("defaultCommand","query") == "query":
+        if line.startswith("!"):
+            self.do_exec(line[1:])
+        elif self.conversation_parameters.get("defaultCommand","query") == "query":
             self.do_query(line)
         else:
             """default: print the error message."""
