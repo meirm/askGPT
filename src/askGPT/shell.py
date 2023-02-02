@@ -137,6 +137,10 @@ class Shell(cmd.Cmd):
         else:
             eprint("Wrong number of arguments")
     
+    def do_version(self,args):
+        """Print the version of the program"""
+        print(f"Version {self._config.version}")
+
     def _register_commands(self):
         """Register all the commands."""
         for name in dir(self):
@@ -148,12 +152,16 @@ class Shell(cmd.Cmd):
         """credentials: show the credentials."""
         if self._config.credentials:
             print(self._config.credentials)
-            if not Prompt.Confirm("Would you like to replace them?"):
+            if not Confirm.ask("Would you like to replace them?"):
                 return
         """ask if to replace"""
-        api_key = Prompt.ask("Enter your openai API key")
+        api_key = ""
+        while(api_key == ""):
+            api_key = Prompt.ask("Enter your openai API key",default="" if self._config.credentials is None else self._config.credentials.split(":")[0])
         
-        api_organization = Prompt.ask("Enter your openai otganization")
+        api_organization=""
+        while(api_organization == ""):
+            api_organization = Prompt.ask("Enter your openai otganization",default="" if self._config.credentials is None else self._config.credentials.split(":")[1])
         self._config.credentials = f"{api_key}:{api_organization}"
 
         """if yes, ask for the new credentials"""
@@ -206,21 +214,26 @@ class Shell(cmd.Cmd):
 
     def do_submit(self, args):
         """submit: submit a subject."""
-        self._config.chat.submitDialog(self.conversation_parameters["subject"], self.conversation_parameters["scenario"])
+        if self._config.has.get("license", False):
+            self._config.chat.submitDialog(self.conversation_parameters["subject"], self.conversation_parameters["scenario"])
+        else: 
+            self._config.chat.loadLicense()
         return
+
         
     def do_query(self, enquiry, max_tokens: int = 150, temperature: float = 0.9, top_p: float = 1, frequency_penalty: float = 0, presence_penalty: float = 0, stop: list = ["\n", " Human:", " AI:"]):
         """Query the model with the given prompt."""
         """query: query the model with the given prompt.
          <prompt> """
-        if not self._config:
-            print("You need to configure the model first.")
+        if not self._config.has.get("license", False):
+            self._config.chat.loadLicense()
             return
-        response = self._config.chat.query(self.conversation_parameters["subject"], self.conversation_parameters["scenario"], enquiry)
-        text = Text(response["choices"][0]["text"])
-        text.stylize("bold magenta")
-        console.print(text)
-        """Query the model with the given prompt."""
+        if self._config.has.get("license", False):
+            response = self._config.chat.query(self.conversation_parameters["subject"], self.conversation_parameters["scenario"], enquiry)
+            text = Text(response["choices"][0]["text"])
+            text.stylize("bold magenta")
+            console.print(text)
+            """Query the model with the given prompt."""
 
     def complete_query(self,text, line, begidx, endidx):
         """complete_query: complete the query command."""
@@ -257,9 +270,12 @@ class Shell(cmd.Cmd):
                     print(subject)
                 return
             elif args[0] == "models":
-                print("Current models:")
-                for val  in self._config.chat.listModels():
-                    print(val)
+                if self._config.has.get("license", False):
+                    print("Current models:")
+                    for val  in self._config.chat.listModels():
+                        print(val)
+                else: 
+                    self._config.chat.loadLicense()
                 return
             else:
                 eprint("Unrecognized parameter.")
@@ -335,6 +351,7 @@ class Shell(cmd.Cmd):
         if line.startswith("!"):
             self.do_exec(line[1:])
         elif self.conversation_parameters.get("defaultCommand","query") == "query":
+
             self.do_query(line)
         else:
             """default: print the error message."""

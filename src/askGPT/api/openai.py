@@ -126,6 +126,7 @@ class ChatGPT(object):
             openai.api_key = os.getenv("OPENAI_API_KEY")
             openai.organization = os.getenv("OPENAI_ORGANIZATION")
             self._config.credentials = os.getenv("OPENAI_API_KEY") + ":" + os.getenv("OPENAI_ORGANIZATION")
+            self._config.has["license"] = True
             return True
         else:
             if os.path.isfile(os.path.join(self.settingsPath, "credentials")):
@@ -134,6 +135,7 @@ class ChatGPT(object):
                     openai.api_key = credentials.split(":")[0]
                     openai.organization = credentials.split(":")[1].strip()
                     self._config.credentials = credentials
+                    self._config.has["license"] = True
                     return True
             else:
                 eprint("Please set OPENAI_API_KEY and OPENAI_ORGANIZATION environment variables.")

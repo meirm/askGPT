@@ -30,6 +30,8 @@ class Config(object):
         self.progConfig = dict()
         self.sessionConfig = dict()
         self.credentials = None
+        self.has = dict()
+        self.has["license"] = False
         self.conversations_path=os.path.join(self.settingsPath, "conversations")
         Path(self.conversations_path).mkdir(parents=True, exist_ok=True)
         self.loadScenarios()
@@ -39,6 +41,7 @@ class Config(object):
         self.update()
         self.chat = ChatGPT(self)
         self.chat.loadLicense()
+        self.version="0.4.8"
 
     def loadProgConfig(self):
         if os.path.isfile(os.path.join(self.settingsPath, "config.toml")):
