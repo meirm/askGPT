@@ -4,13 +4,21 @@ from .tools   import eprint, sanitizeName
 import toml
 import os
 import sys
-
+import rich
+from rich import print
+from rich.text import Text
+from rich.style import Style
+danger_style = Style(color="red", blink=False, bold=True)
+attention_style = Style(color="yellow", blink=False, bold=True)
+ok_style = Style(color="green", blink=False, bold=False)
+from rich.console import Console
+console = Console()
 
 """Here we will define the class Shell which is a child of cmd.cmd which will allow us to run all the commands interactively such as query, config, edit."""
 class Shell(cmd.Cmd):
     def __init__(self, config) -> None:
         super().__init__()
-        self.prompt = "askGPT> "
+        self.prompt = "Neutral> "
         self.intro = "Welcome to askGPT. Type help or ? to list commands."
         self.doc_header = "Commands (type help <topic>):"
         self.misc_header = "Miscellaneous help topics:"
@@ -22,9 +30,33 @@ class Shell(cmd.Cmd):
         self.conversation_parameters = {
             "subject": "test",
             "scenario": "Neutral",
-            "model": "text-davinci-003"
+            "model": "text-davinci-003",
+            "defaultCommand": "query"
 
         }
+
+    def do_greetings(self, args):
+        """if args is one of the scenarios, print the greeting of that scenario"""
+        args = shlex.split(args)
+        if len(args) == 0:
+            """print current scenario from conversation_parameters"""
+            scenario = self.conversation_parameters["scenario"]
+            print(self._config.scenarios[scenario]["greetings"])
+            return
+        scenario = args[0]
+        if scenario in self._config.scenarios:
+            print(self._config.scenarios[scenario]["greetings"])
+        else:
+            eprint(f"Scenario {scenario} not found")
+
+    def do_exec(self,args):
+        """Execute a the rest of the line in a bash shell and print the output"""
+        args = shlex.split(args)
+        if len(args) == 0:
+            eprint("No command provided")
+            return
+        command = " ".join(args)
+        os.system(command)
 
 
     def do_set(self,args):
@@ -41,6 +73,7 @@ class Shell(cmd.Cmd):
                 if key == "scenario":
                     if val in self._config.scenarios:
                         self.conversation_parameters[key] = val
+                        self.prompt = f"{val}> "
                     else:
                         eprint("Scenario not found")
                 elif key == "model":
@@ -137,8 +170,9 @@ class Shell(cmd.Cmd):
             print("You need to configure the model first.")
             return
         response = self._config.chat.query(self.conversation_parameters["subject"], self.conversation_parameters["scenario"], enquiry)
-        print()
-        print(response["choices"][0]["text"])
+        text = Text(response["choices"][0]["text"])
+        text.stylize("bold magenta")
+        console.print(text)
         """Query the model with the given prompt."""
 
     def complete_query(self,text, line, begidx, endidx):
@@ -247,8 +281,11 @@ class Shell(cmd.Cmd):
         pass
 
     def default(self, line):
-        """default: print the error message."""
-        print("Unrecognized command:", line)
+        if self.conversation_parameters.get("defaultCommand","query") == "query":
+            self.do_query(line)
+        else:
+            """default: print the error message."""
+            print("Unrecognized command:", line)
 
     def postloop(self):
         """postloop: print the exit message."""

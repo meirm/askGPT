@@ -8,7 +8,7 @@ __title__ = 'askGPT'
 __author__ = 'Meir Michanie'
 __license__ = 'MIT'
 __credits__ = ''
-__version__ = "0.4.4"
+__version__ = "0.4.5"
 
 """askgpt query --subject quest1 --scenario Zork 
 Traceback (most recent call last):
@@ -274,11 +274,8 @@ Query the OpenAI API with the provided subject and enquiry"""
             pass
         with open(os.path.join(config.conversations_path, sanitizeName(subject) + config.fileExtention), "r") as f:
             chatRaw = f.read()
-            if scenario != "Neutral":
-                bootstrappedChat = config.chat.bootStrapChat(config, scenario)
-                chat = bootstrappedChat + "\n" + chatRaw  + enquiry + "\n" + config.progConfig["aiPrompt"]
-            else:
-                chat = chatRaw + enquiry + "\n" + config.progConfig["aiPrompt"]
+            bootstrappedChat = config.chat.bootStrapChat(config, scenario)
+            chat = bootstrappedChat + "\n" + chatRaw  + enquiry + "\n" + config.progConfig["aiPrompt"]
             tries = 1
             if retry:
                 tries = config.progConfig.get("maxRetries",1)

@@ -21,7 +21,7 @@
 { "user": "aiPrompt", "prompt":"I’m not sure. I’ll ask my friend Google."}],
 "max_tokens": 1000,
 "temperature": 0.5},
-"neutral":{ "name": "Neutral", "greetings": "I am a chatbot. How can I help you today?", "conversation": [], "max_tokens": 1000},
+"Neutral":{ "name": "Neutral", "greetings": "I am a chatbot. How can I help you today?", "conversation": [], "max_tokens": 1000},
 "VocationalTest":{
     "name": "VocationalTest",
     "greetings": "Welcome to our vocational test! I will be asking you 10 questions to help determine what type of career path you should pursue. Let's get started!",

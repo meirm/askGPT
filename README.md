@@ -102,9 +102,30 @@ or
     askgpt  config
     
     askgpt  credentials
-    
 
+    askgpt shell
+
+    askgpt submit
     
+### Shell mode
+From version 0.4.4 you can run ***askgpt shell***
+This will open an interactive shell. The prompt shows the current loaded scenario. You can list scenarios and subjects with the commmands `show scenarios` and `show subjects`. You can change the settings by running `set scenario <scenarioName>` or the subject. Setting the subject to a subject that doesn't exist will create a new conversation log. If you choose a subject that already exist, your next query will be appended to the history of your previous conversation before sending the prompt to chatGPT.
+
+#### Shell commands
+
+* config
+* credentials
+* delete
+* edit
+* exec
+* exit
+* greetings
+* help
+* query
+* quit
+* set
+* submit
+
 ### Configuration
 
 ***askGPT*** will create a config.toml on your .askGPT folder. You can see or change values calling ***askGPT*** config
