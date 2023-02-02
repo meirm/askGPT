@@ -153,7 +153,7 @@ class ChatGPT(object):
             with open(os.path.join(self._config.conversations_path, sanitizeName(subject) + self._config.fileExtention), "r") as f:
                 chatRaw = f.read()
                 if scenario != "Neutral":
-                    bootstrappedChat = self.bootStrapChat(self._config, scenario)
+                    bootstrappedChat = self.bootStrapChat( scenario)
                     chat = bootstrappedChat + "\n" + chatRaw  + "\n" + self._config.progConfig["aiPrompt"]
                 else:
                     chat = chatRaw + "\n" + self._config.progConfig["aiPrompt"]
