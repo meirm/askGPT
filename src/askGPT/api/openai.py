@@ -110,6 +110,14 @@ class ChatGPT(object):
         self._chat_log.append(response.choices[0].text)
         # Return the response
         return response
+
+    def saveLicense(self, api_key, organization):
+        if not os.path.isdir(self.settingsPath):
+            os.mkdir(self.settingsPath)
+        with open(os.path.join(self.settingsPath, "credentials"), "w") as f:
+            f.write(api_key + ":" + organization)
+        return True
+
     
     def loadLicense(self):
         # Load your API key from an environment variable or secret management service
@@ -117,6 +125,8 @@ class ChatGPT(object):
 
             openai.api_key = os.getenv("OPENAI_API_KEY")
             openai.organization = os.getenv("OPENAI_ORGANIZATION")
+            self._config.credentials = os.getenv("OPENAI_API_KEY") + ":" + os.getenv("OPENAI_ORGANIZATION")
+            self._config.has["license"] = True
             return True
         else:
             if os.path.isfile(os.path.join(self.settingsPath, "credentials")):
@@ -124,6 +134,8 @@ class ChatGPT(object):
                     credentials = f.read()
                     openai.api_key = credentials.split(":")[0]
                     openai.organization = credentials.split(":")[1].strip()
+                    self._config.credentials = credentials
+                    self._config.has["license"] = True
                     return True
             else:
                 eprint("Please set OPENAI_API_KEY and OPENAI_ORGANIZATION environment variables.")

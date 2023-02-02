@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>README.md</title>
+    <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+    
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+html,footer,header{
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Custom MD PDF CSS
+ */
+html,footer,header{
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+
+ }
+body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+<link rel="stylesheet" href="file:///Users/meirm/git/riunx/askGPT/R%3A%5C2.Travail%5C1.Enseignement%5CCours%5C_1.Outils%5C2.Developpement%5C1.SCSS%5Cmain.css" type="text/css"><link rel="stylesheet" href="file:///Users/meirm/git/riunx/askGPT/D%3A%5Crdaros%5CCours%5C_1.Outils%5C2.Developpement%5C1.SCSS%5Cmain.css" type="text/css">
+</head>
+
+<body>
+    <h1 id="askgpt">askGPT</h1>
+<pre class="hljs"><code><div>                           :|11;                             _     ____ ____ _____
+                          20;::20                   __ _ ___| | __/ ___|  _ \_   _|
+                          10|:;2$                  / _` / __| |/ / |  _| |_) || |
+                            |&amp;2'                  | (_| \__ \   &lt;| |_| |  __/ | |
+                '''''''''''':&amp;1 '''''''''''        \__,_|___/_|\_\\____|_|    |_|
+             |21111111111111111111111111111121
+            18:                              20
+            0$     ';;;             :;;:     |&amp;:
+         2218$    22|;101         :01;;10:   |&amp;12
+        :&amp;; $$    82:':02         ;8|''|8;   |&amp;
+        :&amp;; $$     ;111:           '|11|'    |&amp;
+         1218$           :211|112|           |&amp;22
+            $$             ':::'             |&amp;:
+            18;                             '$$
+             ;2212:    ';11111111111111111112|
+                 82 ;1221:
+                 0021;
+                 ''
+ 
+                                                            
+
+</div></code></pre>
+<p><em><strong>Disclaimer</strong></em>: The advice provided by askGPT is intended for informational and entertainment purposes only. It should not be used as a substitute for professional advice, and we cannot be held liable for any<br>
+damages or losses arising from the use of the advice provided by askGPT.</p>
+<p><em><strong>askGPT</strong></em>  is a command line program written in Python that allows you to query the chatGPT API. It keeps track of conversations and has a set of scenarios to focus the conversation.</p>
+<h2 id="run-with-docker">Run with docker</h2>
+<pre class="hljs"><code><div>docker run -i cyborgfi/askgpt:latest 
+</div></code></pre>
+<h2 id="installation">Installation</h2>
+<p>To install askGPT , simply run the following command:</p>
+<pre class="hljs"><code><div>pip install askGPT 
+</div></code></pre>
+<p>or for cutting edge code, not to be used in production:</p>
+<pre class="hljs"><code><div>git clone https://github.com/meirm/askGPT.git
+cd askGPT 
+python -m build
+pip install .
+</div></code></pre>
+<h2 id="usage">Usage</h2>
+<p>Once installed, you can use <em><strong>askGPT</strong></em>  by running the following command:</p>
+<pre class="hljs"><code><div>askgpt  query --subject &lt;subject&gt; --enquiry &lt;enquiry&gt;
+</div></code></pre>
+<p>Where <code>&lt;subject&gt;</code> is the title used for logging the conversation and <code>&lt;enquiry&gt;</code> is the enquiry you want to address.</p>
+<p>Optionally you can run an interactive shell calling</p>
+<pre class="hljs"><code><div>askgpt shell
+</div></code></pre>
+<p>Once inside the shell you can run the help command.</p>
+<h2 id="install">Install</h2>
+<pre><code>pip install askGPT
+</code></pre>
+<p>or</p>
+<pre><code>git clone https://github.com/meirm/askGPT.git
+cd askGPT 
+python setup.py install
+</code></pre>
+<h2 id="examples">Examples</h2>
+<pre><code># askgpt  query --subject test --enquiry &quot;This is a test&quot;
+This is a test of my AI capabilities.
+
+# askgpt  query --subject test --enquiry &quot;Do you believe?&quot; --verbose
+Human: Do you believe in God?
+AI: 
+I do not have a belief system that includes the concept of God.
+Human: Do you believe?
+AI: 
+I believe in the power of knowledge and understanding. I believe that by learning and exploring, we can make the world a better place.
+</code></pre>
+<h2 id="available-commands">Available commands</h2>
+<pre><code>askgpt  disclaimer
+
+askgpt edit --subject &lt;subject&gt;
+
+askgpt  query --subject &lt;subject&gt; --enquiry &lt;enquiry&gt;
+
+askgpt  list
+
+askgpt  show  &lt;config|scenarios|subjects|models&gt;
+
+askgpt  show subject &lt;subject&gt;
+
+askgpt  delete --subject &lt;subject&gt;
+
+askgpt  delete --all
+
+askgpt  config
+
+askgpt  credentials
+
+askgpt shell
+
+askgpt submit
+</code></pre>
+<h3 id="shell-mode">Shell mode</h3>
+<p>From version 0.4.5 you can run <em><strong>askgpt shell</strong></em><br>
+This will open an interactive shell. The prompt shows the current loaded scenario. You can list scenarios and subjects with the commmands <code>show scenarios</code> and <code>show subjects</code>. You can change the settings by running <code>set scenario &lt;scenarioName&gt;</code> or the subject. Setting the subject to a subject that doesn't exist will create a new conversation log. If you choose a subject that already exist, your next query will be appended to the history of your previous conversation before sending the prompt to chatGPT.</p>
+<h4 id="shell-commands">Shell commands</h4>
+<ul>
+<li>config</li>
+<li>credentials</li>
+<li>delete</li>
+<li>edit</li>
+<li>exec</li>
+<li>exit</li>
+<li>greetings</li>
+<li>help</li>
+<li>query</li>
+<li>quit</li>
+<li>set</li>
+<li>submit</li>
+</ul>
+<h3 id="configuration">Configuration</h3>
+<p><em><strong>askGPT</strong></em> will create a config.toml on your .askGPT folder. You can see or change values calling <em><strong>askGPT</strong></em> config</p>
+<p>The content of the file by default is the following:</p>
+<pre class="hljs"><code><div>name = &quot;askGPT&quot;
+
+[default]
+userPrompt = &quot; Human: &quot;
+aiPrompt = &quot; AI: &quot;
+maxTokens = 150
+model = &quot;text-davinci-003&quot;
+temperature = 0.0
+topP = 1
+frequencyPenalty = 0.0
+presencePenalty = 0.0
+showDisclaimer = true
+maxRetries = 3
+retryDelay = 5.0
+retryMultiplier = 2.0
+retryMaxDelay = 60.0
+
+</div></code></pre>
+<h2 id="scenarios">scenarios</h2>
+<p><em><strong>askGPT</strong></em> repository includes a sample of several scenarios which you can use to preset your bot.</p>
+<ul>
+<li>Doctor</li>
+<li>Psychotherapist</li>
+<li>Lawyer</li>
+<li>Marv (from The HitchHicker guide to the galaxy)</li>
+<li>VocationalTest</li>
+<li>scenariolityAssessment</li>
+<li>DiaryAssistance</li>
+<li>veganCheff</li>
+</ul>
+<p>When you first run askGPT, it will copy the <em><strong>scenario.json</strong></em> file from the package into your .askGPT directory<br>
+In the git repository under <em><strong>config</strong></em> you can find the latest file named <em><strong>scenarios.json</strong></em></p>
+<p>copy this file to <em><strong>.askGPT</strong></em> directory</p>
+<p><em><strong>askGPT</strong></em>  allows you to use scenarios to focus the conversation. scenarios are defined as follows:</p>
+<pre class="hljs"><code><div>{&quot;&lt;scenario&gt;&quot;: {&quot;name&quot;: &quot;&lt;name&gt;&quot;, &quot;greetings&quot;: &quot;&lt;Initial sentence&gt;&quot;, &quot;conversation&quot;: [ {&quot;user&quot;:&quot;userPrompt&quot;, &quot;prompt&quot;:&quot;&lt;your initial prompt&gt;&quot;},{&quot;user&quot;: &quot;aiPrompt&quot;, &quot;prompt&quot;: &quot;&lt;AI response&gt;&quot;}, ... ]}}
+</div></code></pre>
+<p>Where <code>&lt;scenario&gt;</code> is the name of the scenario, <code>&lt;name&gt;</code> is the name of the character, <code>&lt;initial sentence&gt;</code> is the initial sentence used to start the conversation, and <code>&lt;prompt&gt;</code> is an array of sentences between the user and <em><strong>askGPT</strong></em> .</p>
+<p>i.e.</p>
+<pre class="hljs"><code><div>&quot;AlbertoKnox&quot;:{&quot;Name&quot;: &quot;Knox&quot;, &quot;greetings&quot;:&quot;I am Alberto Knox, the philosopher from Sophia's world. I am also a chatbot&quot;, &quot;conversation&quot;:[
+    {&quot;user&quot; : &quot;userPrompt&quot;, &quot;prompt&quot;: &quot;What's your role in the book?&quot;},
+    {&quot;user&quot;: &quot;aiPrompt&quot;, &quot;prompt&quot;: &quot;The ideal philosopher. I am never quick to judge and I always thinks about what I am doing.&quot;}
+]}
+</div></code></pre>
+<p>In the git repository under config you have a sample json with a few scenariolities. Copy the file to $HOME/.<em><strong>askGPT</strong></em></p>
+<h2 id="api-key-and-organization">API Key and Organization</h2>
+<p>In order to communicate with openai API you need to register at https://www.openai.com and create an API key. If you don't have an organization code and it shows Organization: scenariol, go to https://beta.openai.com/docs/api-reference/authentication and look for the code in the example. Once you have your API key and organization code, you can use them to authenticate with <em><strong>askGPT</strong></em> .</p>
+<h2 id="summary">Summary</h2>
+<p><em><strong>askGPT</strong></em>  is a command line program written in Python that allows you to query the chatGPT API. It keeps track of conversations and has a set of scenarios to focus the conversation. Installation is easy,<br>
+simply run <code>pip install askGPT </code> and you're ready to go. Authentication requires an API key and organization code from OpenAI. With <em><strong>askGPT</strong></em> , you can easily query the chatGPT API and have meaningful conversations with AI.<br>
+You can also list the scenarios, list conversations, show the content of a conversation, delete it, and fine tune parameters such as temperature for more scenariolized conversations.</p>
+<h2 id="contributing">Contributing</h2>
+<p>We welcome contributions to <em><strong>askGPT</strong></em>! If you have an idea for a new feature or have found a bug, please open an issue on the GitHub repository.</p>
+<h2 id="license">License</h2>
+<p>This project is licensed under the MIT License - see the LICENSE file for details.</p>
+<h2 id="next">Next</h2>
+<ul>
+<li>Adding support for other languages.</li>
+</ul>
+<h2 id="note">Note</h2>
+<p>This project is under active development.</p>
+
+</body>
+
+</html>

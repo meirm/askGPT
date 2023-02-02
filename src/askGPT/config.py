@@ -29,6 +29,9 @@ class Config(object):
         self.settingsPath=os.path.join(os.getenv("HOME"), ".askGPT")
         self.progConfig = dict()
         self.sessionConfig = dict()
+        self.credentials = None
+        self.has = dict()
+        self.has["license"] = False
         self.conversations_path=os.path.join(self.settingsPath, "conversations")
         Path(self.conversations_path).mkdir(parents=True, exist_ok=True)
         self.loadScenarios()
@@ -38,6 +41,7 @@ class Config(object):
         self.update()
         self.chat = ChatGPT(self)
         self.chat.loadLicense()
+        self.version="0.4.9"
 
     def loadProgConfig(self):
         if os.path.isfile(os.path.join(self.settingsPath, "config.toml")):
@@ -85,7 +89,7 @@ class Config(object):
         for line in os.listdir(self.conversations_path):
             if (not line.startswith("."))  and line.endswith(self.fileExtention) and (os.path.isfile(os.path.join(self.conversations_path,line))):
                 conv_array.append(line.replace(self.fileExtention,""))
-        return conv_array
+        return sorted(conv_array)
 
     def loadScenarios(self):
         """if there is not a file named scenarios.json, create it ad add the Neutral scenario"""

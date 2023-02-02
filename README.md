@@ -29,6 +29,10 @@ damages or losses arising from the use of the advice provided by askGPT.
 
 ***askGPT***  is a command line program written in Python that allows you to query the chatGPT API. It keeps track of conversations and has a set of scenarios to focus the conversation.
 
+## Run with docker
+```
+docker run -i cyborgfi/askgpt:latest 
+```
 ## Installation
 
 To install askGPT , simply run the following command:
@@ -40,7 +44,8 @@ or for cutting edge code, not to be used in production:
 ```
 git clone https://github.com/meirm/askGPT.git
 cd askGPT 
-python setup.py install
+python -m build
+pip install .
 ```
 ## Usage
 
@@ -108,7 +113,7 @@ or
     askgpt submit
     
 ### Shell mode
-From version 0.4.4 you can run ***askgpt shell***
+From version 0.4.5 you can run ***askgpt shell***
 This will open an interactive shell. The prompt shows the current loaded scenario. You can list scenarios and subjects with the commmands `show scenarios` and `show subjects`. You can change the settings by running `set scenario <scenarioName>` or the subject. Setting the subject to a subject that doesn't exist will create a new conversation log. If you choose a subject that already exist, your next query will be appended to the history of your previous conversation before sending the prompt to chatGPT.
 
 #### Shell commands
