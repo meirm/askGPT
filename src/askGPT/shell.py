@@ -229,7 +229,7 @@ class Shell(cmd.Cmd):
             self._config.chat.loadLicense()
             return
         if self._config.has.get("license", False):
-            with console.status("waiting for response ...", spinner="c"):
+            with console.status("waiting for response ...", spinner="dots"):
                 response = self._config.chat.query(self.conversation_parameters["subject"], self.conversation_parameters["scenario"], enquiry)
                 text = Text(response["choices"][0]["text"])
                 text.stylize("bold magenta")
