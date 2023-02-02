@@ -4,7 +4,15 @@ from .tools   import eprint, sanitizeName
 import toml
 import os
 import sys
-
+import rich
+from rich import print
+from rich.text import Text
+from rich.style import Style
+danger_style = Style(color="red", blink=False, bold=True)
+attention_style = Style(color="yellow", blink=False, bold=True)
+ok_style = Style(color="green", blink=False, bold=False)
+from rich.console import Console
+console = Console()
 
 """Here we will define the class Shell which is a child of cmd.cmd which will allow us to run all the commands interactively such as query, config, edit."""
 class Shell(cmd.Cmd):
@@ -139,8 +147,9 @@ class Shell(cmd.Cmd):
             print("You need to configure the model first.")
             return
         response = self._config.chat.query(self.conversation_parameters["subject"], self.conversation_parameters["scenario"], enquiry)
-        print()
-        print(response["choices"][0]["text"])
+        text = Text(response["choices"][0]["text"])
+        text.stylize("bold magenta")
+        console.print(text)
         """Query the model with the given prompt."""
 
     def complete_query(self,text, line, begidx, endidx):
