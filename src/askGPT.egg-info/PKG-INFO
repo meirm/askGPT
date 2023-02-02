@@ -1,11 +1,11 @@
 Metadata-Version: 2.1
 Name: askGPT
-Version: 0.4.3
+Version: 0.4.4
 Summary: askGPT is a simple command line tool for interacting with OpenAI's API.
 Author-email: Meir Michanie <meirm@riunx.com>
 Project-URL: Homepage, https://github.com/meirm/askGPT
 Project-URL: Bug Tracker, https://github.com/meirm/askGPT/issues
-Keywords: openai,gpt-3,cli
+Keywords: openai,gpt-3,cli,cmd2
 Classifier: Development Status :: 3 - Alpha
 Classifier: Intended Audience :: Developers
 Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
@@ -74,6 +74,13 @@ askgpt  query --subject <subject> --enquiry <enquiry>
 
 Where `<subject>` is the title used for logging the conversation and `<enquiry>` is the enquiry you want to address.
 
+Optionally you can run an interactive shell calling
+
+```
+askgpt shell
+```
+
+Once inside the shell you can run the help command.
 
 ## Install 
     pip install askGPT
