@@ -9,6 +9,8 @@ from pathlib import Path
 from rich import print
 from rich.text import Text
 from rich.style import Style
+from rich.prompt import Prompt, Confirm
+
 danger_style = Style(color="red", blink=False, bold=True)
 attention_style = Style(color="yellow", blink=False, bold=True)
 ok_style = Style(color="green", blink=False, bold=False)
@@ -81,6 +83,7 @@ class Shell(cmd.Cmd):
                 print(f.read())
         else:
             eprint(f"File {filename} not found")
+
     def do_greetings(self, args):
         """if args is one of the scenarios, print the greeting of that scenario"""
         args = shlex.split(args)
@@ -141,11 +144,21 @@ class Shell(cmd.Cmd):
                 self.commands[name[3:]] = getattr(self, name)
 
         
-    def do_credentials(self):
+    def do_credentials(self, args):
         """credentials: show the credentials."""
-        print(self._config.credentials)
+        if self._config.credentials:
+            print(self._config.credentials)
+            if not Prompt.Confirm("Would you like to replace them?"):
+                return
         """ask if to replace"""
+        api_key = Prompt.ask("Enter your openai API key")
+        
+        api_organization = Prompt.ask("Enter your openai otganization")
+        self._config.credentials = f"{api_key}:{api_organization}"
+
         """if yes, ask for the new credentials"""
+        self._config.chat.saveLicense(api_key, api_organization)
+        self._config.chat.loadLicense()
         """if no, do nothing"""
 
     def do_delete(self, subject):

@@ -29,6 +29,7 @@ class Config(object):
         self.settingsPath=os.path.join(os.getenv("HOME"), ".askGPT")
         self.progConfig = dict()
         self.sessionConfig = dict()
+        self.credentials = None
         self.conversations_path=os.path.join(self.settingsPath, "conversations")
         Path(self.conversations_path).mkdir(parents=True, exist_ok=True)
         self.loadScenarios()
