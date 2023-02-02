@@ -52,6 +52,13 @@ askgpt  query --subject <subject> --enquiry <enquiry>
 
 Where `<subject>` is the title used for logging the conversation and `<enquiry>` is the enquiry you want to address.
 
+Optionally you can run an interactive shell calling
+
+```
+askgpt shell
+```
+
+Once inside the shell you can run the help command.
 
 ## Install 
     pip install askGPT
