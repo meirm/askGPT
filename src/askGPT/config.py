@@ -85,7 +85,7 @@ class Config(object):
         for line in os.listdir(self.conversations_path):
             if (not line.startswith("."))  and line.endswith(self.fileExtention) and (os.path.isfile(os.path.join(self.conversations_path,line))):
                 conv_array.append(line.replace(self.fileExtention,""))
-        return conv_array
+        return sorted(conv_array)
 
     def loadScenarios(self):
         """if there is not a file named scenarios.json, create it ad add the Neutral scenario"""

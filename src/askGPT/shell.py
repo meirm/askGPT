@@ -5,6 +5,7 @@ import toml
 import os
 import sys
 import rich
+from pathlib import Path
 from rich import print
 from rich.text import Text
 from rich.style import Style
@@ -18,7 +19,7 @@ console = Console()
 class Shell(cmd.Cmd):
     def __init__(self, config) -> None:
         super().__init__()
-        self.prompt = "Neutral> "
+        
         self.intro = "Welcome to askGPT. Type help or ? to list commands."
         self.doc_header = "Commands (type help <topic>):"
         self.misc_header = "Miscellaneous help topics:"
@@ -34,7 +35,52 @@ class Shell(cmd.Cmd):
             "defaultCommand": "query"
 
         }
+        if os.path.exists(os.path.join(self._config.settingsPath, "last.toml")):
+            self.conversation_parameters = toml.load(os.path.join(self._config.settingsPath, "last.toml"))
+        self.prompt = f"{self.conversation_parameters['scenario']}> "
 
+    def do_clone(self,args):
+        """if len(arg) == 1 then copy the current conversation to a new file using arg[1]"""
+        args = shlex.split(args)
+        if len(args) == 0:
+            eprint("You must provide a name for the new conversation")
+        else:
+            if len(args) == 1:
+                new_subject = sanitizeName(args[0])
+            else:
+                eprint("You can only provide one argument")
+                return
+            if new_subject in self._config.get_list():
+                eprint(f"Subject {new_subject} already exists")
+                return
+            current_subject = self.conversation_parameters["subject"]
+            filename = os.path.join(self._config.conversations_path, f"{current_subject}{self._config.fileExtention}")
+            with open(filename, "r") as r:
+                text = r.read()
+            filename = os.path.join(self._config.conversations_path, f"{new_subject}{self._config.fileExtention}")
+            with open(filename, "w") as w:
+                w.write(text)
+            self.conversation_parameters["subject"] = new_subject
+            self.prompt = f"{new_subject}> "
+            print(f"Conversation {new_subject} created")
+
+
+    def do_recap(self, args):
+        """prints the text from the conversation file using the subject.ai.txt """
+        args = shlex.split(args)
+        if len(args) == 0:
+            subject = self.conversation_parameters["subject"]
+        else:
+            subject = args[0]
+            if subject not in self._config.get_list():
+                eprint(f"Subject {subject} not found")
+                return
+        filename = os.path.join(self._config.conversations_path, f"{subject}{self._config.fileExtention}")
+        if os.path.isfile(filename):
+            with open(filename, "r") as f:
+                print(f.read())
+        else:
+            eprint(f"File {filename} not found")
     def do_greetings(self, args):
         """if args is one of the scenarios, print the greeting of that scenario"""
         args = shlex.split(args)
@@ -144,24 +190,9 @@ class Shell(cmd.Cmd):
 
     def do_submit(self, args):
         """submit: submit a subject."""
-        args = shlex.split(args)
-        if len(args) == 0:
-            eprint("Submit a subject.")
-            return
-        elif len(args) > 0:
-            subject = sanitizeName(args[0])
-            scenario = args[1]
-            if subject not in self._config.subjects:
-                eprint("Subject not found")
-                return
-            else:
-                """submit: submit a subject."""
-                self._config.chat.submitDialog(subject, scenario)
-                return
-        else:
-            eprint("Unrecognized parameter.")
-            return
-
+        self._config.chat.submitDialog(self.conversation_parameters["subject"], self.conversation_parameters["scenario"])
+        return
+        
     def do_query(self, enquiry, max_tokens: int = 150, temperature: float = 0.9, top_p: float = 1, frequency_penalty: float = 0, presence_penalty: float = 0, stop: list = ["\n", " Human:", " AI:"]):
         """Query the model with the given prompt."""
         """query: query the model with the given prompt.
@@ -236,13 +267,19 @@ class Shell(cmd.Cmd):
         print("configuring the model...")
         print("TODO: implement the config function.")
 
+    def saveSession(self):
+        """EOF: exit the shell."""
+        """ save the current parameters in a toml file to be loaded in the next session"""
+        with open(os.path.join(os.path.join(self._config.settingsPath, "last.toml")), "w") as f:
+            toml.dump(self.conversation_parameters, f)
+
     def do_edit(self, arg):
         """edit: edit the config file."""
         print("editing the config file...")
         print("TODO: implement the edit function.")
 
     def do_EOF(self, arg):
-        """EOF: exit the shell."""
+        self.saveSession()
         return True
 
     def do_exit(self, arg):
