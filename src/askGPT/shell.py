@@ -10,7 +10,7 @@ import sys
 class Shell(cmd.Cmd):
     def __init__(self, config) -> None:
         super().__init__()
-        self.prompt = "askGPT> "
+        self.prompt = "Neutral> "
         self.intro = "Welcome to askGPT. Type help or ? to list commands."
         self.doc_header = "Commands (type help <topic>):"
         self.misc_header = "Miscellaneous help topics:"
@@ -42,6 +42,7 @@ class Shell(cmd.Cmd):
                 if key == "scenario":
                     if val in self._config.scenarios:
                         self.conversation_parameters[key] = val
+                        self.prompt = f"{val}> "
                     else:
                         eprint("Scenario not found")
                 elif key == "model":
