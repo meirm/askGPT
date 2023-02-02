@@ -35,6 +35,15 @@ class Shell(cmd.Cmd):
 
         }
 
+    def do_exec(self,args):
+        """Execute a the rest of the line in a bash shell and print the output"""
+        args = shlex.split(args)
+        if len(args) == 0:
+            eprint("No command provided")
+            return
+        command = " ".join(args)
+        os.system(command)
+        
 
     def do_set(self,args):
         """Set conversation_parameters checking that the keys exist and that the values are valid"""
