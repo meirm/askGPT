@@ -35,6 +35,20 @@ class Shell(cmd.Cmd):
 
         }
 
+    def do_greetings(self, args):
+        """if args is one of the scenarios, print the greeting of that scenario"""
+        args = shlex.split(args)
+        if len(args) == 0:
+            """print current scenario from conversation_parameters"""
+            scenario = self.conversation_parameters["scenario"]
+            print(self._config.scenarios[scenario]["greetings"])
+            return
+        scenario = args[0]
+        if scenario in self._config.scenarios:
+            print(self._config.scenarios[scenario]["greetings"])
+        else:
+            eprint(f"Scenario {scenario} not found")
+
     def do_exec(self,args):
         """Execute a the rest of the line in a bash shell and print the output"""
         args = shlex.split(args)
@@ -43,7 +57,7 @@ class Shell(cmd.Cmd):
             return
         command = " ".join(args)
         os.system(command)
-        
+
 
     def do_set(self,args):
         """Set conversation_parameters checking that the keys exist and that the values are valid"""

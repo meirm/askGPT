@@ -274,11 +274,8 @@ Query the OpenAI API with the provided subject and enquiry"""
             pass
         with open(os.path.join(config.conversations_path, sanitizeName(subject) + config.fileExtention), "r") as f:
             chatRaw = f.read()
-            if scenario != "Neutral":
-                bootstrappedChat = config.chat.bootStrapChat(config, scenario)
-                chat = bootstrappedChat + "\n" + chatRaw  + enquiry + "\n" + config.progConfig["aiPrompt"]
-            else:
-                chat = chatRaw + enquiry + "\n" + config.progConfig["aiPrompt"]
+            bootstrappedChat = config.chat.bootStrapChat(config, scenario)
+            chat = bootstrappedChat + "\n" + chatRaw  + enquiry + "\n" + config.progConfig["aiPrompt"]
             tries = 1
             if retry:
                 tries = config.progConfig.get("maxRetries",1)
