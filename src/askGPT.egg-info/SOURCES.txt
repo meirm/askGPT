@@ -18,3 +18,4 @@ src/askGPT/data/config.toml.example
 src/askGPT/data/credentials.example
 src/askGPT/data/env.example
 src/askGPT/data/scenarios.json
+src/askGPT/data/test_shell.py

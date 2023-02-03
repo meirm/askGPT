@@ -8,34 +8,8 @@ __title__ = 'askGPT'
 __author__ = 'Meir Michanie'
 __license__ = 'MIT'
 __credits__ = ''
-__version__ = "0.4.11"
+__version__ = "0.4.12"
 
-"""askgpt query --subject quest1 --scenario Zork 
-Traceback (most recent call last):
-  File "/opt/homebrew/bin/askgpt", line 8, in <module>
-    sys.exit(cli())
-  File "/opt/homebrew/lib/python3.9/site-packages/click/core.py", line 722, in __call__
-    return self.main(*args, **kwargs)
-  File "/opt/homebrew/lib/python3.9/site-packages/click/core.py", line 697, in main
-    rv = self.invoke(ctx)
-  File "/opt/homebrew/lib/python3.9/site-packages/click/core.py", line 1063, in invoke
-    Command.invoke(self, ctx)
-  File "/opt/homebrew/lib/python3.9/site-packages/click/core.py", line 895, in invoke
-    return ctx.invoke(self.callback, **ctx.params)
-  File "/opt/homebrew/lib/python3.9/site-packages/click/core.py", line 535, in invoke
-    return callback(*args, **kwargs)
-  File "/opt/homebrew/lib/python3.9/site-packages/click/decorators.py", line 57, in new_func
-    obj = ctx.ensure_object(object_type)
-  File "/opt/homebrew/lib/python3.9/site-packages/click/core.py", line 455, in ensure_object
-    rv = self.find_object(object_type)
-  File "/opt/homebrew/lib/python3.9/site-packages/click/core.py", line 447, in find_object
-    if isinstance(node.obj, object_type):
-TypeError: isinstance() arg 2 must be a type or tuple of types
-
-solution:
-
-
-"""
 
 import os
 from .api.openai import ChatGPT
@@ -49,7 +23,8 @@ import platform
 import subprocess
 from .shell import Shell
 from .tools import eprint, sanitizeName
-
+# from rich.console import Console
+# console = Console()
 
 # use pyreadline3 instead of readline on windows
 is_windows = platform.system() == "Windows"
@@ -86,38 +61,16 @@ def shell(config):
 
 @cli.command()
 @pass_config
-@click.option("--user-prompt",  default=basicConfig["userPrompt"], help="User prompt")
-@click.option("--ai-prompt", default=basicConfig["aiPrompt"], help="AI prompt")
-@click.option("--model", default=basicConfig["model"], help="Set alternative model")
-@click.option("--temperature", default=basicConfig["temperature"], type=float, help="Set alternative temperature")
-@click.option("--top-p", default=basicConfig["topP"], type=int, help="Set alternative topP")
-@click.option("--frequency-penalty", default=basicConfig["frequencyPenalty"], type=float, help="Set alternative frequencyPenalty")
-@click.option("--presence-penalty", default=basicConfig["presencePenalty"], type=float, help="Set alternative presencePenalty")
-@click.option("--max-tokens", default=basicConfig["maxTokens"], type=int, help="Set alternative maxTokens")
-@click.option("--show-disclaimer/--hide-disclaimer", default=basicConfig["showDisclaimer"], help="Show disclaimer on startup")
-@click.option("--max-retries", default=basicConfig["maxRetries"], type=int, help="Set alternative maxRetries")
-@click.option("--retry_delay", default=basicConfig["retryDelay"], type=float, help="seconds between retries")
-@click.option("--retry-multiplier", default=basicConfig["retryMultiplier"], type=float, help="multiplier")
-@click.option("--retry-max-delay", default=basicConfig["retryMaxDelay"], type=float, help="max delay between retries")
-def config(config, user_prompt, ai_prompt, max_tokens,model, temperature, top_p, 
-frequency_penalty, presence_penalty, show_disclaimer,max_retries,
-retry_delay,retry_multiplier,retry_max_delay):
+@click.option("--set", help="configuration to change")
+@click.option("--value", help="AI prompt")
+def config(config, set, value):
     """
 Change config values"""
-    config.progConfig["userPrompt"] = user_prompt
-    config.progConfig["aiPrompt"] = ai_prompt
-    config.progConfig["maxTokens"] = max_tokens
-    config.progConfig["model"] = model
-    config.progConfig["temperature"] = temperature
-    config.progConfig["topP"] = top_p
-    config.progConfig["frequencyPenalty"] = frequency_penalty
-    config.progConfig["presencePenalty"] = presence_penalty
-    config.progConfig["showDisclaimer"] = show_disclaimer
-    config.progConfig["maxRetries"] = max_retries
-    config.progConfig["retryDelay"] = retry_delay
-    config.progConfig["retryMultiplier"] = retry_multiplier
-    config.progConfig["retryMaxDelay"] = retry_max_delay
-
+    if set:
+        if set in config.progConfig:
+            config.updateParameter(set, value)
+        else:
+            print(f"Can't set {set} to {value}. {set} is not a valid configuration value")
     jsonConfig = {'name':'askGPT','default':config.progConfig}
     print(toml.dumps(jsonConfig))
     with open(os.path.join(config.settingsPath,"config.toml"), 'w') as f:
@@ -161,7 +114,6 @@ Edit a conversation"""
 @click.option("--subject", prompt="Subject", help="Subject to use to save the conversation")
 @click.option("--scenario", default="Neutral", help="scenario to use in the conversation")
 @click.option("--temperature", default=basicConfig["temperature"], type=float, help="Set alternative temperature")
-
 def train(config, subject, scenario, temperature):
     """Train the model with the conversation"""
     config.progConfig["temperature"] = temperature
@@ -172,7 +124,6 @@ def train(config, subject, scenario, temperature):
 @click.option("--subject", prompt="Subject", help="Subject to use to save the conversation")
 @click.option("--scenario", default="Neutral", help="scenario to use in the conversation")
 @click.option("--temperature", default=basicConfig["temperature"], type=float, help="Set alternative temperature")
-
 def submit(config, subject, scenario, temperature):
     """Submit without editing the scenario file to openAi api and print out the response."""
     config.progConfig["temperature"] = temperature
@@ -230,9 +181,6 @@ Save the API keys to query OpenAI"""
 
 
 @pass_config
-
-
-
 @cli.command()
 @pass_config
 @click.option("--subject", help="Subject of the conversation")
@@ -264,7 +212,6 @@ Delete the previous conversations saved by askGPT"""
 @click.option("--save/--no-save", default=True, help="Save the conversation")
 @click.option("--retry", is_flag=True, help="In case of error retry the post.")
 @click.option("--execute", is_flag=True, help="Parse the AI response and execute it")
-
 def query(config, subject, enquiry, scenario,model, temperature,max_tokens, top_p,  frequency_penalty, presence_penalty, verbose, save, retry, execute): 
     """
 Query the OpenAI API with the provided subject and enquiry"""
