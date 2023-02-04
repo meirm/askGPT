@@ -236,7 +236,7 @@ class Shell(cmd.Cmd):
                     console.print(text)
                     """save to file"""
                     with open(os.path.join(self._config.conversations_path, self.conversation_parameters["subject"] + self._config.fileExtention), "a") as f:
-                        f.write(f"{response}\n")
+                        f.write(f"{self._config.progConfig['aiPrompt']}{response}\n")
         else: 
             self._config.chat.loadLicense()
         return
@@ -265,7 +265,7 @@ class Shell(cmd.Cmd):
                     console.print(text)
                     """save to file"""
                     with open(os.path.join(self._config.conversations_path, self.conversation_parameters["subject"] + self._config.fileExtention), "a") as f:
-                        f.write(response + "\n")
+                        f.write(enquiry + "\n" + self._config.progConfig.get("aiPrompt", " AI: ") + response + "\n")
                         
 
     def complete_query(self,text, line, begidx, endidx):

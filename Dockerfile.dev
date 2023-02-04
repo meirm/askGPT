@@ -1,0 +1,14 @@
+FROM python:3
+
+
+RUN apt update && apt install -y vim nano && apt clean
+# Install the required package
+RUN mkdir -p /usr/local/src/askGPT /root/.askGPT
+COPY pyproject.toml MANIFEST.in src/ /usr/local/src/askGPT/
+RUN pip install /usr/local/src/askGPT
+COPY askgpt_shell.sh /usr/local/bin
+# Set the working directory
+WORKDIR /root/
+
+# Run the script
+CMD ["askgpt_shell.sh"]
