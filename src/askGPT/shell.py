@@ -186,8 +186,7 @@ class Shell(cmd.Cmd):
     def do_delete(self, subject):
         """delete: delete a subject."""
         subject = sanitizeName(subject)
-        if subject in self._config.subjects:
-            self._config.subjects.remove(subject)
+        if subject in self._config.get_list():
             os.remove(os.path.join(self._config.conversations_path, subject + self._config.fileExtention))
             
         else:
