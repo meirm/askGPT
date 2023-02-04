@@ -10,33 +10,6 @@ __license__ = 'MIT'
 __credits__ = ''
 __version__ = "0.4.13"
 
-"""askgpt query --subject quest1 --scenario Zork 
-Traceback (most recent call last):
-  File "/opt/homebrew/bin/askgpt", line 8, in <module>
-    sys.exit(cli())
-  File "/opt/homebrew/lib/python3.9/site-packages/click/core.py", line 722, in __call__
-    return self.main(*args, **kwargs)
-  File "/opt/homebrew/lib/python3.9/site-packages/click/core.py", line 697, in main
-    rv = self.invoke(ctx)
-  File "/opt/homebrew/lib/python3.9/site-packages/click/core.py", line 1063, in invoke
-    Command.invoke(self, ctx)
-  File "/opt/homebrew/lib/python3.9/site-packages/click/core.py", line 895, in invoke
-    return ctx.invoke(self.callback, **ctx.params)
-  File "/opt/homebrew/lib/python3.9/site-packages/click/core.py", line 535, in invoke
-    return callback(*args, **kwargs)
-  File "/opt/homebrew/lib/python3.9/site-packages/click/decorators.py", line 57, in new_func
-    obj = ctx.ensure_object(object_type)
-  File "/opt/homebrew/lib/python3.9/site-packages/click/core.py", line 455, in ensure_object
-    rv = self.find_object(object_type)
-  File "/opt/homebrew/lib/python3.9/site-packages/click/core.py", line 447, in find_object
-    if isinstance(node.obj, object_type):
-TypeError: isinstance() arg 2 must be a type or tuple of types
-
-solution:
-
-
-"""
-
 import os
 from .api.openai import ChatGPT
 from .config import Config, basicConfig
