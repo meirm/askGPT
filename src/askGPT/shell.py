@@ -229,26 +229,44 @@ class Shell(cmd.Cmd):
     def do_submit(self, args):
         """submit: submit a subject."""
         if self._config.has.get("license", False):
-            self._config.chat.submitDialog(self.conversation_parameters["subject"], self.conversation_parameters["scenario"])
+            response = self._config.chat.submitDialog(self.conversation_parameters["subject"], self.conversation_parameters["scenario"])
+            if response:
+                    text = Text(response)
+                    text.stylize("bold magenta")
+                    console.print(text)
+                    """save to file"""
+                    with open(os.path.join(self._config.conversations_path, self.conversation_parameters["subject"] + self._config.fileExtention), "a") as f:
+                        f.write(f"{self._config.progConfig['aiPrompt']}{response}\n")
         else: 
             self._config.chat.loadLicense()
         return
 
+    def do_continue(self, args):
+        """This is in case we get an exception that we didn't protect ourselves from"""
+        if args:
+            eprint(args)
+        else:
+            eprint("An unknown error occured.")
         
-    def do_query(self, enquiry, max_tokens: int = 150, temperature: float = 0.9, top_p: float = 1, frequency_penalty: float = 0, presence_penalty: float = 0, stop: list = ["\n", " Human:", " AI:"]):
+    def do_query(self, enquiry):
         """Query the model with the given prompt."""
         """query: query the model with the given prompt.
          <prompt> """
+        enquiry = self._config.progConfig.get("userPrompt", " Human: ") + enquiry
         if not self._config.has.get("license", False):
             self._config.chat.loadLicense()
             return
         if self._config.has.get("license", False):
             with console.status("waiting for response ...", spinner="dots"):
                 response = self._config.chat.query(self.conversation_parameters["subject"], self.conversation_parameters["scenario"], enquiry)
-                text = Text(response["choices"][0]["text"])
-                text.stylize("bold magenta")
-            console.print(text)
-            """Query the model with the given prompt."""
+                if response:
+                    text = Text(response)
+                    text.stylize("bold magenta")
+                    console.print(text)
+                    """save to file"""
+                    with open(os.path.join(self._config.conversations_path, self.conversation_parameters["subject"] + self._config.fileExtention), "a") as f:
+                        f.write(enquiry + "\n" + self._config.progConfig.get("aiPrompt", " AI: ") + response + "\n")
+                        
 
     def complete_query(self,text, line, begidx, endidx):
         """complete_query: complete the query command."""

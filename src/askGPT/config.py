@@ -38,16 +38,15 @@ class Config(object):
         self.fileExtention=".ai.txt"
         self.loadDefaults()
         self.loadProgConfig()
+        self.update()
         self.chat = ChatGPT(self)
         self.chat.loadLicense()
-        self.version="0.4.12"
-        self.exitCode = 0
+        self.version="0.4.13"
 
     def loadProgConfig(self):
         if os.path.isfile(os.path.join(self.settingsPath, "config.toml")):
             tomlConfig = toml.load(os.path.join(self.settingsPath,"config.toml"))
             self.progConfig.update(tomlConfig["default"])
-            print(self.progConfig)
         else:
             self.saveConfig()
 
@@ -60,13 +59,13 @@ class Config(object):
             val = int(val)
         elif val.replace(".","",1).isnumeric():
             val = float(val)
-        if key in self.sessionConfig: # order matters
+        elif key in self.sessionConfig: # order matters
             if self.sessionConfig[key] != val:
-                # prin  t(f"{key}] = {val}")
+                print(f"{key}] = {val}")
                 self.sessionConfig[key] = val
         elif key in self.progConfig:
             if self.progConfig[key] != val:
-                # print(f"{key} = {val}")
+                print(f"{key}] = {val}")
                 self.progConfig[key] = val
         
 
@@ -105,12 +104,12 @@ class Config(object):
     def loadDefaults(self):
         self.progConfig["userPrompt"] = self.progConfig.get("userPrompt"," Human: ")
         self.progConfig["aiPrompt"] = self.progConfig.get("aiPrompt"," AI: ")
-        self.progConfig["maxTokens"] = self.progConfig.get("maxTokens",150)
+        self.progConfig["maxTokens"] = self.progConfig.get("maxTokens","150")
         self.progConfig["model"] = self.progConfig.get("model","text-davinci-003")
-        self.progConfig["temperature"] = self.progConfig.get("temperature",0.0)
-        self.progConfig["topP"] = self.progConfig.get("topP",1)
-        self.progConfig["frequencyPenalty"] = self.progConfig.get("frequencyPenalty",0.0)
-        self.progConfig["presencePenalty"] = self.progConfig.get("presencePenalty",0.0)
+        self.progConfig["temperature"] = self.progConfig.get("temperature","0.0")
+        self.progConfig["topP"] = self.progConfig.get("topP","1")
+        self.progConfig["frequencyPenalty"] = self.progConfig.get("frequencyPenalty","0.0")
+        self.progConfig["presencePenalty"] = self.progConfig.get("presencePenalty","0.0")
         self.progConfig["showDisclaimer"] = self.progConfig.get("showDisclaimer",True)
         self.progConfig["maxRetries"] = self.progConfig.get("maxRetries",3)
         self.progConfig["retryDelay"] = self.progConfig.get("retryDelay",15.0)
@@ -125,3 +124,4 @@ class Config(object):
         """
 Load the configuration file from ~/.askGPT/config.toml"""
         self.loadProgConfig()
+            # self.progConfig.update(tomlConfig["askGPT"])
