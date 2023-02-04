@@ -89,27 +89,14 @@ class ChatGPT(object):
         if not self.loadLicense():
             return
         # Create the prompt
-        response = None
-        prompt = self.createPrompt(subject, scenario, enquiry)
-        try:
-            # Query the model
-            response = self.completions_with_backoff(
-                prompt=prompt,
-                model=self._config.progConfig.get("model", "text-davinci-003"),
-                max_tokens=max_tokens,
-                temperature=temperature,
-                top_p=top_p,
-                frequency_penalty=frequency_penalty,
-                presence_penalty=presence_penalty,
-                stop=stop
-            )
-        except Exception as e:
-            eprint("Error: {}".format(e))
-            return
-        # Add the response to the chat log
-        self._chat_log.append(response.choices[0].text)
-        # Return the response
-        return response
+        
+        chat = self.createPrompt(subject, scenario, enquiry)
+        ai = self.submitDialogWithBackOff(chat)
+        if ai:
+            # Add the response to the chat log
+            self._chat_log.append(ai)
+            # Return the response
+            return ai
 
     def saveLicense(self, api_key, organization):
         if not os.path.isdir(self.settingsPath):
@@ -162,6 +149,11 @@ class ChatGPT(object):
             print("Empty conversation")
             return
 
+        ai = self.submitDialogWithBackOff(chat)
+        if ai:
+            return ai
+
+    def submitDialogWithBackOff(self, chat):
         tries = self._config.progConfig.get("maxRetries",1)
         success = False
         sleepBetweenRetries = self._config.progConfig["retryDelay"]
@@ -198,10 +190,7 @@ class ChatGPT(object):
         if success == False:
             eprint("Error: Could not send the dialog")
             return
-        with open(os.path.join(self._config.conversations_path, subject + self._config.fileExtention), "a") as f:
-            f.write(self._config.progConfig["aiPrompt"] + ai)
-        print(ai)
-
+        return ai
 
     def get_chat_log(self):
         """Get the chat log."""

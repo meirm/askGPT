@@ -29,10 +29,14 @@ damages or losses arising from the use of the advice provided by askGPT.
 
 ***askGPT***  is a command line program written in Python that allows you to query the chatGPT API. It keeps track of conversations and has a set of scenarios to focus the conversation.
 
-## Run with docker
+## Run with docker from our repository
 ```
 docker run -i cyborgfi/askgpt:latest 
+or 
+docker run -i cyborgfi/askgpt:dev 
 ```
+## Run with docker building the latest code
+docker build -f Dockerfile.dev . --tag askgpt:dev
 ## Installation
 
 To install askGPT , simply run the following command:
