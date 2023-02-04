@@ -5,9 +5,9 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "askGPT"
 <<<<<<< HEAD
-version = "0.4.12"
+version = "0.4.15"
 =======
-version = "0.4.14"
+version = "0.4.15"
 >>>>>>> development
 authors = [
   { name="Meir Michanie", email="meirm@riunx.com" },
