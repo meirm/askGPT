@@ -134,32 +134,32 @@ class ChatGPT(object):
     def submitDialog(self, subject, scenario):
         """Send the dialog to openai and save the response"""
         subject = sanitizeName(subject)
+        chat = ""
         if subject:
             with open(os.path.join(self._config.conversations_path, sanitizeName(subject) + self._config.fileExtention), "a") as f:
                 pass
             with open(os.path.join(self._config.conversations_path, sanitizeName(subject) + self._config.fileExtention), "r") as f:
                 chatRaw = f.read()
-                if scenario != "Neutral":
-                    bootstrappedChat = self.bootStrapChat( scenario)
-                    chat = bootstrappedChat + "\n" + chatRaw  + "\n" + self._config.progConfig["aiPrompt"]
-                else:
-                    chat = chatRaw + "\n" + self._config.progConfig["aiPrompt"]
-                        
-        if chat == "":
-            print("Empty conversation")
-            return
+                
+                bootstrappedChat = self.bootStrapChat( scenario)
+                chat = bootstrappedChat + "\n" + chatRaw  + "\n" + self._config.progConfig["aiPrompt"]                
+                if chat == "":
+                    print("Empty conversation")
+                    return
 
-        ai = self.submitDialogWithBackOff(chat)
-        if ai:
-            return ai
+                ai = self.submitDialogWithBackOff(chat)
+                if ai:
+                    return ai
 
     def submitDialogWithBackOff(self, chat):
         tries = self._config.progConfig.get("maxRetries",1)
         success = False
         sleepBetweenRetries = self._config.progConfig["retryDelay"]
-        
+        ai  = ModuleNotFoundError
         while tries > 0:
             try:
+                if self._config.progConfig["debug"]:
+                    eprint(chat)
                 response = self.completions_with_backoff(
                     delay_in_seconds=self._config.delay,
                     model=self._config.progConfig["model"],
@@ -175,6 +175,8 @@ class ChatGPT(object):
                 ai = response.choices[0].text
                 if ai.startswith("\n\n"):
                     ai = ai[2:]
+                if self._config.progConfig["debug"]:
+                    eprint(ai)
                 success = True
                 break
             except Exception as e:

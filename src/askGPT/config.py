@@ -20,6 +20,8 @@ basicConfig["maxRetries"] = basicConfig.get("maxRetries",3)
 basicConfig["retryDelay"] = basicConfig.get("retryDelay",15.0)
 basicConfig["retryMaxDelay"] = basicConfig.get("retryMaxDelay",60)
 basicConfig["retryMultiplier"] = basicConfig.get("retryMultiplier",2)
+basicConfig["verbose"] = basicConfig.get("verbose", False)
+basicConfig["debug"] = basicConfig.get("debug", False)
 
 class Config(object):
     def __init__(self):
@@ -115,6 +117,8 @@ class Config(object):
         self.progConfig["retryDelay"] = self.progConfig.get("retryDelay",15.0)
         self.progConfig["retryMaxDelay"] = self.progConfig.get("retryMaxDelay",60)
         self.progConfig["retryMultiplier"] = self.progConfig.get("retryMultiplier",2)
+        self.progConfig["verbose"] = self.progConfig.get("verbose", False)
+        self.progConfig["debug"] = self.progConfig.get("debug", False)
 
     def printConfig(self):
         """Print the configuration file"""

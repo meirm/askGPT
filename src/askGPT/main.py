@@ -72,9 +72,12 @@ def shell(config):
 @click.option("--retry_delay", default=basicConfig["retryDelay"], type=float, help="seconds between retries")
 @click.option("--retry-multiplier", default=basicConfig["retryMultiplier"], type=float, help="multiplier")
 @click.option("--retry-max-delay", default=basicConfig["retryMaxDelay"], type=float, help="max delay between retries")
+@click.option("--verbose/--quiet", default=False, help="Show verbose output")
+@click.option("--debug/--no-debug", default=False, help="Debug")
+
 def config(config, user_prompt, ai_prompt, max_tokens,model, temperature, top_p, 
 frequency_penalty, presence_penalty, show_disclaimer,max_retries,
-retry_delay,retry_multiplier,retry_max_delay):
+retry_delay,retry_multiplier,retry_max_delay, verbose, debug):
     """
 Change config values"""
     config.progConfig["userPrompt"] = user_prompt
@@ -90,6 +93,9 @@ Change config values"""
     config.progConfig["retryDelay"] = retry_delay
     config.progConfig["retryMultiplier"] = retry_multiplier
     config.progConfig["retryMaxDelay"] = retry_max_delay
+    config.progConfig["verbose"] = verbose
+    config.progConfig["debug"] = debug
+
 
     jsonConfig = {'name':'askGPT','default':config.progConfig}
     print(toml.dumps(jsonConfig))
@@ -116,7 +122,11 @@ Edit a conversation"""
         with open(os.path.join(config.conversations_path, subject + config.fileExtention), "w") as f:
             f.write(lines)
     if submit:
-        config.chat.submitDialog(config,subject, scenario)
+        ai = config.chat.submitDialog(subject, scenario)
+        print(ai)
+        """save results"""
+        with open(os.path.join(config.conversations_path, subject + config.fileExtention), "a") as f:
+            f.write(ai + "\n")
 
 @cli.command()
 @pass_config
@@ -127,7 +137,7 @@ Edit a conversation"""
 def train(config, subject, scenario, temperature):
     """Train the model with the conversation"""
     config.progConfig["temperature"] = temperature
-    config.chat.submitDialog(config, subject, scenario)
+    config.chat.submitDialog(subject, scenario)
 
 @cli.command()
 @pass_config
@@ -138,8 +148,11 @@ def train(config, subject, scenario, temperature):
 def submit(config, subject, scenario, temperature):
     """Submit without editing the scenario file to openAi api and print out the response."""
     config.progConfig["temperature"] = temperature
-    config.chat.submitDialog(config, subject, scenario)
-
+    ai = config.chat.submitDialog(subject, scenario)
+    print(ai)
+    """save result in the subject file"""
+    with open(os.path.join(config.conversations_path, subject + config.fileExtention), "a") as f:
+        f.write(config.progConfig["aiPrompt"] + ai + "\n")
 
 
 
@@ -191,10 +204,6 @@ Save the API keys to query OpenAI"""
     print("askGPT is now ready to use")
 
 
-@pass_config
-
-
-
 @cli.command()
 @pass_config
 @click.option("--subject", help="Subject of the conversation")
@@ -210,6 +219,8 @@ Delete the previous conversations saved by askGPT"""
     else:
         eprint("No chat history with that subject")
         return
+
+ 
 
 @cli.command()
 @pass_config
@@ -237,7 +248,7 @@ Query the OpenAI API with the provided subject and enquiry"""
             pass
         with open(os.path.join(config.conversations_path, sanitizeName(subject) + config.fileExtention), "r") as f:
             chatRaw = f.read()
-            bootstrappedChat = config.chat.bootStrapChat(config, scenario)
+            bootstrappedChat = config.chat.bootStrapChat(scenario)
             chat = bootstrappedChat + "\n" + chatRaw  + enquiry + "\n" + config.progConfig["aiPrompt"]
             tries = 1
             if retry:
