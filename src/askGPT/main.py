@@ -96,18 +96,7 @@ Change config values"""
     with open(os.path.join(config.settingsPath,"config.toml"), 'w') as f:
         toml.dump(jsonConfig,f)
         
-
-@cli.command()
-@click.option("--subject", "-s", default="quest1", help="The subject of the query. This is used to determine the model to use.")
-@click.option("--scenario", "-sc", default="Zork", help="The scenario of the query. This is used to determine the model to use.")
-@click.option("--prompt", "-p", default="You are in a maze of twisty little passages, all alike.", help="The prompt to use for the query.")
-@click.option("--max_tokens", "-m", default=64, help="The maximum number of tokens to return.")
-@pass_config
-def query(config, subject, scenario, prompt, max_tokens):
-    """Query the model for a response."""
-    print(config.chatGPT.query(subject, scenario, prompt, max_tokens))
-
-
+        
 @cli.command()
 @pass_config
 @click.option("--subject", prompt="Subject", help="Subject to use to save the conversation")
@@ -242,6 +231,7 @@ def query(config, subject, enquiry, scenario,model, temperature,max_tokens, top_
     """
 Query the OpenAI API with the provided subject and enquiry"""
     enquiry = config.progConfig["userPrompt"] + enquiry
+    ai = ""
     if subject:
         with open(os.path.join(config.conversations_path, sanitizeName(subject) + config.fileExtention), "a") as f:
             pass
@@ -308,7 +298,7 @@ Query the OpenAI API with the provided subject and enquiry"""
                 print(result)
                 saveOutput = click.prompt(f"save output? [Y/e/n]", type=click.Choice(["y", "e", "n"]), default="y")
                 if saveOutput == "e":
-                    edited = click.edit(result.stdout.decode("utf-8"))
+                    edited = click.edit(result)
                     if edited:
                         result = edited
                 if saveOutput != "n":
