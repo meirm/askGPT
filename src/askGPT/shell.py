@@ -179,6 +179,7 @@ class Shell(cmd.Cmd):
 
     def do_delete(self, args):
         """delete: delete a subject."""
+        args = shlex.split(args)
         if len(args) == 0:
             subject = self.conversation_parameters["subject"]
         else:
@@ -189,6 +190,7 @@ class Shell(cmd.Cmd):
             eprint("Subject not found")
 
     def do_edit(self, args):
+        args = shlex.split(args)
         """edit: edit a subject."""
         if len(args) == 0:
             subject = self.conversation_parameters["subject"]
@@ -267,14 +269,81 @@ class Shell(cmd.Cmd):
                     with open(os.path.join(self._config.conversations_path, self.conversation_parameters["subject"] + self._config.fileExtention), "a") as f:
                         f.write(enquiry + "\n" + self._config.progConfig.get("aiPrompt", " AI: ") + response + "\n")
                         
-
-    def complete_query(self,text, line, begidx, endidx):
+    def complete_recap(self,text, line, begidx, endidx):
         """complete_query: complete the query command."""
         if not text:
-            completions = self._config.subjects[:]
+            completions = self._config.get_list()
         else:
             completions = [ f
-                            for f in self._config.subjects
+                            for f in self._config.get_list()
+                            if f.startswith(text)
+                            ]
+        return completions
+
+    def complete_edit(self,text, line, begidx, endidx):
+        """complete_query: complete the query command."""
+        if not text:
+            completions = self._config.get_list()
+        else:
+            completions = [ f
+                            for f in self._config.get_list()
+                            if f.startswith(text)
+                            ]
+        return completions
+
+    def complete_man(self,text, line, begidx, endidx):
+        """complete_query: complete the query command."""
+        if not text:
+            completions = list(self.commands.keys())
+        else:
+            completions = [ f
+                            for f in self.commands.keys()
+                            if f.startswith(text)
+                            ]
+        return completions
+
+  
+    def complete_config(self,text, line, begidx, endidx):
+        """complete_query: complete the query command."""
+        if not text:
+            completions = list(self._config.progConfig.keys())
+        else:
+            completions = [ f
+                            for f in self._config.progConfig.keys()
+                            if f.startswith(text)
+                            ]
+        return completions
+
+    def complete_show(self,text, line, begidx, endidx):
+        """complete_query: complete the query command."""
+        if not text:
+            completions = list(["config", "scenarios", "subjects"] )
+        else:
+            completions = [ f
+                            for f in list(["config", "scenarios", "subjects"] )
+                            if f.startswith(text)
+                            ]
+        return completions
+
+    def complete_set(self,text, line, begidx, endidx):
+        """complete_query: complete the query command."""
+        if not text:
+            completions = list(self.conversation_parameters.keys())
+        else:
+            completions = [ f
+                            for f in self.conversation_parameters.keys()
+                            if f.startswith(text)
+                            ]
+        return completions
+
+
+    def complete_delete(self,text, line, begidx, endidx):
+        """complete_query: complete the query command."""
+        if not text:
+            completions = self._config.get_list()
+        else:
+            completions = [ f
+                            for f in self._config.get_list()
                             if f.startswith(text)
                             ]
         return completions
