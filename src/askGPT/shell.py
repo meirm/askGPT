@@ -185,12 +185,14 @@ class Shell(cmd.Cmd):
         self._config.chat.loadLicense()
         """if no, do nothing"""
 
-    def do_delete(self, subject):
+    def do_delete(self, args):
         """delete: delete a subject."""
-        subject = sanitizeName(subject)
+        if len(args) == 0:
+            subject = self.conversation_parameters["subject"]
+        else:
+            subject = sanitizeName(args[0])
         if subject in self._config.get_list():
-            os.remove(os.path.join(self._config.conversations_path, subject + self._config.fileExtention))
-            
+            os.remove(os.path.join(self._config.conversations_path, subject + self._config.fileExtention)) 
         else:
             eprint("Subject not found")
 
