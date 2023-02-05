@@ -1,5 +1,6 @@
 import cmd
-import shlex 
+import shlex
+import shutil 
 from .tools   import eprint, sanitizeName
 import toml
 import os
@@ -18,6 +19,7 @@ attention_style = Style(color="yellow", blink=False, bold=True)
 ok_style = Style(color="green", blink=False, bold=False)
 from rich.console import Console
 console = Console()
+from filecmp import cmp
 
 """Here we will define the class Shell which is a child of cmd.cmd which will allow us to run all the commands interactively such as query, config, edit."""
 class Shell(cmd.Cmd):
@@ -42,6 +44,22 @@ class Shell(cmd.Cmd):
         if os.path.exists(os.path.join(self._config.settingsPath, "last.toml")):
             self.conversation_parameters = toml.load(os.path.join(self._config.settingsPath, "last.toml"))
         self.prompt = f"{self.conversation_parameters['scenario']}> "
+        self.do_update("")
+        
+
+    def do_update(self,args):
+        """replace the current scenarios files"""
+        args = shlex.split(args)
+        if not cmp(os.path.join(self._config.data_path, "scenarios.json"), os.path.join(self._config.settingsPath, "scenarios.json")):
+            if not Confirm.ask("New scenarios available.Would you like to replace the current ones?"):
+                eprint("Scenarios files matched. No need to overwrite.")
+                return 
+            if Confirm.ask("Would you like to make a backup of the current one?"):
+                shutil.copyfile(os.path.join(self._config.settingsPath, "scenarios.json"), os.path.join(self._config.settingsPath, "scenarios.json.bak"))
+            shutil.copyfile(os.path.join(self._config.data_path, "scenarios.json"), os.path.join(self._config.settingsPath, "scenarios.json"))
+            eprint("Scenarios updated, you need to restart to load the new scenario file")
+            return Confirm.ask("Would you like to restart now?")
+            
 
     def do_clone(self,args):
         """if len(arg) == 1 then copy the current conversation to a new file using arg[1]"""
