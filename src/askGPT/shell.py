@@ -10,6 +10,8 @@ from rich import print
 from rich.text import Text
 from rich.style import Style
 from rich.prompt import Prompt, Confirm
+from rich.panel import Panel
+from rich.markdown import Markdown
 
 danger_style = Style(color="red", blink=False, bold=True)
 attention_style = Style(color="yellow", blink=False, bold=True)
@@ -402,5 +404,23 @@ class Shell(cmd.Cmd):
         """postcmd: print the result."""
         #print("Result:", stop)
         return stop
+
+
+    def do_man(self, line):
+        """ when passed the name of a command it will pint an extensive explanation of the command by loading a markup file from data/"""
+        if line:
+            command = self.parseline(line)
+            if command[0] in self.commands:
+                command = command[0]
+            else:
+                command = None
+        else:
+            command = None
+        if command:
+            try:
+                with open(os.path.join(os.path.join(self._config.data_path), "docs", "man_" + command + ".md"), "r") as f:
+                    print( Markdown(f.read()))
+            except FileNotFoundError:
+                print("No manual entry for", command)   
 
     

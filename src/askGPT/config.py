@@ -44,6 +44,7 @@ class Config(object):
         self.chat = ChatGPT(self)
         self.chat.loadLicense()
         self.version="0.4.17"
+        self.data_path = DATA_PATH
 
     def loadProgConfig(self):
         if os.path.isfile(os.path.join(self.settingsPath, "config.toml")):
