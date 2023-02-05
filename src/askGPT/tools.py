@@ -19,3 +19,14 @@ def load_json(file):
             return json.load(f)
         except:
             return dict()
+
+def strToValue(val):
+    if val == "true":
+        val = True
+    elif val == "false":
+        val = False
+    elif val.isnumeric():
+        val = int(val)
+    elif val.replace(".","",1).isnumeric():
+        val = float(val)
+    return val

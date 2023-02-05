@@ -12,7 +12,7 @@ from rich.style import Style
 from rich.prompt import Prompt, Confirm
 from rich.panel import Panel
 from rich.markdown import Markdown
-
+from .tools import strToValue
 danger_style = Style(color="red", blink=False, bold=True)
 attention_style = Style(color="yellow", blink=False, bold=True)
 ok_style = Style(color="green", blink=False, bold=False)
@@ -119,7 +119,7 @@ class Shell(cmd.Cmd):
             return
         if len(args) == 2:
             key = args[0]
-            val = args[1]
+            val = strToValue(args[1])
             if key in self.conversation_parameters:
                 if key == "scenario":
                     if val in self._config.scenarios:
@@ -138,15 +138,7 @@ class Shell(cmd.Cmd):
                 if key == "fileExtention":
                     if val[0] != ".":
                         val = "." + val
-                self._config.progConfig[key] = val
-                if val.isnumeric():
-                    val = int(val)
-                    self._config.progConfig[key] = val
-                elif val.replace(".","").isnumeric():
-                    val = float(val)
-                    self._config.progConfig[key] = val
-                else:
-                    self._config.progConfig[key] = val
+                self._config.progConfig[key] = strToValue(val)
                 self._config.saveConfig()
             else:
                 eprint("Key not found")
@@ -215,13 +207,17 @@ class Shell(cmd.Cmd):
             self._config.printConfig()
             return
         elif len(args) == 1:
-            if args[1] == "save":
+            if args[0] == "save":
                 self._config.saveConfig()
                 return
             eprint("No value provided.")
             return
         elif len(args) == 2:
-            self._config.updateParameter(args[0], args[1])
+            value = strToValue(args[1])
+            if args[0] in self._config.progConfig:
+                self._config.progConfig[args[0]] = value
+            elif args[0] in self._config.conversation_parameters:
+                self._config.updateParameter(args[0], value)
         else:
             eprint("Unrecognized parameter.")
         if not clean:
@@ -232,14 +228,15 @@ class Shell(cmd.Cmd):
     def do_submit(self, args):
         """submit: submit a subject."""
         if self._config.has.get("license", False):
-            response = self._config.chat.submitDialog(self.conversation_parameters["subject"], self.conversation_parameters["scenario"])
-            if response:
-                    text = Text(response)
-                    text.stylize("bold magenta")
-                    console.print(text)
-                    """save to file"""
-                    with open(os.path.join(self._config.conversations_path, self.conversation_parameters["subject"] + self._config.fileExtention), "a") as f:
-                        f.write(f"{self._config.progConfig['aiPrompt']}{response}\n")
+            with console.status("waiting for response ...", spinner="dots"):
+                response = self._config.chat.submitDialog(self.conversation_parameters["subject"], self.conversation_parameters["scenario"])
+                if response:
+                        text = Text(response)
+                        text.stylize("bold magenta")
+                        console.print(text)
+                        """save to file"""
+                        with open(os.path.join(self._config.conversations_path, self.conversation_parameters["subject"] + self._config.fileExtention), "a") as f:
+                            f.write(f"{self._config.progConfig['aiPrompt']}{response}\n")
         else: 
             self._config.chat.loadLicense()
         return

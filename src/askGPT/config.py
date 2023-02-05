@@ -1,7 +1,7 @@
 """"""
 import os
 from pathlib import Path
-from .tools import load_json, eprint
+from .tools import load_json, eprint, strToValue
 from askGPT import DATA_PATH
 import toml
 from .api.openai import ChatGPT
@@ -54,15 +54,8 @@ class Config(object):
             self.saveConfig()
 
     def updateParameter(self,key, val):
-        if val == "true":
-            val = True
-        elif val == "false":
-            val = False
-        elif val.isnumeric():
-            val = int(val)
-        elif val.replace(".","",1).isnumeric():
-            val = float(val)
-        elif key in self.sessionConfig: # order matters
+        val = strToValue(val)
+        if key in self.sessionConfig: # order matters
             if self.sessionConfig[key] != val:
                 print(f"{key}] = {val}")
                 self.sessionConfig[key] = val

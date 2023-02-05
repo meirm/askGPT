@@ -113,6 +113,7 @@ def edit(config,subject,submit, scenario):
     """
 Edit a conversation"""
     subject = sanitizeName(subject)
+    scenario = sanitizeName(scenario)
     lines = list()
     if os.path.isfile(os.path.join(config.conversations_path, subject + config.fileExtention)):
         with open(os.path.join(config.conversations_path, subject + config.fileExtention), "r") as f:
@@ -137,6 +138,8 @@ Edit a conversation"""
 def train(config, subject, scenario, temperature):
     """Train the model with the conversation"""
     config.progConfig["temperature"] = temperature
+    subject = sanitizeName(subject)
+    scenario = sanitizeName(scenario)
     config.chat.submitDialog(subject, scenario)
 
 @cli.command()
@@ -147,6 +150,8 @@ def train(config, subject, scenario, temperature):
 
 def submit(config, subject, scenario, temperature):
     """Submit without editing the scenario file to openAi api and print out the response."""
+    subject = sanitizeName(subject)
+    scenario = sanitizeName(scenario)
     config.progConfig["temperature"] = temperature
     ai = config.chat.submitDialog(subject, scenario)
     print(ai)
@@ -161,6 +166,7 @@ def submit(config, subject, scenario, temperature):
 @click.argument("whatToShow", default="config")
 @click.argument("subject", default="" )
 def show(config, whattoshow, subject):
+    subject = sanitizeName(subject)
     """Show config|scenarios|subjects or the conversation inside a subject."""
     if subject == "":
         if whattoshow == "config":
@@ -211,6 +217,7 @@ Save the API keys to query OpenAI"""
 def delete(config, subject, all):
     """
 Delete the previous conversations saved by askGPT"""
+    subject = sanitizeName(subject)
     if all:
         for subject in config.get_list():
             os.remove(os.path.join(config.conversations_path, subject + config.fileExtention))
@@ -241,6 +248,8 @@ Delete the previous conversations saved by askGPT"""
 def query(config, subject, enquiry, scenario,model, temperature,max_tokens, top_p,  frequency_penalty, presence_penalty, verbose, save, retry, execute): 
     """
 Query the OpenAI API with the provided subject and enquiry"""
+    subject = sanitizeName(subject)
+    scenario = sanitizeName(scenario)
     enquiry = config.progConfig["userPrompt"] + enquiry
     ai = ""
     if subject:
