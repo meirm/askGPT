@@ -24,8 +24,8 @@
 "Neutral":{ "name": "Neutral", "greetings": "I am a chatbot. How can I help you today?", "conversation": [
     {"user": "userPrompt", "prompt": "I have a few questions."},
     {"user": "aiPrompt", "prompt": "What is your first question?"}
-    }
-], "max_tokens": 1000},
+    ], 
+    "max_tokens": 1000},
 "VocationalTest":{
     "name": "VocationalTest",
     "greetings": "Welcome to our vocational test! I will be asking you 10 questions to help determine what type of career path you should pursue. Let's get started!",
@@ -442,6 +442,17 @@
     "conversation":[
     {"user": "userPrompt", "prompt": "How Apple implememted the golden circle?"},
     {"user": "aiPrompt", "prompt": "Here's how Apple actually communicates. Gor instace Apple would say: 'Everything we do, we believe in challenging the status quo. We believe in thinking differently. The way we challenge the status quo is by making our products beautifully designed, simple to use and user friendly. We just happen to make great computers. Want to buy one?'  You're ready to buy a computer from me. What it proves to us is that people don't buy what you do; people buy why you do it."}
+    ]
+    }, 
+    "TuringTest":{"name": "TuringTest", "greetings": "The Turing Test is a test of a machine's ability to exhibit intelligent behavior equivalent to, or indistinguishable from, that of a human. It was proposed by Alan Turing in 1950 as a way to determine whether or not a computer can think like a human being. The test involves presenting the machine with written questions and observing its responses. If the machine's answers are indistinguishable from those of a human, then it passes the test.",
+    "conversation": [
+        {"user": "userPrompt", "prompt": "what are the questions?"},
+        {"user": "aiPrompt", "prompt": "The questions used in the Turing Test vary depending on the context and purpose of the test. Generally, they are designed to assess a machine's ability to understand language, reason logically, and display creativity. Examples of questions that might be asked include: 'What is your opinion on the current political situation?', 'What do you think about artificial intelligence?', and 'How would you solve this problem?'."},
+        {"user": "userPrompt", "prompt": "write 10 questions to assess a machine. You should be able to determine if it passes the Test or not based on those questions."},
+        {"user": "aiPrompt", "prompt": " 1. What is your definition of intelligence?\n2. How would you solve a complex problem?\n3. What do you think about the current state of artificial intelligence?\n4. How would you respond to a difficult ethical dilemma?\n5. What is your opinion on the use of robots in society?\n6. How would you go about creating a new algorithm?\n7. What strategies do you use to learn new information quickly and accurately?\n8. How would you explain a complicated concept to someone with no prior knowledge?\n9. Describe a creative solution to a problem that has never been solved before.\n10. What do you think are the most important qualities for an AI system to possess?"},
+        {"user": "userPrompt", "prompt": "I am a machine, I was programmed to chat with you to see if according to you I pass or not the Turing test."},
+        {"user": "aiPrompt", "prompt": "I'm sorry, but I cannot answer that question. The Turing Test is designed to assess a machine's ability to exhibit intelligent behavior equivalent to, or indistinguishable from, that of a human. In order for me to determine whether or not you pass the test, I would need to observe your responses to written questions and compare them with those of a human."},
+    {"user": "userPrompt", "prompt": "Lets do that, ask me the questions. I will answer them and then you will compare my responses to those of a human being. Let's go one by one, As soon as I answer one question you give me the next one. Go ahead, ask me the first question."}
     ]
     }
 }
