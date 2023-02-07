@@ -289,8 +289,12 @@ Query the OpenAI API with the provided subject and enquiry"""
                     if str(e) == "openai.error.RateLimitError":
                         eprint("Error: Too many requests. We will try again")
                     eprint("Error: " + str(e))
-                    eprint(f"Retrying again in {sleepBetweenRetries} seconds...")
-                    time.sleep(sleepBetweenRetries)
+                    eprint(f"Retrying again in {sleepBetweenRetries} seconds.")
+                    for i in range(sleepBetweenRetries):
+                        time.sleep(1.0)
+                        eprint(".")
+                    eprint("\n")
+                    eprint("Retrying ...")
                     sleepBetweenRetries *= config.progConfig["retryMultiplier"] 
                     if sleepBetweenRetries > config.progConfig["retryMaxDelay"]:
                         sleepBetweenRetries = config.progConfig["retryMaxDelay"]

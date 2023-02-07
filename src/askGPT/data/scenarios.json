@@ -118,9 +118,9 @@
     ],
     "max_tokens": 1000
 },
-"greetingslityAssessment": {
-    "name": "greetingslityAssessment",
-    "greetings": "Welcome to our greetingslity assessment! I will be asking you a series of questions to help determine your greetingslity type. Let's get started!",
+"PersonalityAssessment": {
+    "name": "PersonalityAssessment",
+    "greetings": "Welcome to our personality assessment! I will be asking you a series of questions to help determine your personality type. Let's get started!",
     "conversation": [
         {
             "user": "aiPrompt",
@@ -205,7 +205,7 @@
         },
         {
             "user": "aiPrompt",
-            "prompt": "Based on your answers, your greetingslity type is ____. Thank you for taking the time to complete this assessment."
+            "prompt": "Based on your answers, your personality type is ____. Thank you for taking the time to complete this assessment."
         }
     ],
     "max_tokens": 1000
