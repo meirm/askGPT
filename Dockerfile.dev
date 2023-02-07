@@ -5,7 +5,7 @@ RUN apt update && apt install -y vim nano wget curl && apt clean
 RUN mkdir -p /root/.askGPT /usr/local/src/askGPT
 COPY MANIFEST.in pyproject.toml src /usr/local/src/askGPT/
 RUN pip install /usr/local/src/askGPT
-COPY askgpt_shell.sh /usr/local/bin
+COPY askgpt_shell.sh /usr/local/bin/
 # Set the working directory
 WORKDIR /root/
 
