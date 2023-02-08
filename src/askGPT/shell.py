@@ -14,12 +14,15 @@ from rich.prompt import Prompt, Confirm
 from rich.panel import Panel
 from rich.markdown import Markdown
 from .tools import strToValue
+from rich.console import Console
+from filecmp import cmp
+import subprocess
+
 danger_style = Style(color="red", blink=False, bold=True)
 attention_style = Style(color="yellow", blink=False, bold=True)
 ok_style = Style(color="green", blink=False, bold=False)
-from rich.console import Console
 console = Console()
-from filecmp import cmp
+
 
 """Here we will define the class Shell which is a child of cmd.cmd which will allow us to run all the commands interactively such as query, config, edit."""
 class Shell(cmd.Cmd):
@@ -127,6 +130,10 @@ class Shell(cmd.Cmd):
         command = " ".join(args)
         os.system(command)
 
+    """Write function similar to do_exec but that it is able to save the output from the command being executed."""
+    def execStdout(command: list):
+        result = subprocess.run([command], stdout=subprocess.PIPE)
+        return result.stdout.decode('utf-8')
 
     def do_set(self,args):
         """Set conversation_parameters checking that the keys exist and that the values are valid"""
@@ -345,14 +352,46 @@ class Shell(cmd.Cmd):
 
     def complete_set(self,text, line, begidx, endidx):
         """complete_query: complete the query command."""
-        if not text:
+        # print("len: {}, spaces: {}\n".format(len(line), len(line.split(" "))))
+        if  line.rstrip()  == "set":
             completions = list(self.conversation_parameters.keys())
-        else:
+            return completions
+        elif len(line.split(" ")) == 2:
             completions = [ f
                             for f in self.conversation_parameters.keys()
                             if f.startswith(text)
                             ]
-        return completions
+            return completions
+        elif len(line.split(" ")) >  2:
+            completions = line.rstrip().split(" ")[1]
+            if completions == "scenario":
+                completions = [
+                    f
+                    for f in list(self._config.scenarios.keys())
+                    if f.startswith(text) 
+                ]
+                return completions
+            elif completions == "subject":
+                completions = [
+                    f
+                    for f in list(self._config.get_list())
+                    if f.startswith(text) 
+                ]
+                return completions
+            elif completions == "model":
+                completions = [
+                    f
+                    for f in list(self._config.chat.listModels())
+                    if f.startswith(text) 
+                ]
+                return completions
+            elif completions == "defaulCommand":
+                completion =  [
+                    f
+                    for f in list(self.commands.keys())
+                    if f.startswith(text)
+                ]
+                return completions
 
 
     def complete_delete(self,text, line, begidx, endidx):
@@ -381,7 +420,7 @@ class Shell(cmd.Cmd):
                 return
             elif args[0] == "scenarios":
                 print("Current scenarios:")
-                for scenario in self._config.scenarios.keys():
+                for scenario in sorted(self._config.scenarios.keys()):
                     print(scenario)
                 return
             elif args[0] == "subjects":
@@ -398,27 +437,19 @@ class Shell(cmd.Cmd):
                     self._config.chat.loadLicense()
                 return
             else:
-                eprint("Unrecognized parameter.")
-                return
-        elif len(args) == 2:
-            if args[0] == "subject":
-                subject = sanitizeName(args[1])
-                eprint("Show the conversation inside a subject.")
-                if os.path.isfile(os.path.join(self._config.settingsPath, 'conversations', subject + self._config.fileExtention)):
-                    with open(os.path.join(self._config.settingsPath, 'conversations', subject + self._config.fileExtention), 'r') as f:
-                        print(f.read())
-                        return
-            else:
-                eprint("Unrecognized parameter.")
+                if self.conversation_parameters.get("defaultCommand", "") == "query":
+                    self.do_query(args[0])
+                else:
+                    eprint("Unrecognized parameter.")
                 return
         else:
-            eprint("Unrecognized parameter.")
-            return
+                if self.conversation_parameters.get("defaultCommand", "") == "query":
+                    self.do_query(args[0])
+                    return
+                else:
+                    eprint("Unrecognized parameter.")
+                    return
             
-        """config: configure the model."""
-        print("configuring the model...")
-        print("TODO: implement the config function.")
-
     def saveSession(self):
         """EOF: exit the shell."""
         """ save the current parameters in a toml file to be loaded in the next session"""
@@ -468,7 +499,12 @@ class Shell(cmd.Cmd):
         pass
 
     def default(self, line):
-        if line.startswith("!"):
+        if line.startswith("!!"):
+            # take the last response from AI and esecute it. This is meanly useful when using the sharedTermninal scenario. We want to capture the output and feed it into the conversation as the user prompt.
+            self.do_exec(self.lastResponse)
+
+            pass
+        elif line.startswith("!"):
             self.do_exec(line[1:])
         elif self.conversation_parameters.get("defaultCommand","query") == "query":
 
