@@ -36,6 +36,7 @@ class Shell(cmd.Cmd):
         self.ruler = "-"
         self._config = config
         self.commands = dict()
+        self.lastResponse = None
         self._register_commands()
         self.conversation_parameters = {
             "subject": "test",
@@ -290,6 +291,7 @@ class Shell(cmd.Cmd):
                     text = Text(response)
                     text.stylize("bold magenta")
                     console.print(text)
+                    self.lastResponse = text
                     """save to file"""
                     with open(os.path.join(self._config.conversations_path, self.conversation_parameters["subject"] + self._config.fileExtention), "a") as f:
                         f.write(enquiry + "\n" + self._config.progConfig.get("aiPrompt", " AI: ") + response + "\n")
@@ -438,13 +440,13 @@ class Shell(cmd.Cmd):
                 return
             else:
                 if self.conversation_parameters.get("defaultCommand", "") == "query":
-                    self.do_query(args[0])
+                    self.do_query(arg)
                 else:
                     eprint("Unrecognized parameter.")
                 return
         else:
                 if self.conversation_parameters.get("defaultCommand", "") == "query":
-                    self.do_query(args[0])
+                    self.do_query(arg)
                     return
                 else:
                     eprint("Unrecognized parameter.")
@@ -499,9 +501,10 @@ class Shell(cmd.Cmd):
         pass
 
     def default(self, line):
-        if line.startswith("!!"):
+        if line == "!!":
             # take the last response from AI and esecute it. This is meanly useful when using the sharedTermninal scenario. We want to capture the output and feed it into the conversation as the user prompt.
-            self.do_exec(self.lastResponse)
+            if self.lastResponse:
+                self.do_exec(self.lastResponse)
 
             pass
         elif line.startswith("!"):
