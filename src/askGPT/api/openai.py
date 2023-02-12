@@ -154,6 +154,7 @@ class ChatGPT(object):
     def submitDialogWithBackOff(self, chat):
         tries = self._config.progConfig.get("maxRetries",1)
         success = False
+        reason = "Error: Could not send the dialog"
         sleepBetweenRetries = self._config.progConfig["retryDelay"]
         ai  = ModuleNotFoundError
         while tries > 0:
@@ -179,6 +180,9 @@ class ChatGPT(object):
                     eprint(ai)
                 success = True
                 break
+            except KeyboardInterrupt:
+                reason = "Operation aborted."
+                break
             except Exception as e:
                 tries -= 1
                 if str(e) == "openai.error.RateLimitError":
@@ -190,7 +194,7 @@ class ChatGPT(object):
                 if sleepBetweenRetries > self._config.progConfig["retryMaxDelay"]:
                     sleepBetweenRetries = self._config.progConfig["retryMaxDelay"]
         if success == False:
-            eprint("Error: Could not send the dialog")
+            eprint(reason)
             return
         return ai
 
