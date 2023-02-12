@@ -343,12 +343,29 @@ class Shell(cmd.Cmd):
 
     def complete_show(self,text, line, begidx, endidx):
         """complete_query: complete the query command."""
-        if not text:
-            completions = list(["config", "scenarios", "subjects"] )
-        else:
+        args = shlex.split(line)
+        completions = None
+        # print(f"{args}\n")
+        if len(args) < 2:
+            if not text:
+                completions = list(["config", "scenarios", "subject", "subjects"] )
+            else:
+                completions = [ f
+                                for f in list(["config", "scenarios", "subject", "subjects"] )
+                                if f.startswith(args[-1])
+                                ]
+        elif len(args) == 2:
+            if args[1] == "subject":
+                completions = list(self._config.scenarios.keys())
+            else:
+                completions = [ f
+                                for f in list(["config", "scenarios", "subject", "subjects"] )
+                                if f.startswith(args[-1])
+                                ]
+        elif len(args) == 3:
             completions = [ f
-                            for f in list(["config", "scenarios", "subjects"] )
-                            if f.startswith(text)
+                            for f in list(self._config.scenarios.keys())
+                            if f.startswith(args[2])
                             ]
         return completions
 
@@ -444,6 +461,15 @@ class Shell(cmd.Cmd):
                 else:
                     eprint("Unrecognized parameter.")
                 return
+        elif len(args) == 2:
+            if args[0] == "subject":
+                subject = sanitizeName(args[1])
+                subject = self._config.scenarios.get(subject)
+                if subject is not None:
+                    print("Greetings:")
+                    print(subject.get("greetings", ""))
+                    for prompt in subject["conversation"]:
+                        print("{} {}".format(subject.get(prompt["user"], self._config.progConfig.get(prompt["user"])), prompt["prompt"]))
         else:
                 if self.conversation_parameters.get("defaultCommand", "") == "query":
                     self.do_query(arg)
