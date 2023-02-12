@@ -932,7 +932,7 @@
     "name": "Emotion", "greetings":"I want you to reply to all my prompts with a list of tags that describe the prompt using sentiment analysis. Write the tags in metadata in square brackets.",
     "conversation": [
       {"user": "userPrompt", "prompt": "I love you very much"},
-      {"user": "aiPrompt", "prompt": "['Positive'"}
+      {"user": "aiPrompt", "prompt": "['Positive']"}
     ]
   },
   "Socrates":{
