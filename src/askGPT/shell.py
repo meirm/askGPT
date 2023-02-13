@@ -355,11 +355,11 @@ class Shell(cmd.Cmd):
                                 if f.startswith(args[-1])
                                 ]
         elif len(args) == 2:
-            if args[1] == "subject":
+            if args[1] == "scenario":
                 completions = list(self._config.scenarios.keys())
             else:
                 completions = [ f
-                                for f in list(["config", "scenarios", "subject", "subjects"] )
+                                for f in list(["config", "scenarios", "scenario", "subjects"] )
                                 if f.startswith(args[-1])
                                 ]
         elif len(args) == 3:
@@ -462,14 +462,14 @@ class Shell(cmd.Cmd):
                     eprint("Unrecognized parameter.")
                 return
         elif len(args) == 2:
-            if args[0] == "subject":
-                subject = sanitizeName(args[1])
-                subject = self._config.scenarios.get(subject)
-                if subject is not None:
+            if args[0] == "scenario":
+                scenario = sanitizeName(args[1])
+                scenario = self._config.scenarios.get(scenario)
+                if scenario is not None:
                     print("Greetings:")
-                    print(subject.get("greetings", ""))
-                    for prompt in subject["conversation"]:
-                        print("{} {}".format(subject.get(prompt["user"], self._config.progConfig.get(prompt["user"])), prompt["prompt"]))
+                    print(scenario.get("greetings", ""))
+                    for prompt in scenario["conversation"]:
+                        print("{} {}".format(scenario.get(prompt["user"], self._config.progConfig.get(prompt["user"])), prompt["prompt"]))
         else:
                 if self.conversation_parameters.get("defaultCommand", "") == "query":
                     self.do_query(arg)
