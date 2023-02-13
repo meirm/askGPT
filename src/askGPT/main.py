@@ -74,10 +74,11 @@ def shell(config):
 @click.option("--retry-max-delay", default=basicConfig["retryMaxDelay"], type=float, help="max delay between retries")
 @click.option("--verbose/--quiet", default=False, help="Show verbose output")
 @click.option("--debug/--no-debug", default=False, help="Debug")
+@click.option("--updateScenarios/--keep-scenarios", default=True, help="Load Distribution scenarios")
 
 def config(config, user_prompt, ai_prompt, max_tokens,model, temperature, top_p, 
 frequency_penalty, presence_penalty, show_disclaimer,max_retries,
-retry_delay,retry_multiplier,retry_max_delay, verbose, debug):
+retry_delay,retry_multiplier,retry_max_delay, verbose, debug, updateScenarios):
     """
 Change config values"""
     config.progConfig["userPrompt"] = user_prompt
@@ -95,6 +96,7 @@ Change config values"""
     config.progConfig["retryMaxDelay"] = retry_max_delay
     config.progConfig["verbose"] = verbose
     config.progConfig["debug"] = debug
+    config.progConfig["updateScenarios"] = updateScenarios
 
 
     jsonConfig = {'name':'askGPT','default':config.progConfig}

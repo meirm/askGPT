@@ -22,6 +22,7 @@ basicConfig["retryMaxDelay"] = basicConfig.get("retryMaxDelay",60)
 basicConfig["retryMultiplier"] = basicConfig.get("retryMultiplier",2)
 basicConfig["verbose"] = basicConfig.get("verbose", False)
 basicConfig["debug"] = basicConfig.get("debug", False)
+basicConfig["updateScenarios"] = basicConfig.get("updateScenarios", True)
 
 class Config(object):
     def __init__(self):
@@ -113,6 +114,7 @@ class Config(object):
         self.progConfig["retryMultiplier"] = self.progConfig.get("retryMultiplier",2)
         self.progConfig["verbose"] = self.progConfig.get("verbose", False)
         self.progConfig["debug"] = self.progConfig.get("debug", False)
+        self.progConfig["updateScenarios"] = self.progConfig.get("updateScenarios", True)
 
     def printConfig(self):
         """Print the configuration file"""

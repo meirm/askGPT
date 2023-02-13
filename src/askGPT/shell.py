@@ -54,6 +54,9 @@ class Shell(cmd.Cmd):
     def do_update(self,args):
         """replace the current scenarios files"""
         args = shlex.split(args)
+        if self._config.progConfig["updateScenarios"] == False:
+            eprint("Update is disabled in the config file")
+            return
         if not cmp(os.path.join(self._config.data_path, "scenarios.json"), os.path.join(self._config.settingsPath, "scenarios.json")):
             if not Confirm.ask("New scenarios available.Would you like to replace the current ones?"):
                 eprint("Scenarios files matched. No need to overwrite.")
@@ -62,7 +65,7 @@ class Shell(cmd.Cmd):
                 shutil.copyfile(os.path.join(self._config.settingsPath, "scenarios.json"), os.path.join(self._config.settingsPath, "scenarios.json.bak"))
             shutil.copyfile(os.path.join(self._config.data_path, "scenarios.json"), os.path.join(self._config.settingsPath, "scenarios.json"))
             eprint("Scenarios updated, you need to restart to load the new scenario file")
-            return Confirm.ask("Would you like to restart now?")
+            return 
             
 
     def do_clone(self,args):
