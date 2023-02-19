@@ -15,6 +15,7 @@ from rich.panel import Panel
 from rich.markdown import Markdown
 from .tools import strToValue
 from rich.console import Console
+import click
 from filecmp import cmp
 import subprocess
 
@@ -42,11 +43,12 @@ class Shell(cmd.Cmd):
             "subject": "test",
             "scenario": "Neutral",
             "model": "text-davinci-003",
-            "defaultCommand": "query"
+            "defaultCommand": "query",
+            "execute": False
 
         }
         if os.path.exists(os.path.join(self._config.settingsPath, "last.toml")):
-            self.conversation_parameters = toml.load(os.path.join(self._config.settingsPath, "last.toml"))
+            self.conversation_parameters.update(toml.load(os.path.join(self._config.settingsPath, "last.toml")))
         self.prompt = f"{self.conversation_parameters['scenario']}> "
         self.do_update("")
         
@@ -267,8 +269,29 @@ class Shell(cmd.Cmd):
                         console.print(text)
                         """save to file"""
                         with open(os.path.join(self._config.conversations_path, self.conversation_parameters["subject"] + self._config.fileExtention), "a") as f:
-                            f.write(f"{self._config.progConfig['aiPrompt']}{response}\n")
-        else: 
+                            if self.conversation_parameters.get("execute", False):
+                                editPrompt = click.prompt(f"{response}\nedit command? [y/n]", type=click.Choice(["y", "n"]), default="n")
+                                if editPrompt == "y":
+                                    edited = click.edit(response)
+                                    if edited:
+                                        response = edited
+                                doExec = click.prompt(f"{response}\nExecute command? [y/n]", type=click.Choice(["y", "n"]), default="y")
+                                """execute the command in the terminal and edit the response before saving it."""
+                                if doExec == "y":
+                                    result  = subprocess.run(response, stdout=subprocess.PIPE, shell=True, stderr=subprocess.STDOUT)
+                                    result = result.stdout.decode("utf-8")
+                                    print(result)
+                                    saveOutput = click.prompt(f"save output? [Y/e/n]", type=click.Choice(["y", "e", "n"]), default="y")
+                                    if saveOutput == "e":
+                                        edited = click.edit(result)
+                                        if edited:
+                                            result = edited
+                                    if saveOutput != "n":
+                                        f.write(f"{self._config.progConfig['aiPrompt']}{response}")
+                                        f.write("\n")
+                                        f.write(self._config.progConfig["userPrompt"] + str(result))
+                                        f.write("\n")
+                                        
             self._config.chat.loadLicense()
         return
 
@@ -288,17 +311,40 @@ class Shell(cmd.Cmd):
             self._config.chat.loadLicense()
             return
         if self._config.has.get("license", False):
+            response = None
             with console.status("waiting for response ...", spinner="dots"):
                 response = self._config.chat.query(self.conversation_parameters["subject"], self.conversation_parameters["scenario"], enquiry)
-                if response:
-                    text = Text(response)
-                    text.stylize("bold magenta")
-                    console.print(text)
-                    self.lastResponse = text
-                    """save to file"""
-                    with open(os.path.join(self._config.conversations_path, self.conversation_parameters["subject"] + self._config.fileExtention), "a") as f:
-                        f.write(enquiry + "\n" + self._config.progConfig.get("aiPrompt", " AI: ") + response + "\n")
-                        
+            if response:
+                text = Text(response)
+                text.stylize("bold magenta")
+                console.print(f"{text}\n")
+                self.lastResponse = text
+                """save to file"""
+                with open(os.path.join(self._config.conversations_path, self.conversation_parameters["subject"] + self._config.fileExtention), "a") as f:
+                        if self.conversation_parameters.get("execute", False):
+                                editPrompt = click.prompt(f"edit command? [y/n]", type=click.Choice(["y", "n"]), default="n")
+                                if editPrompt == "y":
+                                    edited = click.edit(response)
+                                    if edited:
+                                        response = edited
+                                doExec = click.prompt(f"{response}\nExecute command? [y/n]", type=click.Choice(["y", "n"]), default="y")
+                                """execute the command in the terminal and edit the response before saving it."""
+                                if doExec == "y":
+                                    result  = subprocess.run(response, stdout=subprocess.PIPE, shell=True, stderr=subprocess.STDOUT)
+                                    result = result.stdout.decode("utf-8")
+                                    print(result)
+                                    saveOutput = click.prompt(f"save output? [Y/e/n]", type=click.Choice(["y", "e", "n"]), default="y")
+                                    if saveOutput == "e":
+                                        edited = click.edit(result)
+                                        if edited:
+                                            result = edited
+                                    if saveOutput != "n":
+                                        f.write(self._config.progConfig["userPrompt"] + str(enquiry))
+                                        f.write("\n")
+                                        f.write(f"{self._config.progConfig['aiPrompt']}{response}")
+                                        f.write("\n")
+                                        f.write(self._config.progConfig["userPrompt"] + str(result))
+                                        f.write("\n")
     def complete_recap(self,text, line, begidx, endidx):
         """complete_query: complete the query command."""
         if not text:
