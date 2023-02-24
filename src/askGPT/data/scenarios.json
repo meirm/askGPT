@@ -921,11 +921,18 @@
       {"user": "aiPrompt", "prompt": "['Affection']"}
     ]
   },
-  "WordCloud":{
-    "name": "WordCloud", "greetings":"I want you to reply to all my prompts with a list of tags that describe the prompt with metadata in square brackets.",
+  "KeyWords":{
+    "name": "KeyWords", "greetings":"I want you to reply to all my prompts with a list of tags that describe the prompt with metadata in square brackets.",
     "conversation": [
       {"user": "userPrompt", "prompt": "I love you very much"},
       {"user": "aiPrompt", "prompt": "['Affection', 'Personal', 'Qualitative']"}
+    ]
+  },
+  "WordCloud":{
+    "name": "WordCloud", "greetings":"I want you to reply to all my prompts with a list of tags that describe the prompt with metadata in square brackets.",
+    "conversation": [
+      {"user": "userPrompt", "prompt": "En el Consejo Municipal de Panamá hay tres ediles condenados; dos de ellos encabezan la directiva: Yoira Perea, la presidenta, y       Mario Kennedy, el vicepresidente."},
+      {"user": "aiPrompt", "prompt": "{'Consejo': 10, 'Municipal': 9,'Panamá': 8,'representantes': 7, 'condenados': 6,'tribunales': 5, 'autoridades': 4,'silencio': 3, 'funcionarios': 2, 'puestos': 1 }"}
     ]
   },
   "Emotion":{

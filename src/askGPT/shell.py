@@ -291,6 +291,12 @@ class Shell(cmd.Cmd):
                                         f.write("\n")
                                         f.write(self._config.progConfig["userPrompt"] + str(result))
                                         f.write("\n")
+                                else:
+                                    f.write(f"{self._config.progConfig['aiPrompt']}{response}")
+                                    f.write("\n")
+                            else:
+                                f.write(f"{self._config.progConfig['aiPrompt']}{response}")
+                                f.write("\n")
                                         
             self._config.chat.loadLicense()
         return
@@ -345,6 +351,18 @@ class Shell(cmd.Cmd):
                                         f.write("\n")
                                         f.write(self._config.progConfig["userPrompt"] + str(result))
                                         f.write("\n")
+
+                                else:
+                                    f.write(self._config.progConfig["userPrompt"] + str(enquiry))
+                                    f.write("\n")
+                                    f.write(f"{self._config.progConfig['aiPrompt']}{response}")
+                                    f.write("\n")
+                        else:
+                            f.write(self._config.progConfig["userPrompt"] + str(enquiry))
+                            f.write("\n")
+                            f.write(f"{self._config.progConfig['aiPrompt']}{response}")
+                            f.write("\n")
+                            
     def complete_recap(self,text, line, begidx, endidx):
         """complete_query: complete the query command."""
         if not text:
