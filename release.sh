@@ -1,4 +1,4 @@
 #!/bin/bash
 python3 -m build && \
-gpg --detach-sign -a dist/askGPT-0.4.25.tar.gz && \
-twine upload dist/askGPT-0.4.25.tar.gz dist/askGPT-0.4.25.tar.gz.asc
+gpg --detach-sign -a dist/askGPT-0.5.0.tar.gz && \
+twine upload dist/askGPT-0.5.0.tar.gz dist/askGPT-0.5.0.tar.gz.asc

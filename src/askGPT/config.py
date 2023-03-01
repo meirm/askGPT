@@ -44,7 +44,7 @@ class Config(object):
         self.update()
         self.chat = ChatGPT(self)
         self.chat.loadLicense()
-        self.version="0.4.25"
+        self.version="0.5.0"
         self.data_path = DATA_PATH
 
     def loadProgConfig(self):

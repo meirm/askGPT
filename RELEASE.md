@@ -1,7 +1,7 @@
 <<<<<<< HEAD
-# Release 0.4.25
+# Release 0.5.0
 =======
-# Release 0.4.25
+# Release 0.5.0
 >>>>>>> development
 Major changes in UI.
 * personas renamed scenarios

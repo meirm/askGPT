@@ -113,6 +113,23 @@ class Shell(cmd.Cmd):
         else:
             eprint(f"File {filename} not found")
 
+    """Show the greeting and the conversation prompt used to precondition the scenario"""
+    def do_intro(self, args):
+        """if args is one of the scenarios, print the greeting of that scenario"""
+        args = shlex.split(args)
+        scenario = self.conversation_parameters["scenario"]
+        if len(args) != 0:
+            scenario = args[0]
+            """print current scenario from conversation_parameters"""
+        if scenario in self._config.scenarios:    
+            print(self._config.scenarios[scenario]["greetings"])
+            for p in self._config.scenarios[scenario]['conversation']:
+                prompt = self._config.progConfig["userPrompt"] if p['user'] == "userPrompt" else self._config.progConfig["aiPrompt"]
+                print(f"{self._config.scenarios[scenario].get(p['user'],prompt)} {p['prompt']}")
+                
+        else:
+            eprint(f"Scenario {scenario} not found")
+
     def do_greetings(self, args):
         """if args is one of the scenarios, print the greeting of that scenario"""
         args = shlex.split(args)
