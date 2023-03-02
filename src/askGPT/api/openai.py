@@ -176,8 +176,7 @@ class ChatGPT(object):
                     top_p=self._config.progConfig["topP"],
                     frequency_penalty=self._config.progConfig["frequencyPenalty"],
                     presence_penalty=self._config.progConfig["presencePenalty"],
-                    # stop=[ # "\n",
-                    # self._config.progConfig["userPrompt"], self._config.progConfig["aiPrompt"]],
+                
                 )
                 # print(response)
                 # return

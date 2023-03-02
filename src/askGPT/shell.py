@@ -138,8 +138,7 @@ class Shell(cmd.Cmd):
         if scenario in self._config.scenarios:    
             print(f"system: {self._config.scenarios[scenario]['greetings']}")
             for p in self._config.scenarios[scenario]['conversation']:
-                prompt = self._config.progConfig["userPrompt"] if p['user'] == "userPrompt" else self._config.progConfig["aiPrompt"]
-                print(f"{prompt}: {p['prompt']}")
+                print(f"{p['role']}: {p['content']}")
                 
         else:
             eprint(f"Scenario {scenario} not found")
@@ -318,15 +317,15 @@ class Shell(cmd.Cmd):
                                         if edited:
                                             result = edited
                                     if saveOutput != "n":
-                                        f.write(f"{self._config.progConfig['aiPrompt']}: {response}")
+                                        f.write(f"assistant: {response}")
                                         f.write("\n")
-                                        f.write(f"self._config.progConfig['userPrompt']: {str(result)}")
+                                        f.write(f"user: {str(result)}")
                                         f.write("\n")
                                 else:
-                                    f.write(f"{self._config.progConfig['aiPrompt']}: {response}")
+                                    f.write(f"assistant: {response}")
                                     f.write("\n")
                             else:
-                                f.write(f"{self._config.progConfig['aiPrompt']}: {response}")
+                                f.write(f"assistant: {response}")
                                 f.write("\n")
                                         
             self._config.chat.loadLicense()
@@ -375,22 +374,22 @@ class Shell(cmd.Cmd):
                                         if edited:
                                             result = edited
                                     if saveOutput != "n":
-                                        f.write(f"{self._config.progConfig['userPrompt']}: {str(enquiry)}")
+                                        f.write(f"user: {str(enquiry)}")
                                         f.write("\n")
-                                        f.write(f"{self._config.progConfig['aiPrompt']}: {response}")
+                                        f.write(f"assistant: {response}")
                                         f.write("\n")
-                                        f.write(f"{self._config.progConfig['userPrompt']}: {str(result)}")
+                                        f.write(f"user: {str(result)}")
                                         f.write("\n")
 
                                 else:
-                                    f.write(f"{self._config.progConfig['userPrompt']}: {str(enquiry)}")
+                                    f.write(f"user: {str(enquiry)}")
                                     f.write("\n")
-                                    f.write(f"{self._config.progConfig['aiPrompt']}: {response}")
+                                    f.write(f"assistant: {response}")
                                     f.write("\n")
                         else:
-                            f.write(f"{self._config.progConfig['userPrompt']}: {str(enquiry)}")
+                            f.write(f"user: {str(enquiry)}")
                             f.write("\n")
-                            f.write(f"{self._config.progConfig['aiPrompt']}: {response}")
+                            f.write(f"assistant: {response}")
                             f.write("\n")
                             
     def complete_recap(self,text, line, begidx, endidx):
@@ -566,7 +565,7 @@ class Shell(cmd.Cmd):
                     print("Greetings:")
                     print(scenario.get("greetings", ""))
                     for prompt in scenario["conversation"]:
-                        print("{} {}".format(scenario.get(prompt["user"], self._config.progConfig.get(prompt["user"])), prompt["prompt"]))
+                        print("{} {}".format(scenario.get(prompt["role"], self._config.progConfig.get(prompt["role"])), prompt["content"]))
         else:
                 if self.conversation_parameters.get("defaultCommand", "") == "query":
                     self.do_query(arg)

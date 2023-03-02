@@ -1,17 +1,17 @@
 name = "askGPT"
 
 [default]
-userPrompt = "user"
-aiPrompt = " assistant: "
-maxTokens = 150
-model = "text-davinci-003"
+maxTokens = 2048
+model = "gpt-3.5-turbo"
 temperature = 0.0
 topP = 1
-frequencyPenalty = 0.0
-presencePenalty = 0.0
+frequencyPenalty = 0.5
+presencePenalty = 0.5
 showDisclaimer = true
 maxRetries = 3
-retryDelay = 5.0
-retryMultiplier = 2.0
+retryDelay = 15.0
 retryMaxDelay = 60.0
-
+retryMultiplier = 2.0
+verbose = false
+debug = false
+updateScenarios = true

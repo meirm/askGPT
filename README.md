@@ -139,8 +139,6 @@ The content of the file by default is the following:
 name = "askGPT"
 
 [default]
-userPrompt = "user"
-aiPrompt = "assistant"
 maxTokens = 150
 model = "text-davinci-003"
 temperature = 0.0
@@ -174,7 +172,7 @@ copy this file to ***.askGPT*** directory
 ***askGPT***  allows you to use scenarios to focus the conversation. scenarios are defined as follows:
 
 ```
-{"<scenario>": {"name": "<name>", "greetings": "<Initial sentence>", "conversation": [ {"user":"userPrompt", "prompt":"<your initial prompt>"},{"user": "aiPrompt", "prompt": "<AI response>"}, ... ]}}
+{"<scenario>": {"name": "<name>", "greetings": "<Initial sentence>", "conversation": [ {"role":"user", "content":"<your initial prompt>"},{"role": "assistant", "content": "<AI response>"}, ... ]}}
 ```
 
 Where `<scenario>` is the name of the scenario, `<name>` is the name of the character, `<initial sentence>` is the initial sentence used to start the conversation, and `<prompt>` is an array of sentences between the user and ***askGPT*** .
@@ -183,8 +181,8 @@ Where `<scenario>` is the name of the scenario, `<name>` is the name of the char
 i.e.
 ```
 "AlbertoKnox":{"Name": "Knox", "greetings":"I am Alberto Knox, the philosopher from Sophia's world. I am also a chatbot", "conversation":[
-    {"user": "userPrompt", "prompt": "What's your role in the book?"},
-    {"user": "aiPrompt", "prompt": "The ideal philosopher. I am never quick to judge and I always thinks about what I am doing."}
+    {"role": "user", "content": "What's your role in the book?"},
+    {"role": "assistant", "content": "The ideal philosopher. I am never quick to judge and I always thinks about what I am doing."}
 ]}
 ```
 

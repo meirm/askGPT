@@ -7,9 +7,6 @@ import toml
 from .api.openai import ChatGPT
 
 basicConfig = dict()
-basicConfig["userPrompt"] = basicConfig.get("userPrompt","user")
-basicConfig["aiPrompt"] = basicConfig.get("aiPrompt","assistant")
-basicConfig["systemPrompt"] = basicConfig.get("systemPrompt","system")
 basicConfig["maxTokens"] = basicConfig.get("maxTokens",150)
 basicConfig["model"] = basicConfig.get("model","gpt-3.5-turbo")
 basicConfig["temperature"] = basicConfig.get("temperature",0.0)
@@ -100,8 +97,6 @@ class Config(object):
 
 
     def loadDefaults(self):
-        self.progConfig["userPrompt"] = self.progConfig.get("userPrompt","user")
-        self.progConfig["aiPrompt"] = self.progConfig.get("aiPrompt"," assistant")
         self.progConfig["maxTokens"] = self.progConfig.get("maxTokens",150)
         self.progConfig["model"] = self.progConfig.get("model","text-davinci-003")
         self.progConfig["temperature"] = self.progConfig.get("temperature",0.0)
