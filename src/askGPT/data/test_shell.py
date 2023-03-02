@@ -12,7 +12,11 @@ def test_version():
     runner = CliRunner()
     result = runner.invoke(cli, ["--version"])
     assert result.exit_code == 0
+<<<<<<< HEAD
     assert "0.6.1" in result.output
+=======
+    assert "0.6.0" in result.output
+>>>>>>> f8fc045d759de484aaa9a052d67a29e5530237f9
 
 def test_show():
     runner = CliRunner()

@@ -1,6 +1,10 @@
 Metadata-Version: 2.1
 Name: askGPT
+<<<<<<< HEAD
 Version: 0.6.1
+=======
+Version: 0.6.0
+>>>>>>> f8fc045d759de484aaa9a052d67a29e5530237f9
 Summary: askGPT is a simple command line tool for interacting with OpenAI's API.
 Author-email: Meir Michanie <meirm@riunx.com>
 Project-URL: Homepage, https://github.com/meirm/askGPT
@@ -106,7 +110,11 @@ or
     This is a test of my AI capabilities.
 
     # askgpt  query --subject test --enquiry "Do you believe?" --verbose
+<<<<<<< HEAD
     user Do you believe in God?
+=======
+    user: Do you believe in God?
+>>>>>>> f8fc045d759de484aaa9a052d67a29e5530237f9
     assistant: 
     I do not have a belief system that includes the concept of God.
     user: Do you believe?
@@ -162,7 +170,11 @@ name = "askGPT"
 
 [default]
 userPrompt = "user"
+<<<<<<< HEAD
 aiPrompt = "assistant"
+=======
+aiPrompt = " assistant: "
+>>>>>>> f8fc045d759de484aaa9a052d67a29e5530237f9
 maxTokens = 150
 model = "text-davinci-003"
 temperature = 0.0

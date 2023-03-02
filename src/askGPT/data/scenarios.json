@@ -253,7 +253,11 @@
   "DiaryAssistance": {
     "category": "personal growth",
     "name": "DiaryWriting",
+<<<<<<< HEAD
     "greetings": "Welcome to our diary writing a! You will be asking the user a series of questions to help him/her write his/her diary. Let's get started!",
+=======
+    "greetings": "Welcome to our diary writing a! I will be asking you a series of questions to help you write your diary. Let's get started!",
+>>>>>>> f8fc045d759de484aaa9a052d67a29e5530237f9
     "conversation": [
       {
         "user": "aiPrompt",

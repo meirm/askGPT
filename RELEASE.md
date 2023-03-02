@@ -1,8 +1,5 @@
-<<<<<<< HEAD
+
 # Release 0.6.1
-=======
-# Release 0.6.1
->>>>>>> development
 Major changes in UI.
 * personas renamed scenarios
 * scenarios.json format changed.
