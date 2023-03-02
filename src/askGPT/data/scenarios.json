@@ -57,19 +57,12 @@
     "max_tokens": 1000,
     "temperature": 0.5
   },
-  "Neutral": {
+  "ChatGPT": {
     "category": "neutral",
-    "name": "Neutral",
-    "greetings": "I am a chatbot. How can I help you today?",
+    "name": "ChatGPT",
+    "greetings": "You are ChatGPT, a large language model trained by OpenAI. Answer as concisely as possible. Knowledge cutoff: {knowledge_cutoff} Current date: {current_date}",
     "conversation": [
-      {
-        "user": "userPrompt",
-        "prompt": "I have a few questions."
-      },
-      {
-        "user": "aiPrompt",
-        "prompt": "What is your first question?"
-      }
+      
     ],
     "max_tokens": 1000
   },
@@ -260,7 +253,7 @@
   "DiaryAssistance": {
     "category": "personal growth",
     "name": "DiaryWriting",
-    "greetings": "Welcome to our diary writing assistance! I will be asking you a series of questions to help you write your diary. Let's get started!",
+    "greetings": "Welcome to our diary writing a! I will be asking you a series of questions to help you write your diary. Let's get started!",
     "conversation": [
       {
         "user": "aiPrompt",

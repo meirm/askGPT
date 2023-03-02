@@ -12,7 +12,7 @@ def test_version():
     runner = CliRunner()
     result = runner.invoke(cli, ["--version"])
     assert result.exit_code == 0
-    assert "0.5.0" in result.output
+    assert "0.6.0" in result.output
 
 def test_show():
     runner = CliRunner()
@@ -30,7 +30,7 @@ def test_show():
     assert "Please specify what to show" in result.output
     result = runner.invoke(cli, ["show", "subject", "test"])
     assert result.exit_code == 0
-    assert "Human: are you still working?" in result.output
+    assert "user: are you still working?" in result.output
 
 def test_config():
     runner = CliRunner()
