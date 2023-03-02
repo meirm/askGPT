@@ -8,7 +8,7 @@ __title__ = 'askGPT'
 __author__ = 'Meir Michanie'
 __license__ = 'MIT'
 __credits__ = ''
-__version__ = "0.6.1"
+__version__ = "0.6.2"
 
 import os
 from .api.openai import ChatGPT
