@@ -84,11 +84,11 @@ or
     This is a test of my AI capabilities.
 
     # askgpt  query --subject test --enquiry "Do you believe?" --verbose
-    Human: Do you believe in God?
-    AI: 
+    user Do you believe in God?
+    assistant: 
     I do not have a belief system that includes the concept of God.
-    Human: Do you believe?
-    AI: 
+    user: Do you believe?
+    assistant: 
     I believe in the power of knowledge and understanding. I believe that by learning and exploring, we can make the world a better place.
 ## Available commands
     
@@ -139,8 +139,8 @@ The content of the file by default is the following:
 name = "askGPT"
 
 [default]
-userPrompt = " Human: "
-aiPrompt = " AI: "
+userPrompt = "user"
+aiPrompt = "assistant"
 maxTokens = 150
 model = "text-davinci-003"
 temperature = 0.0
@@ -183,7 +183,7 @@ Where `<scenario>` is the name of the scenario, `<name>` is the name of the char
 i.e.
 ```
 "AlbertoKnox":{"Name": "Knox", "greetings":"I am Alberto Knox, the philosopher from Sophia's world. I am also a chatbot", "conversation":[
-    {"user" : "userPrompt", "prompt": "What's your role in the book?"},
+    {"user": "userPrompt", "prompt": "What's your role in the book?"},
     {"user": "aiPrompt", "prompt": "The ideal philosopher. I am never quick to judge and I always thinks about what I am doing."}
 ]}
 ```

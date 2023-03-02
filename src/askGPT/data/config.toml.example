@@ -1,8 +1,8 @@
 name = "askGPT"
 
 [default]
-userPrompt = " Human: "
-aiPrompt = " AI: "
+userPrompt = "user"
+aiPrompt = " assistant: "
 maxTokens = 150
 model = "text-davinci-003"
 temperature = 0.0

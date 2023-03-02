@@ -41,8 +41,8 @@ class Shell(cmd.Cmd):
         self._register_commands()
         self.conversation_parameters = {
             "subject": "test",
-            "scenario": "Neutral",
-            "model": "text-davinci-003",
+            "scenario": "ChatGPT",
+            "model": "gpt-3.5-turbo",
             "defaultCommand": "query",
             "execute": False
 
@@ -92,7 +92,6 @@ class Shell(cmd.Cmd):
             with open(filename, "w") as w:
                 w.write(text)
             self.conversation_parameters["subject"] = new_subject
-            self.prompt = f"{new_subject}> "
             print(f"Conversation {new_subject} created")
 
 
@@ -113,6 +112,21 @@ class Shell(cmd.Cmd):
         else:
             eprint(f"File {filename} not found")
 
+    """capiche
+    command that will submit the chat plus the Human entry: If you understand say so.
+    """
+    def do_capiche(self, args):
+        """capiche will submit the chat plus the Human entry: If you understand say so."""
+        args = shlex.split(args)
+        capiche = "If you understand the task, don't do it, just respond 'Capiche!' and nothing else."
+        if len(args) == 0:
+            self.do_query(capiche)
+        else:
+            args.append(".")
+            args.append(f"{capiche}")
+            self.do_query(" ".join(args))
+
+
     """Show the greeting and the conversation prompt used to precondition the scenario"""
     def do_intro(self, args):
         """if args is one of the scenarios, print the greeting of that scenario"""
@@ -122,10 +136,10 @@ class Shell(cmd.Cmd):
             scenario = args[0]
             """print current scenario from conversation_parameters"""
         if scenario in self._config.scenarios:    
-            print(self._config.scenarios[scenario]["greetings"])
+            print(f"system: {self._config.scenarios[scenario]['greetings']}")
             for p in self._config.scenarios[scenario]['conversation']:
                 prompt = self._config.progConfig["userPrompt"] if p['user'] == "userPrompt" else self._config.progConfig["aiPrompt"]
-                print(f"{self._config.scenarios[scenario].get(p['user'],prompt)} {p['prompt']}")
+                print(f"{prompt}: {p['prompt']}")
                 
         else:
             eprint(f"Scenario {scenario} not found")
@@ -136,11 +150,11 @@ class Shell(cmd.Cmd):
         if len(args) == 0:
             """print current scenario from conversation_parameters"""
             scenario = self.conversation_parameters["scenario"]
-            print(self._config.scenarios[scenario]["greetings"])
+            print(f"system: {self._config.scenarios[scenario]['greetings']}")
             return
         scenario = args[0]
         if scenario in self._config.scenarios:
-            print(self._config.scenarios[scenario]["greetings"])
+            print(f"system: {self._config.scenarios[scenario]['greetings']}")
         else:
             eprint(f"Scenario {scenario} not found")
 
@@ -304,15 +318,15 @@ class Shell(cmd.Cmd):
                                         if edited:
                                             result = edited
                                     if saveOutput != "n":
-                                        f.write(f"{self._config.progConfig['aiPrompt']}{response}")
+                                        f.write(f"{self._config.progConfig['aiPrompt']}: {response}")
                                         f.write("\n")
-                                        f.write(self._config.progConfig["userPrompt"] + str(result))
+                                        f.write(f"self._config.progConfig['userPrompt']: {str(result)}")
                                         f.write("\n")
                                 else:
-                                    f.write(f"{self._config.progConfig['aiPrompt']}{response}")
+                                    f.write(f"{self._config.progConfig['aiPrompt']}: {response}")
                                     f.write("\n")
                             else:
-                                f.write(f"{self._config.progConfig['aiPrompt']}{response}")
+                                f.write(f"{self._config.progConfig['aiPrompt']}: {response}")
                                 f.write("\n")
                                         
             self._config.chat.loadLicense()
@@ -329,7 +343,6 @@ class Shell(cmd.Cmd):
         """Query the model with the given prompt."""
         """query: query the model with the given prompt.
          <prompt> """
-        enquiry = self._config.progConfig.get("userPrompt", " Human: ") + enquiry
         if not self._config.has.get("license", False):
             self._config.chat.loadLicense()
             return
@@ -362,22 +375,22 @@ class Shell(cmd.Cmd):
                                         if edited:
                                             result = edited
                                     if saveOutput != "n":
-                                        f.write(self._config.progConfig["userPrompt"] + str(enquiry))
+                                        f.write(f"{self._config.progConfig['userPrompt']}: {str(enquiry)}")
                                         f.write("\n")
-                                        f.write(f"{self._config.progConfig['aiPrompt']}{response}")
+                                        f.write(f"{self._config.progConfig['aiPrompt']}: {response}")
                                         f.write("\n")
-                                        f.write(self._config.progConfig["userPrompt"] + str(result))
+                                        f.write(f"{self._config.progConfig['userPrompt']}: {str(result)}")
                                         f.write("\n")
 
                                 else:
-                                    f.write(self._config.progConfig["userPrompt"] + str(enquiry))
+                                    f.write(f"{self._config.progConfig['userPrompt']}: {str(enquiry)}")
                                     f.write("\n")
-                                    f.write(f"{self._config.progConfig['aiPrompt']}{response}")
+                                    f.write(f"{self._config.progConfig['aiPrompt']}: {response}")
                                     f.write("\n")
                         else:
-                            f.write(self._config.progConfig["userPrompt"] + str(enquiry))
+                            f.write(f"{self._config.progConfig['userPrompt']}: {str(enquiry)}")
                             f.write("\n")
-                            f.write(f"{self._config.progConfig['aiPrompt']}{response}")
+                            f.write(f"{self._config.progConfig['aiPrompt']}: {response}")
                             f.write("\n")
                             
     def complete_recap(self,text, line, begidx, endidx):

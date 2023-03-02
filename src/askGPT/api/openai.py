@@ -15,7 +15,7 @@ class ChatGPT(object):
         self._top_p = 1
         self._frequency_penalty = 0
         self._presence_penalty = 0
-        self._stop = ["\n", " Human:", " AI:"]
+        # self._stop = ["\n"]
         self._chat_log = []
         self._config = config
         self.settingsPath = os.path.join(os.getenv("HOME"),".askGPT")
@@ -34,6 +34,7 @@ class ChatGPT(object):
         if os.path.isfile(os.path.join(self._config.conversations_path, subject + self._config.fileExtention)):
             with open(os.path.join(self._config.conversations_path, subject + self._config.fileExtention), "r") as f:
                 lines = f.readlines()
+        
         lines = click.edit("".join(lines))
         if lines is not None:
             with open(os.path.join(self._config.conversations_path, subject + self._config.fileExtention), "w") as f:
@@ -46,51 +47,61 @@ class ChatGPT(object):
     def bootStrapChat(self,scenario):
         """Read the scenario and return the initial chat"""
         chat = list()
-        conversationChat = list()
+        
         if scenario in self._config.scenarios:
-            chat=self._config.scenarios[scenario]["conversation"]
-            """read the array conversation, for each row join the user and the prompt. append the line to the conversationChat"""
-            for line in chat:
-                conversationChat.append(self._config.progConfig.get(line["user"],"userPrompt") + line["prompt"])
-            return self._config.progConfig["aiPrompt"] +  self._config.scenarios[scenario]["greetings"] + "\n" + "\n".join(conversationChat)
+            conversationChat = [{"role" : "system", "content":  self._config.scenarios[scenario]["greetings"] }]
+            return  conversationChat + self._config.scenarios[scenario]["conversation"]
         else:
             eprint("Scenario not found")
-            return ""
+            return []
 
     def completions_with_backoff(self, delay_in_seconds: float = 1,**kwargs):
         """Delay a completion by a specified amount of time."""
         # Sleep for the delay
         time.sleep(delay_in_seconds)
-        return openai.Completion.create(**kwargs)
+        return openai.ChatCompletion.create(**kwargs)
 
-    def createPrompt(self, subject: str, scenario: str, enquiry: str):
+    def createPrompt(self, subject: str, scenario: str, enquiry: dict):
         subject = sanitizeName(subject)
-        enquiry = self._config.progConfig["userPrompt"] + enquiry
-        chat = ""
+        chat = list()
         if subject:
             with open(os.path.join(self._config.conversations_path, sanitizeName(subject) + self._config.fileExtention), "a") as f:
                 pass
             with open(os.path.join(self._config.conversations_path, sanitizeName(subject) + self._config.fileExtention), "r") as f:
-                chatRaw = f.read()
-                if scenario != "Neutral":
-                    bootstrappedChat = self.bootStrapChat(scenario)
-                    chat = bootstrappedChat + "\n" + chatRaw  + enquiry + "\n" + self._config.progConfig["aiPrompt"]
-                else:
-                    chat = chatRaw + enquiry + "\n" + self._config.progConfig["aiPrompt"]
-                return chat
+                chatRaw = f.readlines()
+                bootstrappedChat = self.bootStrapChat(scenario)
+                for line in chatRaw:
+                    if line.startswith("user:"):
+                        bootstrappedChat.append({"role": "user", "content": line.replace("user: ","")})
+                    elif line.startswith("assistant:"):
+                        bootstrappedChat.append({"role": "assistant", "content": line.replace("assistant: ","")})
+                    elif line.startswith("system:"):
+                        bootstrappedChat.append({"role": "system", "content": line.replace("system: ","")})
+                    else:
+                        bootstrappedChat[-1]["content"] += line
+            
+                """we need to add the enquiry to the chat"""
+                if enquiry:
+                    bootstrappedChat.append(enquiry)
+                
+                """We return a list that concats bootstrappedChat andchat"""
+                return bootstrappedChat
         else:
             eprint("Please set a subject")
-            return ""
+            return []
 
 
-    def query(self, subject: str, scenario: str, enquiry: str, max_tokens: int = 150, temperature: float = 0.9, top_p: float = 1, frequency_penalty: float = 0, presence_penalty: float = 0, stop: list = ["\n", " Human:", " AI:"]):
+    def query(self, subject: str, scenario: str, enquiry: str, max_tokens: int = 150, temperature: float = 0.9, top_p: float = 1, frequency_penalty: float = 0, presence_penalty: float = 0, stop: list = ["\n", " user:", " assistant:"]):
         """Query the model with the given prompt."""
         # Load the license
         if not self.loadLicense():
             return
         # Create the prompt
         
-        chat = self.createPrompt(subject, scenario, enquiry)
+        chat = self.createPrompt(subject, scenario, { "role":"user", "content": enquiry})
+        # print("sending chat:")
+        # print(chat)
+        # return 
         ai = self.submitDialogWithBackOff(chat)
         if ai:
             # Add the response to the chat log
@@ -138,18 +149,13 @@ class ChatGPT(object):
         if subject:
             with open(os.path.join(self._config.conversations_path, sanitizeName(subject) + self._config.fileExtention), "a") as f:
                 pass
-            with open(os.path.join(self._config.conversations_path, sanitizeName(subject) + self._config.fileExtention), "r") as f:
-                chatRaw = f.read()
-                
-                bootstrappedChat = self.bootStrapChat( scenario)
-                chat = bootstrappedChat + "\n" + chatRaw  + "\n" + self._config.progConfig["aiPrompt"]                
-                if chat == "":
-                    print("Empty conversation")
-                    return
-
-                ai = self.submitDialogWithBackOff(chat)
-                if ai:
-                    return ai
+            chat = self.createPrompt(subject, scenario, None)
+            if chat == None:
+                print("Empty conversation")
+                return
+            ai = self.submitDialogWithBackOff(chat)
+            if ai:
+                return ai
 
     def submitDialogWithBackOff(self, chat):
         tries = self._config.progConfig.get("maxRetries",1)
@@ -164,16 +170,18 @@ class ChatGPT(object):
                 response = self.completions_with_backoff(
                     delay_in_seconds=self._config.delay,
                     model=self._config.progConfig["model"],
-                    prompt=chat,
+                    messages=chat,
                     temperature=self._config.progConfig["temperature"],
                     max_tokens=self._config.progConfig["maxTokens"],
                     top_p=self._config.progConfig["topP"],
                     frequency_penalty=self._config.progConfig["frequencyPenalty"],
                     presence_penalty=self._config.progConfig["presencePenalty"],
-                    stop=[ # "\n",
-                    self._config.progConfig["userPrompt"], self._config.progConfig["aiPrompt"]],
+                    # stop=[ # "\n",
+                    # self._config.progConfig["userPrompt"], self._config.progConfig["aiPrompt"]],
                 )
-                ai = response.choices[0].text
+                # print(response)
+                # return
+                ai = response.choices[0]['message'].content
                 if ai.startswith("\n\n"):
                     ai = ai[2:]
                 if self._config.progConfig["debug"]:
