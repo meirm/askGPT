@@ -9,16 +9,16 @@ import click
 class ChatGPT(object):
     def __init__(self, config) -> None:
         super().__init__()
-        self._model = "text-davinci-003"
+        self._model = "gpt-3.5-turbo"
         self._temperature = 0.9
         self._max_tokens = 150
         self._top_p = 1
         self._frequency_penalty = 0
         self._presence_penalty = 0
         # self._stop = ["\n"]
-        self._chat_log = []
         self._config = config
-        self.settingsPath = os.path.join(os.getenv("HOME"),".askGPT")
+        self._chat_log = []
+
 
     def listModels(self):
         models = list()
@@ -39,6 +39,7 @@ class ChatGPT(object):
         if lines is not None:
             with open(os.path.join(self._config.conversations_path, subject + self._config.fileExtention), "w") as f:
                 f.write(lines)
+                self.createPrompt(subject, None, None)
         else:
             eprint("No changes made")
 
@@ -69,7 +70,9 @@ class ChatGPT(object):
                 pass
             with open(os.path.join(self._config.conversations_path, sanitizeName(subject) + self._config.fileExtention), "r") as f:
                 chatRaw = f.readlines()
-                bootstrappedChat = self.bootStrapChat(scenario)
+                bootstrappedChat = list()
+                if scenario:
+                    bootstrappedChat = self.bootStrapChat(scenario)
                 for line in chatRaw:
                     if line.startswith("user:"):
                         bootstrappedChat.append({"role": "user", "content": line.replace("user: ","")})
@@ -98,21 +101,24 @@ class ChatGPT(object):
             return
         # Create the prompt
         
-        chat = self.createPrompt(subject, scenario, { "role":"user", "content": enquiry})
+        #chat = self.createPrompt(subject, scenario, { "role":"user", "content": enquiry})
+        chat  = list(self._chat_log)
+        chat.append({"role":"user", "content": enquiry})
         # print("sending chat:")
         # print(chat)
         # return 
         ai = self.submitDialogWithBackOff(chat)
         if ai:
             # Add the response to the chat log
+            self._chat_log.append({"role": "user", "content": enquiry})
             self._chat_log.append(ai)
             # Return the response
             return ai
 
     def saveLicense(self, api_key, organization):
-        if not os.path.isdir(self.settingsPath):
-            os.mkdir(self.settingsPath)
-        with open(os.path.join(self.settingsPath, "credentials"), "w") as f:
+        if not os.path.isdir(self._config.settingsPath):
+            os.mkdir(self._config.settingsPath)
+        with open(os.path.join(self._config.settingsPath, "credentials"), "w") as f:
             f.write(api_key + ":" + organization)
         return True
 
@@ -127,8 +133,8 @@ class ChatGPT(object):
             self._config.has["license"] = True
             return True
         else:
-            if os.path.isfile(os.path.join(self.settingsPath, "credentials")):
-                with open(os.path.join(self.settingsPath, "credentials"), "r") as f:
+            if os.path.isfile(os.path.join(self._config.settingsPath, "credentials")):
+                with open(os.path.join(self._config.settingsPath, "credentials"), "r") as f:
                     credentials = f.read()
                     openai.api_key = credentials.split(":")[0]
                     openai.organization = credentials.split(":")[1].strip()
@@ -158,7 +164,8 @@ class ChatGPT(object):
         if subject:
             with open(os.path.join(self._config.conversations_path, sanitizeName(subject) + self._config.fileExtention), "a") as f:
                 pass
-            chat = self.createPrompt(subject, scenario, None)
+            #chat = self.createPrompt(subject, scenario, None)
+            chat = list(self._chat_log)
             if chat == None:
                 print("Empty conversation")
                 return
@@ -207,6 +214,7 @@ class ChatGPT(object):
                     eprint("Error: Too many tokens. We will try again with less history")
                     eprint(f"Current number of interactions: {len(chat)}")
                     chat = chat[int((len(chat)/round(tries + 0.51)) + 0.5):]
+                    self._chat_log = chat
                     eprint(f"New number of interactions: {len(chat)}")
                     time.sleep(5)
                     continue

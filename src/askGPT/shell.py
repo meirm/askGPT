@@ -56,6 +56,8 @@ class Shell(cmd.Cmd):
         if os.path.exists(os.path.join(self._config.settingsPath, "last.toml")):
             self.conversation_parameters.update(toml.load(os.path.join(self._config.settingsPath, "last.toml")))
         self.prompt = f"{self.conversation_parameters['scenario']}> "
+        # when we load we initializr the chat list
+        self.chatList = self._config.chat.createPrompt(self.conversation_parameters['subject'], self.conversation_parameters['scenario'], None)
         self.do_update("")
         
     def _register_capabilities(self):
