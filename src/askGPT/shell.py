@@ -58,6 +58,7 @@ class Shell(cmd.Cmd):
         self.prompt = f"{self.conversation_parameters['scenario']}> "
         # when we load we initializr the chat list
         self.chatList = self._config.chat.createPrompt(self.conversation_parameters['subject'], self.conversation_parameters['scenario'], None)
+        self._config.chat.load(self.chatList)
         self.do_update("")
         
     def _register_capabilities(self):
@@ -198,6 +199,7 @@ class Shell(cmd.Cmd):
                     if val in self._config.scenarios:
                         self.conversation_parameters[key] = val
                         self.prompt = f"{val}> "
+                        self._config.chat.greetings = {"role": "system", "content": self._config.scenarios[val]["greetings"]}
                     else:
                         eprint("Scenario not found")
                 elif key == "model":

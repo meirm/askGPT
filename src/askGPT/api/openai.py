@@ -50,7 +50,8 @@ class ChatGPT(object):
         chat = list()
         
         if scenario in self._config.scenarios:
-            conversationChat = [{"role" : "system", "content":  self._config.scenarios[scenario]["greetings"] }]
+            self.greetings = {"role" : "system", "content":  self._config.scenarios[scenario]["greetings"] }
+            conversationChat = [self.greetings]
             return  conversationChat + self._config.scenarios[scenario]["conversation"]
         else:
             eprint("Scenario not found")
@@ -111,7 +112,7 @@ class ChatGPT(object):
         if ai:
             # Add the response to the chat log
             self._chat_log.append({"role": "user", "content": enquiry})
-            self._chat_log.append(ai)
+            self._chat_log.append({"role": "assistant", "content": ai})
             # Return the response
             return ai
 
@@ -122,7 +123,10 @@ class ChatGPT(object):
             f.write(api_key + ":" + organization)
         return True
 
-    
+    def load(self,chat):
+        self.greetings = chat[0]
+        self._chat_log = chat[1:]
+
     def loadLicense(self):
         # Load your API key from an environment variable or secret management service
         if os.getenv("OPENAI_API_KEY") and os.getenv("OPENAI_ORGANIZATION"):
@@ -183,10 +187,12 @@ class ChatGPT(object):
             try:
                 if self._config.progConfig["debug"]:
                     eprint(chat)
+                conversation = list(chat)
+                conversation.insert(0, self.greetings)
                 response = self.completions_with_backoff(
                     delay_in_seconds=self._config.delay,
                     model=self._config.progConfig["model"],
-                    messages=chat,
+                    messages=conversation,
                     temperature=self._config.progConfig["temperature"],
                     max_tokens=self._config.progConfig["maxTokens"],
                     top_p=self._config.progConfig["topP"],
