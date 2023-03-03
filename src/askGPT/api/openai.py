@@ -194,7 +194,16 @@ class ChatGPT(object):
                 tries -= 1
                 if str(e) == "openai.error.RateLimitError":
                     eprint("Error: Too many requests. We will try again")
+                if str(e).startswith("This model's maximum context length is"):
+                    eprint("Error: Too many tokens. We will try again with less history")
+                    eprint(f"Current number of interactions: {len(chat)}")
+                    chat = chat[int((len(chat)/round(tries + 0.51)) + 0.5):]
+                    eprint(f"New number of interactions: {len(chat)}")
+                    time.sleep(5)
+                    continue
+                
                 eprint("Error: " + str(e))
+
                 eprint(f"Retrying again in {sleepBetweenRetries} seconds...")
                 time.sleep(sleepBetweenRetries)
                 sleepBetweenRetries *= self._config.progConfig["retryMultiplier"] 

@@ -8,7 +8,7 @@ __title__ = 'askGPT'
 __author__ = 'Meir Michanie'
 __license__ = 'MIT'
 __credits__ = ''
-__version__ = "0.6.2"
+__version__ = "0.7.0"
 
 import os
 from .api.openai import ChatGPT
@@ -22,6 +22,7 @@ import platform
 import subprocess
 from .shell import Shell
 from .tools import eprint, sanitizeName
+
 
 
 # use pyreadline3 instead of readline on windows
@@ -40,6 +41,8 @@ def cli(config):
     if config.progConfig.get("showDisclaimer",True):
         print(config.disclaimer)
     """Use the cmd module to create an interactive shell where the user can all the commands such as query, edit, config, show. We will call a class which we will write later as a child of cmd.cmd"""
+    
+
     shell = Shell(config)
     shell.cmdloop()
 

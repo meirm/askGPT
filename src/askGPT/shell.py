@@ -18,6 +18,8 @@ from rich.console import Console
 import click
 from filecmp import cmp
 import subprocess
+from .capabilities import loadCapabilities
+from .builtinsCapabilities import LoadBuiltinCapabilities
 
 danger_style = Style(color="red", blink=False, bold=True)
 attention_style = Style(color="yellow", blink=False, bold=True)
@@ -37,8 +39,10 @@ class Shell(cmd.Cmd):
         self.ruler = "-"
         self._config = config
         self.commands = dict()
+        self.capabilities = dict()
         self.lastResponse = None
         self._register_commands()
+        self._register_capabilities()
         self.conversation_parameters = {
             "subject": "test",
             "scenario": "ChatGPT",
@@ -52,6 +56,10 @@ class Shell(cmd.Cmd):
         self.prompt = f"{self.conversation_parameters['scenario']}> "
         self.do_update("")
         
+    def _register_capabilities(self):
+        """Load capabilities from the capabilities folder"""
+        self.capabilities  = loadCapabilities(self._config)
+        self.capabilities.update(LoadBuiltinCapabilities())
 
     def do_update(self,args):
         """replace the current scenarios files"""
@@ -286,6 +294,48 @@ class Shell(cmd.Cmd):
         if not clean:
             pass
             
+    """In the near future we will add capabilities. These will be plugins to askGPT that will allow the program to do different tasks such as sending an email, setting a calendar entry and things like that.
+    We will load the capabilities from .askGPT/plugins
+    calling capabilities without any argument it will list all the available capabilities.
+    Possible arguments are:
+    - capabilities: list all the capabilities
+    - capabilities enable <capability>: will enable the capability
+    - capabilities disable <capability>: will disable the capability
+    - capabilities info <capability>: will explain the capability    
+    """
+    def do_capabilities(self, args):
+        args = shlex.split(args)
+        if len(args) == 0:
+            """list all the capabilities"""
+            for capability in self.capabilities:
+                print(f"{capability}: {self.capabilities[capability].name}")
+        elif len(args) == 1:
+            if args[0] == "enable":
+                eprint("No capability provided.")
+            elif args[0] == "disable":
+                eprint("No capability provided.")
+            elif args[0] == "info":
+                eprint("No capability provided.")
+            else:
+                eprint("Unrecognized parameter.")
+        elif len(args) == 2:
+            if args[0] == "enable":
+                if args[1] in self.capabilities:
+                    self.capabilities[args[1]].enabled = True
+                else:
+                    eprint("Capability not found.")
+            elif args[0] == "disable":
+                if args[1] in self.capabilities:
+                    self.capabilities[args[1]].enabled = False
+                else:
+                    eprint("Capability not found.")
+            elif args[0] == "info":
+                if args[1] in self.capabilities:
+                    print(self.capabilities[args[1]].description)
+                else:
+                    eprint("Capability not found.")
+            else:
+                eprint("Unrecognized parameter.")
     
 
     def do_submit(self, args):
