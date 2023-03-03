@@ -141,6 +141,15 @@ class ChatGPT(object):
                 eprint("OPENAI_API_KEY:OPENAI_ORGANIZATION")
             
         return False
+    
+    def dream(self, prompt):
+        response = openai.Image.create(
+        prompt=prompt,
+        n=1,
+        size="1024x1024"
+        )
+        image_url = response['data'][0]['url']
+        return image_url
 
     def submitDialog(self, subject, scenario):
         """Send the dialog to openai and save the response"""

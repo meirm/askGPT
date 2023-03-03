@@ -5,6 +5,17 @@ import json
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
+def addMetadata(path, text):
+    """Add Exif metadata to png file (path)"""
+    from PIL import Image
+    from PIL.ExifTags import TAGS
+    img = Image.open(path)
+    exifdata = img.getexif()
+    if exifdata is None:
+        exifdata = {}
+    exifdata[270] = text
+    img.save(path, exif=exifdata)
+
 
 def sanitizeName(name):
     """
