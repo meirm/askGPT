@@ -3,6 +3,9 @@ MANIFEST.in
 README.md
 pyproject.toml
 src/askGPT/__init__.py
+src/askGPT/builtinsCapabilities.py
+src/askGPT/capabilities.py
+src/askGPT/capability.py
 src/askGPT/config.py
 src/askGPT/main.py
 src/askGPT/shell.py

@@ -1,10 +1,6 @@
 Metadata-Version: 2.1
 Name: askGPT
-<<<<<<< HEAD
 Version: 0.7.0
-=======
-Version: 0.6.0
->>>>>>> f8fc045d759de484aaa9a052d67a29e5530237f9
 Summary: askGPT is a simple command line tool for interacting with OpenAI's API.
 Author-email: Meir Michanie <meirm@riunx.com>
 Project-URL: Homepage, https://github.com/meirm/askGPT
@@ -110,11 +106,7 @@ or
     This is a test of my AI capabilities.
 
     # askgpt  query --subject test --enquiry "Do you believe?" --verbose
-<<<<<<< HEAD
     user Do you believe in God?
-=======
-    user: Do you believe in God?
->>>>>>> f8fc045d759de484aaa9a052d67a29e5530237f9
     assistant: 
     I do not have a belief system that includes the concept of God.
     user: Do you believe?
@@ -211,8 +203,8 @@ Where `<scenario>` is the name of the scenario, `<name>` is the name of the char
 i.e.
 ```
 "AlbertoKnox":{"Name": "Knox", "greetings":"I am Alberto Knox, the philosopher from Sophia's world. I am also a chatbot", "conversation":[
-    {"role": "userPrompt", "content": "What's your role in the book?"},
-    {"role": "aiPrompt", "content": "The ideal philosopher. I am never quick to judge and I always thinks about what I am doing."}
+    {"role": "user", "content": "What's your role in the book?"},
+    {"role": "assistant", "content": "The ideal philosopher. I am never quick to judge and I always thinks about what I am doing."}
 ]}
 ```
 
