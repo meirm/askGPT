@@ -263,6 +263,7 @@ class Shell(cmd.Cmd):
             os.remove(os.path.join(self._config.conversations_path, subject + self._config.fileExtention)) 
         else:
             eprint("Subject not found")
+        self._config.chat._chat_log = self._config.chat._chat_log[:1]
 
     def do_edit(self, args):
         args = shlex.split(args)
