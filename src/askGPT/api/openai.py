@@ -61,6 +61,8 @@ class ChatGPT(object):
         """Delay a completion by a specified amount of time."""
         # Sleep for the delay
         time.sleep(delay_in_seconds)
+        if self._config.progConfig.get("api_base",None) is not None:
+            openai.api_base = self._config.progConfig["api_base"]
         return openai.ChatCompletion.create(**kwargs)
 
     def createPrompt(self, subject: str, scenario: str, enquiry: dict):

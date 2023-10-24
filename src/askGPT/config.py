@@ -4,7 +4,7 @@ from pathlib import Path
 from .tools import load_json, eprint, strToValue
 from askGPT import DATA_PATH
 import toml
-from .api.openai import ChatGPT
+from askGPT.api.openai import ChatGPT
 
 basicConfig = dict()
 basicConfig["maxTokens"] = basicConfig.get("maxTokens",150)
@@ -27,10 +27,11 @@ class Config(object):
         self.rate_limit_per_minute = 20
         self.delay = 60.0 / self.rate_limit_per_minute
         self.disclaimer = "Disclaimer: The advice provided by askGPT is intended for informational and entertainment purposes only. It should not be used as a substitute for professional advice, and we cannot be held liable for any damages or losses arising from the use of the advice provided by askGPT."
-        self.settingsPath=os.path.join(os.getenv("HOME"), ".askGPT")
+        self.settingsPath = os.path.join(os.getenv("HOME"), ".askGPT")
         self.progConfig = dict()
         self.sessionConfig = dict()
         self.credentials = None
+        self.api_base = None
         self.has = dict()
         self.has["license"] = False
         self.conversations_path=os.path.join(self.settingsPath, "conversations")
@@ -42,7 +43,7 @@ class Config(object):
         self.update()
         self.chat = ChatGPT(self)
         self.chat.loadLicense()
-        self.version="0.7.2"
+        self.version="0.7.3"
         self.data_path = DATA_PATH
 
     def loadProgConfig(self):

@@ -46,8 +46,8 @@ class Shell(cmd.Cmd):
         self.capabilities = dict()
         self.lastResponse = None
         self._register_commands()
-        self._register_capabilities()
         self._register_completion_methods()
+        self._register_capabilities()
         self.conversation_parameters = {
             "subject": "test",
             "scenario": "ChatGPT",
@@ -67,32 +67,35 @@ class Shell(cmd.Cmd):
     
     def _register_commands(self):
         """Register all the commands."""
-        command_dir = pkgutil.get_loader('askGPT.shell').get_filename().replace('/shell.py', '/commands')
-        command_package = 'askGPT.commands'  # This should be the actual package name of the commands
+        command_package = 'askGPT.commands'  # This is your package where commands are located.
+        
+        # Dynamically list the modules in the specified package.
+        command_modules = pkgutil.iter_modules(importlib.import_module(command_package).__path__)
 
-        # Get the command module filenames
-        command_files = [name for name in os.listdir(command_dir) if name.endswith('_command.py')]
+        for module_info in command_modules:
+            if module_info.name.endswith('_command'):
+                command_name = "unknown"
+                try:
+                    # Import the module
+                    module = importlib.import_module(f".{module_info.name}", command_package)
 
-        for filename in command_files:
-            command_name = filename[:-3]  # Remove the '.py' extension
-            command = command_name.rsplit('_', 1)[0]  # Extract the command's name
+                    # Extract the command's name from the module name (assuming the format is '<command>_command')
+                    command_name = module_info.name.rsplit('_', 1)[0]
 
-            try:
-                # Dynamically import the 'do_' function from each command module
-                # The module name should be a relative dotted path, not a file system path.
-                module = importlib.import_module(f".{command_name}", command_package)
-                
-                do_command = getattr(module, f"do_{command}")
+                    # Find and register 'do_' functions (i.e., the command actions)
+                    do_function = getattr(module, f"do_{command_name}", None)
+                    if callable(do_function):
+                        # Bind the function as a method of this class instance
+                        bound_method = do_function.__get__(self)
+                        setattr(self, f"do_{command_name}", bound_method)
+                        self.commands[command_name] = bound_method  # Optional, if you want to keep track of commands
+                        
+                    # Here, you can also extend it to find and register 'help_' and 'complete_' functions, if available.
 
-                # Bind the function as a method of this class instance and register in the commands dictionary
-                bound_method = do_command.__get__(self)
-                self.commands[command] = bound_method
+                except ImportError as e:
+                    # Handle import errors here. You can log the error message if you have a logging system.
+                    print(f"Failed to import command '{command_name}': {str(e)}")
 
-                # Also set the method on the class instance for normal cmd operation
-                setattr(self, f"do_{command}", bound_method)
-
-            except ImportError as e:
-                print(f"Failed to import {command_name}: {e}")
 
     def _register_completion_methods(self):
         # Assuming 'askGPT.shell' is the package where Shell class is defined,
