@@ -116,11 +116,11 @@ class ChatGPT(object):
             # Return the response
             return ai
 
-    def saveLicense(self, api_key, organization):
+    def saveLicense(self, api_key):
         if not os.path.isdir(self._config.settingsPath):
             os.mkdir(self._config.settingsPath)
         with open(os.path.join(self._config.settingsPath, "credentials"), "w") as f:
-            f.write(api_key + ":" + organization)
+            f.write(api_key)
         return True
 
     def load(self,chat):
@@ -129,19 +129,17 @@ class ChatGPT(object):
 
     def loadLicense(self):
         # Load your API key from an environment variable or secret management service
-        if os.getenv("OPENAI_API_KEY") and os.getenv("OPENAI_ORGANIZATION"):
+        if os.getenv("OPENAI_API_KEY"):
 
             openai.api_key = os.getenv("OPENAI_API_KEY")
-            openai.organization = os.getenv("OPENAI_ORGANIZATION")
-            self._config.credentials = os.getenv("OPENAI_API_KEY") + ":" + os.getenv("OPENAI_ORGANIZATION")
+            self._config.credentials = os.getenv("OPENAI_API_KEY")
             self._config.has["license"] = True
             return True
         else:
             if os.path.isfile(os.path.join(self._config.settingsPath, "credentials")):
                 with open(os.path.join(self._config.settingsPath, "credentials"), "r") as f:
                     credentials = f.read()
-                    openai.api_key = credentials.split(":")[0]
-                    openai.organization = credentials.split(":")[1].strip()
+                    openai.api_key = credentials.strip()
                     self._config.credentials = credentials
                     self._config.has["license"] = True
                     return True

@@ -189,7 +189,7 @@ i.e.
 In the git repository under config you have a sample json with a few scenariolities. Copy the file to $HOME/.***askGPT*** 
 
 ## API Key and Organization
-In order to communicate with openai API you need to register at https://www.openai.com and create an API key. If you don't have an organization code and it shows Organization: scenariol, go to https://beta.openai.com/docs/api-reference/authentication and look for the code in the example. Once you have your API key and organization code, you can use them to authenticate with ***askGPT*** .
+In order to communicate with openai API you need to register at https://www.openai.com and create an API key. Once you have your API key, you can use them to authenticate with ***askGPT*** .
 
 ## Summary
 

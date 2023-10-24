@@ -8,7 +8,7 @@ __title__ = 'askGPT'
 __author__ = 'Meir Michanie'
 __license__ = 'MIT'
 __credits__ = ''
-__version__ = "0.7.0"
+__version__ = "0.7.2"
 
 import os
 from .api.openai import ChatGPT
@@ -28,9 +28,13 @@ from .tools import eprint, sanitizeName
 # use pyreadline3 instead of readline on windows
 is_windows = platform.system() == "Windows"
 if is_windows:
-    import pyreadline3  # noqa: F401
+    import pyreadline3  as readline # noqa: F401
 else:
     import readline
+
+
+# Setting tab completion parameters
+readline.parse_and_bind('tab: complete')
 
 pass_config = click.make_pass_decorator(Config, ensure=True)
 
