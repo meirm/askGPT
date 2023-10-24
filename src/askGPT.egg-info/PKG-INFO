@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: askGPT
-Version: 0.7.4
+Version: 0.7.6
 Summary: askGPT is a simple command line tool for interacting with OpenAI's API.
 Author-email: Meir Michanie <meirm@riunx.com>
 Project-URL: Homepage, https://github.com/meirm/askGPT
@@ -83,18 +83,10 @@ pip install .
 Once installed, you can use ***askGPT***  by running the following command:
 
 ```
-askgpt  query --subject <subject> --enquiry <enquiry>
+askgpt 
 ```
 
-Where `<subject>` is the title used for logging the conversation and `<enquiry>` is the enquiry you want to address.
-
-Optionally you can run an interactive shell calling
-
-```
-askgpt shell
-```
-
-Once inside the shell you can run the help command.
+Once inside the shell you can run the /help command.
 
 ## Install 
     pip install askGPT
@@ -104,58 +96,47 @@ or
     git clone https://github.com/meirm/askGPT.git
     cd askGPT 
     python setup.py install
-
-## Examples
-
-    # askgpt  query --subject test --enquiry "This is a test"
-    This is a test of my AI capabilities.
-
-    # askgpt  query --subject test --enquiry "Do you believe?" --verbose
-    user Do you believe in God?
-    assistant: 
-    I do not have a belief system that includes the concept of God.
-    user: Do you believe?
-    assistant: 
-    I believe in the power of knowledge and understanding. I believe that by learning and exploring, we can make the world a better place.
+    
 ## Available commands
     
-    askgpt  disclaimer
+    /clone
+    Clone a conversation
 
-    askgpt help
+    /config
+    Shows the current configuration
 
-    askgpt  man
+    /credentials
+    Set the necessary credentials to interact with openAI
 
-    askgpt  list
+    /delete
+    Deletes the specified conversation
+
+    /dream
+    Retrieves from openAI a image based on the prompt
+
+    /edit
+    Edit your conversation
+
+    /exec
+    Execute a the rest of the line in a bash shell and print the output
+
+    /exit
+    Exit the program
+
+    /greetings
+    if args is one of the scenarios, print the greeting of that scenario
+
+    ...
+
+    /help
+    Show available commands and options
+
+    /man
+
     
-    askgpt  show  <config|scenarios|subjects|models>
-
-    askgpt  show subject <subject>
-    
-    askgpt  delete --subject <subject>
-    
-    askgpt  delete --all
-    
-    askgpt  config
-    
-    askgpt  credentials
-
-    askgpt shell
-
-    askgpt submit
+    /show  <config|scenarios|subjects|models>
 
     
-### Shell mode
-From version 0.4.5 you can run ***askgpt shell***
-This will open an interactive shell. The prompt shows the current loaded scenario. You can list scenarios and subjects with the commmands `show scenarios` and `show subjects`. You can change the settings by running `set scenario <scenarioName>` or the subject. Setting the subject to a subject that doesn't exist will create a new conversation log. If you choose a subject that already exist, your next query will be appended to the history of your previous conversation before sending the prompt to chatGPT.
-
-#### Essential Shell commands
-
-* config
-* credentials
-* set
-* help
-* man
-* query
 
 ### Configuration
 
@@ -177,6 +158,8 @@ maxRetries = 3
 retryDelay = 5.0
 retryMultiplier = 2.0
 retryMaxDelay = 60.0
+## Optional when running an opensource model through lm studio
+# api_base = "http://localhost:1234/v1"
 
 ```
     
@@ -215,7 +198,7 @@ i.e.
 
 In the git repository under config you have a sample json with a few scenariolities. Copy the file to $HOME/.***askGPT*** 
 
-## API Key and Organization
+## API Key 
 In order to communicate with openai API you need to register at https://www.openai.com and create an API key. Once you have your API key, you can use them to authenticate with ***askGPT*** .
 
 ## Summary

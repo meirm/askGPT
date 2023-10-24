@@ -1,5 +1,6 @@
 import openai
 import os
+
 from askGPT.tools import eprint, sanitizeName
 import time
 import backoff
@@ -104,8 +105,26 @@ class ChatGPT(object):
             return
         # Create the prompt
         
-        #chat = self.createPrompt(subject, scenario, { "role":"user", "content": enquiry})
-        chat  = list(self._chat_log)
+        # We will prepend a system prompt with the information gathered from the me.txt file if file exists in the .askGPT config directory
+        # open the ~/.askGPT/me.txt
+        prompt = ""
+        if self._config.progConfig.get("useMemoryFile",False):
+            try:
+                meFilePath = os.path.join(self._config.settingsPath,self._config.progConfig.get("memoryFile"))
+                meText = ""
+                if os.path.exists(meFilePath):
+                    with open(meFilePath,'r', encoding='utf-8') as file:
+                        meText = file.read().strip()
+                        if meText != "":
+                            meText = "\n\nUser info:\n"+meText+"\n\n"
+                            prompt = {"role": "system", "content": meText}
+            except Exception as ex:
+                eprint ("Error reading me.txt : "+str(ex))
+        # if prompt has a value then we init chat with it and then append list(self._chat_log)
+        if prompt != "":
+            chat = [prompt]+list(self._chat_log)
+        else:
+            chat  = list(self._chat_log)
         chat.append({"role":"user", "content": enquiry})
         # print("sending chat:")
         # print(chat)

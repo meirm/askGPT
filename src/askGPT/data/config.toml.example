@@ -16,3 +16,5 @@ verbose = false
 debug = false
 updateScenarios = true
 # api_base = "http://127.0.0.1:1234/v1"
+memoryFile = "me.txt"
+useMemoryFile = true

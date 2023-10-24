@@ -30,6 +30,7 @@ src/askGPT/commands/greetings_command.py
 src/askGPT/commands/help_command.py
 src/askGPT/commands/intro_command.py
 src/askGPT/commands/man_command.py
+src/askGPT/commands/me_command.py
 src/askGPT/commands/query_command.py
 src/askGPT/commands/quit_command.py
 src/askGPT/commands/recap_command.py
