@@ -22,8 +22,6 @@ from rich.console import Console
 import click
 from filecmp import cmp
 import subprocess
-from .capabilities import loadCapabilities
-from .builtinsCapabilities import LoadBuiltinCapabilities
 
 danger_style = Style(color="red", blink=False, bold=True)
 attention_style = Style(color="yellow", blink=False, bold=True)
@@ -43,11 +41,9 @@ class Shell(cmd.Cmd):
         self.ruler = "-"
         self._config = config
         self.commands = dict()
-        self.capabilities = dict()
         self.lastResponse = None
         self._register_commands()
         self._register_completion_methods()
-        self._register_capabilities()
         self.conversation_parameters = {
             "subject": "test",
             "scenario": "ChatGPT",
@@ -124,10 +120,7 @@ class Shell(cmd.Cmd):
                     bound_method = complete_function.__get__(self)
                     setattr(self, attribute_name, bound_method)
         
-    def _register_capabilities(self):
-        """Load capabilities from the capabilities folder"""
-        self.capabilities  = loadCapabilities(self._config)
-        self.capabilities.update(LoadBuiltinCapabilities())
+    
 
     def precmd(self, line):
         """This method is called after the line has been input but before

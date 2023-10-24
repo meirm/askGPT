@@ -1,5 +1,5 @@
 
-# Release 0.7.3
+# Release 0.7.4
 Major changes in UI.
 * personas renamed scenarios
 * scenarios.json format changed.

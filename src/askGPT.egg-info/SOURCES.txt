@@ -3,9 +3,6 @@ MANIFEST.in
 README.md
 pyproject.toml
 src/askGPT/__init__.py
-src/askGPT/builtinsCapabilities.py
-src/askGPT/capabilities.py
-src/askGPT/capability.py
 src/askGPT/config.py
 src/askGPT/main.py
 src/askGPT/shell.py
@@ -19,7 +16,6 @@ src/askGPT.egg-info/top_level.txt
 src/askGPT/api/openai.py
 src/askGPT/commands/EOF_command.py
 src/askGPT/commands/__init__.py
-src/askGPT/commands/capabilities_command.py
 src/askGPT/commands/capiche_command.py
 src/askGPT/commands/clone_command.py
 src/askGPT/commands/config_command.py

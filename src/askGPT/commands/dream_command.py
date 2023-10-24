@@ -26,12 +26,3 @@ def do_dream(shell, args):
         else:
             eprint("Error while generating the image.")
         
-"""In the near future we will add capabilities. These will be plugins to askGPT that will allow the program to do different tasks such as sending an email, setting a calendar entry and things like that.
-We will load the capabilities from .askGPT/plugins
-calling capabilities without any argument it will list all the available capabilities.
-Possible arguments are:
-- capabilities: list all the capabilities
-- capabilities enable <capability>: will enable the capability
-- capabilities disable <capability>: will disable the capability
-- capabilities info <capability>: will explain the capability    
-"""
