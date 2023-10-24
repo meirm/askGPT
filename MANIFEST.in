@@ -1,8 +1,9 @@
 
 include LICENSE
 include README.md
-include-recursive src
+recursive-include src *.py
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
 
-recursive-include askGPT/data/ *
+recursive-include src/askGPT/data/ *.*
+recursive-include src/askGPT/data/docs *.md

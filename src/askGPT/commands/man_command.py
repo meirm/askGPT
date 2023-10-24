@@ -1,6 +1,8 @@
 
 import os
 from rich.markdown import Markdown
+import importlib.resources as pkg_resources
+from askGPT.tools import eprint
 
 def do_man(shell, line):
     """ when passed the name of a command it will pint an extensive explanation of the command by loading a markup file from data/"""
@@ -13,9 +15,15 @@ def do_man(shell, line):
     else:
         command = None
     if command:
+        # To get the path to a directory 'data' within your 'askGPT' package
         try:
-            with open(os.path.join(os.path.join(shell._config.data_path), "docs", "man_" + command + ".md"), "r") as f:
-                print( Markdown(f.read()))
+            # This gives you a path-like object you can use
+            data_path = pkg_resources.files('askGPT').joinpath('data')
+            data_dir = str(data_path)
+            man_path = os.path.join( data_dir, "docs", "man_" + command + ".md")
+            eprint(f"man_path = {man_path}")
+            with open(man_path, "r") as f:
+                shell.console.print( Markdown(f.read()))
         except FileNotFoundError:
             print("No manual entry for", command)   
 
