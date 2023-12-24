@@ -20,18 +20,16 @@ rich = "*"
 backoff = "*"
         
 [tool.poetry.classifiers]
-[
-    'Development Status :: 3 - Alpha',
-    'Intended Audience :: Developers',
-    'Topic :: Scientific/Engineering :: Artificial Intelligence',
-    'Topic :: Terminals',
-    'Topic :: Utilities',
-    'License :: OSI Approved :: MIT License',
-    'Operating System :: OS Independent',
-    'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.7',
-    'Programming Language :: Python :: 3.8'
-]
+'Development Status :: 3 - Alpha',
+'Intended Audience :: Developers',
+'Topic :: Scientific/Engineering :: Artificial Intelligence',
+'Topic :: Terminals',
+'Topic :: Utilities',
+'License :: OSI Approved :: MIT License',
+'Operating System :: OS Independent',
+'Programming Language :: Python :: 3',
+'Programming Language :: Python :: 3.7',
+'Programming Language :: Python :: 3.8'
 
 [project.urls]
 "Homepage" = "https://github.com/meirm/askGPT"
