@@ -1,49 +1,43 @@
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
-[project]
+[tool.poetry]
 name = "askGPT"
 version = "0.7.7"
-authors = [
-  { name="Meir Michanie", email="meirm@riunx.com" },
-]
 description = "askGPT is a simple command line tool for interacting with OpenAI's API."
+authors = ["Meir Michanie <meirm@riunx.com>"]
 readme = "README.md"
-requires-python = ">=3.7"
-keywords = [
-  "openai",
-  "gpt-3",
-  "cli",
-  "cmd2"
-  ]
+keywords = ["openai", "gpt-3", "cli", "cmd2"]
+python = ">=3.7"
   
   
-dependencies = [
-'openai',
-'toml',
-'click',
-'rich',
-'backoff'
-]
+[tool.poetry.dependencies]
+python = "^3.7"
+openai = "*"
+toml = "*"
+click = "*"
+rich = "*"
+backoff = "*"
         
-classifiers=[
-       'Development Status :: 3 - Alpha',
-        'Intended Audience :: Developers',
-        'Topic :: Scientific/Engineering :: Artificial Intelligence',
-        'Topic :: Terminals',
-        'Topic :: Utilities',
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8'
-    ]
+[tool.poetry.classifiers]
+classifiers = [
+    'Development Status :: 3 - Alpha',
+    'Intended Audience :: Developers',
+    'Topic :: Scientific/Engineering :: Artificial Intelligence',
+    'Topic :: Terminals',
+    'Topic :: Utilities',
+    'License :: OSI Approved :: MIT License',
+    'Operating System :: OS Independent',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8'
+]
 
 [project.urls]
 "Homepage" = "https://github.com/meirm/askGPT"
 "Bug Tracker" = "https://github.com/meirm/askGPT/issues"
 
-[project.scripts]
+[tool.poetry.scripts]
 askgpt = "askGPT.main:cli"
 
