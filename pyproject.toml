@@ -9,7 +9,6 @@ description = "askGPT is a simple command line tool for interacting with OpenAI'
 authors = ["Meir Michanie <meirm@riunx.com>"]
 readme = "README.md"
 keywords = ["openai", "gpt-3", "cli", "cmd2"]
-python = ">=3.7"
   
   
 [tool.poetry.dependencies]
