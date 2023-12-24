@@ -15,7 +15,10 @@ def main():
     group.add_argument('-d', '--decode', action='store_true')
     args = parser.parse_args()
 
-    input_text = sys.stdin.read().strip()
+    input_text = ''
+    for line in sys.stdin:
+        input_text += line
+    input_text = input_text.strip()
 
     if args.encode:
         result = encode_to_base64(input_text)
