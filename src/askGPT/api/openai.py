@@ -63,8 +63,9 @@ class ChatGPT(object):
         # Sleep for the delay
         time.sleep(delay_in_seconds)
         if self._config.progConfig.get("api_base",None) is not None:
-            openai.api_base = self._config.progConfig["api_base"]
-        return openai.ChatCompletion.create(**kwargs)
+            # TODO: The 'openai.api_base' option isn't read in the client API. You will need to pass it when you instantiate the client, e.g. 'OpenAI(api_base=self._config.progConfig["api_base"])'
+            # openai.api_base = self._config.progConfig["api_base"]
+            return openai.chat.completions.create(**kwargs)
 
     def createPrompt(self, subject: str, scenario: str, enquiry: dict):
         subject = sanitizeName(subject)
@@ -175,8 +176,7 @@ class ChatGPT(object):
         response = openai.Image.create(
         prompt=prompt,
         n=1,
-        size="1024x1024"
-        )
+        size="1024x1024")
         image_url = response['data'][0]['url']
         return image_url
 
@@ -221,7 +221,7 @@ class ChatGPT(object):
                 )
                 # print(response)
                 # return
-                ai = response.choices[0]['message'].content
+                ai = response.choices[0].message.content
                 if ai.startswith("\n\n"):
                     ai = ai[2:]
                 if self._config.progConfig["debug"]:
