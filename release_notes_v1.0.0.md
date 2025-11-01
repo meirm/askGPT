@@ -114,20 +114,20 @@ Agent Skills are modular capabilities that automatically trigger based on your p
 ```bash
 # Skills automatically activate for relevant tasks
 askgpt -p "Generate a README for this project"
-# → readme-generator skill activates
+# → generating-readmes skill activates
 
 askgpt -p "Check code formatting and style"
-# → code-formatting-checker skill activates
+# → checking-code-formatting skill activates
 
 askgpt -p "Write release notes for version 1.0"
-# → write-release-notes skill activates
+# → writing-release-notes skill activates
 ```
 
 **Built-in Skills** (installable):
-- `readme-generator` - Generate project README files
-- `code-formatting-checker` - Check and suggest code formatting
-- `security-audit` - Perform security analysis
-- `write-release-notes` - Generate release notes
+- `generating-readmes` - Generate project README files
+- `checking-code-formatting` - Check and suggest code formatting
+- `auditing-security` - Perform security analysis
+- `writing-release-notes` - Generate release notes
 
 **Custom Skills**: Create your own skills in `~/.askgpt/skills/`
 

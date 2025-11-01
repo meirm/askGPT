@@ -197,14 +197,14 @@ askgpt agents list
 askgpt skills list
 
 # Show details about a specific skill
-askgpt skills show readme-generator
+askgpt skills show generating-readmes
 
 # Skills automatically trigger when you ask relevant questions:
 askgpt -p "Generate a README for this project"
-# → Automatically uses readme-generator skill
+# → Automatically uses generating-readmes skill
 
 askgpt -p "Check code formatting across all Python files"
-# → Automatically uses code-formatting-checker skill
+# → Automatically uses checking-code-formatting skill
 ```
 
 ## Installation

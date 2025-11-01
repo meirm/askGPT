@@ -219,11 +219,11 @@ It has multiple lines.
     def test_match_skills_to_prompt(self, skill_loader):
         """Test matching skills to user prompts."""
         # Create skills with different descriptions
-        skill1_dir = skill_loader.global_skills_dir / "readme-generator"
+        skill1_dir = skill_loader.global_skills_dir / "generating-readmes"
         skill1_dir.mkdir()
         skill1_file = skill1_dir / "SKILL.md"
         skill1_file.write_text("""---
-name: readme-generator
+name: generating-readmes
 description: Generate README files, create documentation, write readme
 ---
 """)
@@ -242,7 +242,7 @@ description: Check code formatting, find style issues, linting
         # Test matching
         matches = skill_loader.match_skills_to_prompt("Generate a README for my project")
         assert len(matches) > 0
-        assert any(s.name == "readme-generator" for s in matches)
+        assert any(s.name == "generating-readmes" for s in matches)
         
         matches = skill_loader.match_skills_to_prompt("Check formatting in the code")
         assert len(matches) > 0
@@ -313,42 +313,42 @@ class TestBuiltInSkills:
     """Test built-in skills functionality."""
 
     def test_readme_generator_skill_exists(self):
-        """Test that readme-generator skill file exists."""
+        """Test that generating-readmes skill file exists."""
         loader = SkillLoader()
         builtin_dir = loader.builtin_skills_dir
         
         if builtin_dir.exists():
-            readme_skill_dir = builtin_dir / "readme-generator"
+            readme_skill_dir = builtin_dir / "generating-readmes"
             skill_file = readme_skill_dir / "SKILL.md"
             if skill_file.exists():
                 content = skill_file.read_text()
-                assert "readme-generator" in content.lower()
+                assert "generating-readmes" in content.lower()
                 assert "name:" in content or "description:" in content
 
     def test_code_formatting_checker_skill_exists(self):
-        """Test that code-formatting-checker skill file exists."""
+        """Test that checking-code-formatting skill file exists."""
         loader = SkillLoader()
         builtin_dir = loader.builtin_skills_dir
         
         if builtin_dir.exists():
-            checker_skill_dir = builtin_dir / "code-formatting-checker"
+            checker_skill_dir = builtin_dir / "checking-code-formatting"
             skill_file = checker_skill_dir / "SKILL.md"
             if skill_file.exists():
                 content = skill_file.read_text()
-                assert "code-formatting-checker" in content.lower() or "format" in content.lower()
+                assert "checking-code-formatting" in content.lower() or "format" in content.lower()
                 assert "name:" in content or "description:" in content
 
     def test_write_release_notes_skill_exists(self):
-        """Test that write-release-notes skill file exists."""
+        """Test that writing-release-notes skill file exists."""
         loader = SkillLoader()
         builtin_dir = loader.builtin_skills_dir
         
         if builtin_dir.exists():
-            release_skill_dir = builtin_dir / "write-release-notes"
+            release_skill_dir = builtin_dir / "writing-release-notes"
             skill_file = release_skill_dir / "SKILL.md"
             if skill_file.exists():
                 content = skill_file.read_text()
-                assert "write-release-notes" in content.lower() or "release" in content.lower()
+                assert "writing-release-notes" in content.lower() or "release" in content.lower()
                 assert "name:" in content or "description:" in content
 
 
@@ -605,7 +605,7 @@ tools: ["read_file", "edit_file"]
         
         # Check built-in skill files directly
         if loader.builtin_skills_dir.exists():
-            readme_skill_file = loader.builtin_skills_dir / "readme-generator" / "SKILL.md"
+            readme_skill_file = loader.builtin_skills_dir / "generating-readmes" / "SKILL.md"
             if readme_skill_file.exists():
                 content = readme_skill_file.read_text()
                 # Check that tools: field exists in the YAML frontmatter

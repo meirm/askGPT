@@ -546,7 +546,7 @@ class InteractiveSession:
                 self._show_skill_details(skill_to_show)
             else:
                 console.print("[yellow]Usage: /skills show <skill_name>[/yellow]")
-                console.print("[dim]Example: /skills show readme-generator[/dim]")
+                console.print("[dim]Example: /skills show generating-readmes[/dim]")
             return True
 
         elif cmd in ["clear", "/clear"]:

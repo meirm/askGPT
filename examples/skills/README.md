@@ -147,7 +147,7 @@ askgpt run "Analyze this sales data and create visualizations"
 # → Automatically uses data-analysis skill
 
 askgpt run "Perform a security audit on this codebase"
-# → Automatically uses security-audit skill
+# → Automatically uses auditing-security skill
 ```
 
 ### Manual Skill Management
@@ -238,10 +238,10 @@ cp -r examples/skills/* ~/.askgpt/skills/
 ### Built-in Skills
 
 Built-in skills are automatically installed on first run:
-- `readme-generator`
-- `code-formatting-checker`
-- `write-release-notes`
-- `security-audit`
+- `generating-readmes`
+- `checking-code-formatting`
+- `writing-release-notes`
+- `auditing-security`
 
 ## Permission System
 
