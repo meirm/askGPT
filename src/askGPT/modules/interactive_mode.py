@@ -176,11 +176,23 @@ class InteractiveSession:
         self.verbose = False
         from .config_manager import get_config_manager
         from .user_tools import get_allowed_tools
+        from .skill_loader import SkillLoader
         config = get_config_manager().config
         allowed_tools = get_allowed_tools()
+        
+        # Initialize skill loader for fallback when command not found
+        from pathlib import Path
+        skill_loader = SkillLoader(
+            working_dir=Path.cwd(),
+            allowed_tools=allowed_tools,
+        )
+        # Ensure skills metadata is loaded
+        skill_loader.load_skills_metadata()
+        
         self.loader = CommandLoader(
             enable_command_eval=config.enable_command_eval,
             allowed_tools=allowed_tools,
+            skill_loader=skill_loader,
         )
         self.agent_loader = AgentLoader()
         self.completer = NanoAgentCompleter()
@@ -992,9 +1004,9 @@ class InteractiveSession:
             final_prompt = self.loader.execute_command(command_name, arguments)
 
             if final_prompt is None:
-                console.print(f"[red]Command '/{command_name}' not found.[/red]")
+                console.print(f"[red]Command or skill '/{command_name}' not found.[/red]")
                 console.print(
-                    "[dim]Type '/commands' to see available commands or '/help' for help.[/dim]"
+                    "[dim]Type '/commands' to see available commands or '/skills' to see available skills.[/dim]"
                 )
                 return None
 
@@ -1004,7 +1016,7 @@ class InteractiveSession:
                 console.print(f"[red]Command execution failed: {error_msg}[/red]")
                 return None
 
-            console.print(f"[dim]Using command: /{command_name}[/dim]")
+            console.print(f"[dim]Using command/skill: /{command_name}[/dim]")
             return final_prompt
 
         # Regular prompt

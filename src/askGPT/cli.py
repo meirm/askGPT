@@ -304,11 +304,22 @@ def _run_prompt(
         # Load and execute command
         from .modules.config_manager import get_config_manager
         from .modules.user_tools import get_allowed_tools
+        from .modules.skill_loader import SkillLoader
         config = get_config_manager().config
         allowed_tools = get_allowed_tools()
+        
+        # Initialize skill loader for fallback when command not found
+        skill_loader = SkillLoader(
+            working_dir=Path.cwd(),
+            allowed_tools=allowed_tools,
+        )
+        # Ensure skills metadata is loaded
+        skill_loader.load_skills_metadata()
+        
         loader = CommandLoader(
             enable_command_eval=config.enable_command_eval,
             allowed_tools=allowed_tools,
+            skill_loader=skill_loader,
         )
         final_prompt = loader.execute_command(command_name, arguments)
 
@@ -318,16 +329,19 @@ def _run_prompt(
                     json.dumps(
                         {
                             "success": False,
-                            "error": f"Command '/{command_name}' not found",
+                            "error": f"Command or skill '/{command_name}' not found",
                         }
                     )
                 )
             else:
                 get_log_console(verbose).print(
-                    f"[red]Command '/{command_name}' not found.[/red]"
+                    f"[red]Command or skill '/{command_name}' not found.[/red]"
                 )
                 get_log_console(verbose).print(
-                    "[dim]Available commands can be listed with: askgpt commands list[/dim]"
+                    "[dim]Available commands: askgpt commands list[/dim]"
+                )
+                get_log_console(verbose).print(
+                    "[dim]Available skills: askgpt skills list[/dim]"
                 )
             sys.exit(1)
 
@@ -982,11 +996,22 @@ def _run_simple_interactive(
 
     from .modules.config_manager import get_config_manager
     from .modules.user_tools import get_allowed_tools
+    from .modules.skill_loader import SkillLoader
     config = get_config_manager().config
     allowed_tools = get_allowed_tools()
+    
+    # Initialize skill loader for fallback when command not found
+    skill_loader = SkillLoader(
+        working_dir=Path.cwd(),
+        allowed_tools=allowed_tools,
+    )
+    # Ensure skills metadata is loaded
+    skill_loader.load_skills_metadata()
+    
     loader = CommandLoader(
         enable_command_eval=config.enable_command_eval,
         allowed_tools=allowed_tools,
+        skill_loader=skill_loader,
     )
 
     while True:
@@ -1122,11 +1147,11 @@ def _run_simple_interactive(
                 final_prompt = loader.execute_command(command_name, arguments)
                 if final_prompt is None:
                     (console_stderr if verbose else console).print(
-                        f"[red]Command '/{command_name}' not found.[/red]"
+                        f"[red]Command or skill '/{command_name}' not found.[/red]"
                     )
                     continue
                 (console_stderr if verbose else console).print(
-                    f"[dim]Using command: /{command_name}[/dim]"
+                    f"[dim]Using command/skill: /{command_name}[/dim]"
                 )
             else:
                 final_prompt = prompt

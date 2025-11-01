@@ -2,7 +2,8 @@
 from .modules import typing_fix
 
 # Version information
-__version__ = "1.0.0"
+# This version should match the version in pyproject.toml
+__version__ = "1.0.4"
 
 # Enable flexible configuration if available
 try:
