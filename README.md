@@ -1,5 +1,5 @@
-askGPT
-======
+# askGPT - Offline-First AI Agent CLI
+
 ```
                            :|11;                             _     ____ ____ _____
                           20;::20                   __ _ ___| | __/ ___|  _ \_   _|
@@ -23,174 +23,435 @@ askGPT
                                                             
 
  ```
+**Multi-provider LLM support • Offline-first • Session management • Tool execution**
 
-***Disclaimer***: The advice provided by askGPT is intended for informational and entertainment purposes only. It should not be used as a substitute for professional advice, and we cannot be held liable for any
-damages or losses arising from the use of the advice provided by askGPT.
+askGPT is a powerful command-line interface for autonomous AI agents that can perform complex tasks including file operations, code analysis, and system commands. With offline-first defaults, askGPT works seamlessly with local models (Ollama) and cloud providers (OpenAI, Anthropic).
 
-***askGPT***  is a command line program written in Python that allows you to query the chatGPT API. It keeps track of conversations and has a set of scenarios to focus the conversation.
+## What is askGPT?
 
-## Run with docker Latest release
+askGPT is a CLI tool that provides autonomous AI agents with file system capabilities, session persistence, and multi-provider LLM support. By default, askGPT uses local models (via Ollama) for offline-first usage, while still supporting cloud providers when needed.
+
+### Why askGPT?
+
+- **🌐 Offline-First**: Defaults to local Ollama models - no API keys required
+- **⚡ Multi-Provider**: Supports OpenAI, Anthropic, Ollama, and custom endpoints
+- **🔐 Enterprise Security**: Fine-grained permissions, path restrictions, read-only mode
+- **💬 Interactive Mode**: Rich terminal UI with session management
+- **🎯 Commands & Agents**: Extensible markdown-based commands and agent profiles
+- **🧠 Agent Skills**: Modular, auto-triggered capabilities
+- **💰 Cost Tracking**: Token usage and cost estimation
+- **📦 Quick Setup**: Install in 5 minutes
+
+## Quick Start
+
+### Install in 5 Minutes
+
+```bash
+# macOS/Linux
+curl -fsSL https://raw.githubusercontent.com/meirm/askGPT/main/install.sh | bash
+
+# Or install from local repository
+./install.sh --local
 ```
-docker run -i cyborgfi/askgpt:latest 
+
+### Try It Out
+
+```bash
+# Interactive mode with rich terminal UI (default when no arguments)
+askgpt
+
+# Quick prompt (defaults to local Ollama model)
+askgpt -p "Create a hello world script"
+
+# Use specific local model
+askgpt -p "Analyze this codebase" --model gpt-oss:20b --provider ollama
+
+# Use cloud provider (requires API key)
+askgpt -p "Write a function" --model gpt-5-mini --provider openai
+
+# Safe exploration with read-only mode
+askgpt -p "Analyze this codebase" --read-only
+
+# List available models
+askgpt list-models --provider ollama
+
+# Continue conversation with session persistence
+askgpt -p "Add error handling to that function" --continue
+
+# Use custom commands
+askgpt -p '/analyze "Review this code for security issues"'
+
+# Use specialized agents
+askgpt -p "Explain this code" --agent analyst
+
+# Skills automatically trigger based on your prompt
+askgpt -p "Generate a README for this project"
+askgpt -p "Check code formatting and style"
+askgpt -p "Write release notes for version 1.0"
 ```
-## Run with docker development version
+
+## Core Features
+
+### 🌐 Offline-First Design
+
+askGPT defaults to using local Ollama models for zero external dependencies:
+
+```bash
+# Works offline with local models (no API key needed)
+askgpt -p "Your task here"
+# Defaults to: provider=ollama, model=gpt-oss:20b
+
+# Switch to cloud providers when needed
+askgpt -p "Task" --provider openai --model gpt-5-mini
 ```
-docker run -i cyborgfi/askgpt:dev 
+
+### 🤖 Multi-Provider Support
+
+**Use ANY model from ANY provider** - no hardcoded restrictions:
+
+| Provider | Example Models | Configuration |
+|----------|---------------|---------------|
+| **Ollama** (default) | gpt-oss:20b, llama3.2:latest, mistral | No API key needed |
+| **OpenAI** | GPT-5, GPT-4o | API key required |
+| **Anthropic** | Claude models | API key required |
+| **Custom** | Your own endpoints | Fully configurable |
+
+```bash
+# Local models (offline-first)
+askgpt -p "Task" --provider ollama --model gpt-oss:20b
+askgpt -p "Task" --model llama3.2:latest  # provider defaults to ollama
+
+# Cloud models
+askgpt -p "Task" --provider openai --model gpt-5
+askgpt -p "Task" --provider anthropic --model claude-3-haiku-20240307
 ```
+
+### 🔐 Enterprise Security
+
+**Fine-Grained Permissions**
+
+```bash
+# Read-only mode for safe exploration
+askgpt -p "Audit the codebase for vulnerabilities" --read-only
+
+# Limit tool calls for safety
+askgpt -p "Analyze project" --max-tool-calls 10
+
+# Unlimited calls for complex operations
+askgpt -p "Refactor entire codebase" --unlimited-tool-calls
+```
+
+### 💬 Session Management
+
+**Persistent Conversations**
+
+```bash
+# Start a project
+askgpt -p "Create a Flask API" --new
+# Returns: session_abc123
+
+# Continue with context (agent remembers everything)
+askgpt -p "Add user authentication" --continue
+askgpt -p "Add input validation" --continue
+
+# Or use specific session
+askgpt -p "Add logging" --session session_abc123
+```
+
+**Session Features**
+- Conversation history preservation
+- Token usage tracking per session
+- Model/provider settings persistence
+- Multi-project management
+- Cost tracking and analytics
+
+### 🎯 Commands & Agents
+
+```bash
+# Create custom command templates
+askgpt commands create code-review
+askgpt -p '/code-review "src/auth"'
+
+# Use specialized agents
+askgpt -p "Analyze code" --agent analyst
+askgpt -p "Write tests" --agent coder
+askgpt -p "Generate ideas" --agent creative
+
+# List available commands and agents
+askgpt commands list
+askgpt agents list
+```
+
+### 🧠 Agent Skills System
+
+**Modular, auto-triggered capabilities** - Skills automatically activate when relevant:
+
+```bash
+# List all available skills
+askgpt skills list
+
+# Show details about a specific skill
+askgpt skills show readme-generator
+
+# Skills automatically trigger when you ask relevant questions:
+askgpt -p "Generate a README for this project"
+# → Automatically uses readme-generator skill
+
+askgpt -p "Check code formatting across all Python files"
+# → Automatically uses code-formatting-checker skill
+```
+
 ## Installation
 
-To install askGPT , simply run the following command:
+### Requirements
+- Python 3.12+
+- 5 minutes of your time
 
-```
-pip install askGPT 
-```
-or for cutting edge code, not to be used in production:
-```
+### Supported Platforms
+- ✅ macOS (Intel & Apple Silicon)
+- ✅ Linux (Ubuntu, Debian, CentOS, Arch)
+- ✅ Windows 10/11
+- ✅ WSL2
+
+### Quick Install
+
+```bash
+# Install from GitHub
+curl -fsSL https://raw.githubusercontent.com/meirm/askGPT/main/install.sh | bash
+
+# Or install from local repository
 git clone https://github.com/meirm/askGPT.git
-cd askGPT 
-python -m build
-pip install .
-```
-## Usage
-
-Once installed, you can use ***askGPT***  by running the following command:
-
-```
-askgpt 
+cd askGPT
+./install.sh --local
 ```
 
-Once inside the shell you can run the /help command.
+### Provider Setup
 
-## Install 
-    pip install askGPT
+**Ollama (Local - Recommended for Offline Use)**
+```bash
+# Install Ollama from ollama.ai
+ollama pull gpt-oss:20b
+# No API key needed! This is the default provider.
+```
 
-or
+**OpenAI (Cloud)**
+```bash
+export OPENAI_API_KEY=sk-your-key-here
+```
 
-    git clone https://github.com/meirm/askGPT.git
-    cd askGPT 
-    python setup.py install
+**Anthropic (Cloud)**
+```bash
+export ANTHROPIC_API_KEY=your-anthropic-key
+```
+
+## Configuration
+
+### Default Configuration
+
+askGPT defaults to offline-first mode. Configuration file: `~/.askgpt/config.yaml`
+
+```yaml
+# Default settings (offline-first)
+default_provider: ollama
+default_model: gpt-oss:20b
+
+providers:
+  ollama:
+    api_base: http://localhost:11434/v1
+    allow_unknown_models: true
+    discover_models: true
     
-## Available commands
+  openai:
+    api_key_env: OPENAI_API_KEY
+    allow_unknown_models: true
     
-    /clone
-    Clone a conversation
+  anthropic:
+    api_key_env: ANTHROPIC_API_KEY
+    api_base: https://api.anthropic.com/v1
+    allow_unknown_models: true
 
-    /config
-    Shows the current configuration
-
-    /credentials
-    Set the necessary credentials to interact with openAI
-
-    /delete
-    Deletes the specified conversation
-
-    /dream
-    Retrieves from openAI a image based on the prompt
-
-    /edit
-    Edit your conversation
-
-    /exec
-    Execute a the rest of the line in a bash shell and print the output
-
-    /exit
-    Exit the program
-
-    /greetings
-    if args is one of the scenarios, print the greeting of that scenario
-
-    ...
-
-    /help
-    Show available commands and options
-
-    /man
-
-    
-    /show  <config|scenarios|subjects|models>
-
-    
-
-### Configuration
-
-***askGPT*** will create a config.toml on your .askGPT folder. You can see or change values calling ***askGPT*** config
-
-The content of the file by default is the following:
-```
-name = "askGPT"
-
-[default]
-maxTokens = 150
-model = "text-davinci-003"
-temperature = 0.0
-topP = 1
-frequencyPenalty = 0.0
-presencePenalty = 0.0
-showDisclaimer = true
-maxRetries = 3
-retryDelay = 5.0
-retryMultiplier = 2.0
-retryMaxDelay = 60.0
-## Optional when running an opensource model through lm studio
-# api_base = "http://localhost:1234/v1"
-
-```
-    
-## scenarios
-***askGPT*** repository includes a sample of several scenarios which you can use to preset your bot.
-* Doctor
-* Psychotherapist
-* Lawyer
-* Marv (from The HitchHicker guide to the galaxy)
-* VocationalTest
-* scenariolityAssessment
-* DiaryAssistance
-* veganCheff
-
-When you first run askGPT, it will copy the ***scenario.json*** file from the package into your .askGPT directory
-In the git repository under ***config*** you can find the latest file named ***scenarios.json*** 
-
-copy this file to ***.askGPT*** directory
-
-***askGPT***  allows you to use scenarios to focus the conversation. scenarios are defined as follows:
-
-```
-{"<scenario>": {"name": "<name>", "greetings": "<Initial sentence>", "conversation": [ {"role":"user", "content":"<your initial prompt>"},{"role": "assistant", "content": "<AI response>"}, ... ]}}
+# Agent configuration
+max_tool_calls: 20
+temperature: 0.2
 ```
 
-Where `<scenario>` is the name of the scenario, `<name>` is the name of the character, `<initial sentence>` is the initial sentence used to start the conversation, and `<prompt>` is an array of sentences between the user and ***askGPT*** .
+### Using Different Providers
 
+```bash
+# Use local model (default)
+askgpt -p "Task"
 
-i.e.
+# Switch to cloud provider
+askgpt -p "Task" --provider openai --model gpt-5-mini
+
+# TODO: Future feature - online/offline mode switching
+# This will allow easy toggling between local and cloud providers
 ```
-"AlbertoKnox":{"Name": "Knox", "greetings":"I am Alberto Knox, the philosopher from Sophia's world. I am also a chatbot", "conversation":[
-    {"role": "user", "content": "What's your role in the book?"},
-    {"role": "assistant", "content": "The ideal philosopher. I am never quick to judge and I always thinks about what I am doing."}
-]}
+
+## CLI Reference
+
+### Basic Usage
+
+```bash
+# Interactive mode (default)
+askgpt
+
+# Quick prompt
+askgpt -p "Your prompt here"
+
+# With options
+askgpt -p "Task" --model gpt-5 --provider openai --verbose
+
+# Read-only mode
+askgpt -p "Analyze codebase" --read-only
+
+# Session management
+askgpt -p "Task" --continue        # Continue last session
+askgpt -p "Task" --session <id>   # Use specific session
+askgpt -p "Task" --new             # Force new session
 ```
 
-In the git repository under config you have a sample json with a few scenariolities. Copy the file to $HOME/.***askGPT*** 
+### Commands
 
-## API Key 
-In order to communicate with openai API you need to register at https://www.openai.com and create an API key. Once you have your API key, you can use them to authenticate with ***askGPT*** .
+```bash
+askgpt list-models                 # List all available models
+askgpt list-models --provider ollama  # List models for provider
+askgpt commands list               # List command templates
+askgpt skills list                 # List available skills
+askgpt sessions list              # List sessions
+askgpt sessions show <id>         # Show session details
+```
 
-## Summary
+## Architecture
 
-***askGPT***  is a command line program written in Python that allows you to query the chatGPT API. It keeps track of conversations and has a set of scenarios to focus the conversation. Installation is easy, 
-simply run `pip install askGPT ` and you're ready to go. Authentication requires an API key and organization code from OpenAI. With ***askGPT*** , you can easily query the chatGPT API and have meaningful conversations with AI. 
-You can also list the scenarios, list conversations, show the content of a conversation, delete it, and fine tune parameters such as temperature for more scenariolized conversations.
+askGPT uses a sophisticated agent architecture:
+
+```text
+┌─────────────────────────────────────────┐
+│ askGPT CLI                               │
+│   • Session management                   │
+│   • Permission enforcement               │
+│   • Provider abstraction                 │
+│   • Token tracking                       │
+└─────────────────────────────────────────┘
+                    │
+            Creates & Manages
+                    ▼
+┌─────────────────────────────────────────┐
+│ Inner Agent (OpenAI SDK)                │
+│   • File system tools                   │
+│   • Autonomous execution                │
+│   • Multi-turn reasoning                │
+│   • Tool chaining                       │
+└─────────────────────────────────────────┘
+```
+
+## Use Cases
+
+### 🔍 Code Analysis & Auditing
+```bash
+# Security audit without modification risk
+askgpt -p "Scan for OWASP top 10 vulnerabilities and generate report" --read-only
+
+# Architecture analysis
+askgpt -p "Create a dependency graph and identify circular dependencies" --read-only
+```
+
+### 🚀 Autonomous Development
+```bash
+# Build complete features
+askgpt -p "Implement REST API with authentication, validation, and tests"
+
+# Iterative refinement with sessions
+askgpt -p "Create a Flask API" --new
+askgpt -p "Add rate limiting" --continue
+askgpt -p "Add caching" --continue
+```
+
+### 📊 Multi-Model Comparison
+```bash
+# Compare different models on the same task
+for model in gpt-5-mini claude-3-haiku gpt-oss:20b; do
+  askgpt -p "Optimize this function" --model $model
+done
+```
+
+## Advanced Features
+
+### Tool Restrictions
+```bash
+# Development with guardrails
+askgpt -p "Refactor the payment module" \
+  --max-tool-calls 10 \
+  --read-only
+```
+
+### Cost Tracking
+```bash
+# View session costs
+askgpt sessions show <session_id>
+# Shows: tokens, costs, model used, etc.
+```
+
+### Output Formats
+```bash
+askgpt -p "Task" -f rich      # Beautiful terminal output (default)
+askgpt -p "Task" -f json      # Structured JSON for scripts
+askgpt -p "Task" -f simple    # Plain text for piping
+askgpt -p "Task" -f markdown  # Formatted markdown output
+```
 
 ## Contributing
-We welcome contributions to ***askGPT***! If you have an idea for a new feature or have found a bug, please open an issue on the GitHub repository.
+
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+### Development Setup
+```bash
+git clone https://github.com/meirm/askGPT.git
+cd askGPT
+uv sync --extra test
+uv run pytest tests/ -v
+```
+
+## Roadmap
+
+### Coming Soon
+- [ ] Streaming responses for real-time feedback
+- [ ] Batch operations for multiple prompts
+- [ ] Online/offline mode switching (toggle between local and cloud)
+- [ ] Resource quotas and rate limiting
+- [ ] Custom system prompts
+- [ ] Webhook notifications
+
+### Under Consideration
+- [ ] Vector database integration
+- [ ] Multi-file context windows
+- [ ] Agent collaboration protocols
+- [ ] Visual Studio Code extension
+
+## Documentation
+
+### Guides
+- **[CLI Usage Guide](docs/ASKGPT_USAGE.md)** - Complete CLI reference
+- **[Configuration Guide](docs/CONFIG.md)** - Setup and customization
+- **[Commands Guide](docs/COMMANDS.md)** - Custom commands and agents
+- **[Skills Documentation](docs/SKILLS.md)** - Agent skills system
+
+## Support
+
+- **Documentation**: See guides above
+- **Issues**: [GitHub Issues](https://github.com/meirm/askGPT/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/meirm/askGPT/discussions)
 
 ## License
-This project is licensed under the MIT License - see the LICENSE file for details.
 
+MIT License - See [LICENSE](LICENSE) for details.
 
-## Next
+---
 
-* Adding support for other languages.
+**Ready to supercharge your AI development?** Install askGPT in 5 minutes and experience the power of offline-first AI agents.
 
-## Note
-
-   This project is under active development.
+```bash
+# Get started now!
+curl -fsSL https://raw.githubusercontent.com/meirm/askGPT/main/install.sh | bash
+```

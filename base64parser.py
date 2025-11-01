@@ -19,7 +19,7 @@ def main():
     for line in sys.stdin:
         input_text += line
     input_text = input_text.strip()
-
+    result = ''
     if args.encode:
         result = encode_to_base64(input_text)
     elif args.decode:

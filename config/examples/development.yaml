@@ -1,0 +1,57 @@
+# Example configuration for development/testing
+# Includes debugging options and flexible model usage
+
+default_provider: ollama
+default_model: gpt-oss:20b
+
+providers:
+  openai:
+    api_key_env: OPENAI_API_KEY
+    allow_unknown_models: true  # Allow testing with any model
+    timeout: 60  # Longer timeout for debugging
+    max_retries: 5  # More retries during development
+  
+  anthropic:
+    api_key_env: ANTHROPIC_API_KEY
+    api_base: https://api.anthropic.com/v1
+    allow_unknown_models: true
+    timeout: 60
+    max_retries: 5
+  
+  ollama:
+    api_base: http://localhost:11434/v1
+    allow_unknown_models: true
+    discover_models: true
+    discovery_endpoint: /api/tags
+    timeout: 180  # Very long timeout for slow local models
+  
+  # Mock provider for testing
+  mock:
+    api_base: http://localhost:8080/mock/v1
+    allow_unknown_models: true
+    timeout: 5
+    max_retries: 1
+
+# Development aliases
+model_aliases:
+  test: gpt-5-nano
+  debug: gpt-5-mini
+  dev: gpt-5-mini
+  local: llama2:7b
+  mock: mock-model
+
+# Development settings
+log_level: DEBUG  # Verbose logging
+log_format: "%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s"
+
+# Performance settings for development
+cache_enabled: false  # Disable cache to always get fresh results
+cache_ttl: 60  # Short cache if enabled
+
+# Security relaxed for development (DO NOT use in production!)
+validate_ssl: false  # Allow self-signed certificates
+allow_http: true     # Allow HTTP for local testing
+
+# Extended sessions for debugging
+max_turns: 50
+session_timeout: 7200  # 2 hours

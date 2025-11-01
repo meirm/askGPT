@@ -1,0 +1,36 @@
+
+# 2023-12-24 20:28:29.385617
++change the file to use poetry instead of setuptools
+
+# 2023-12-24 20:30:25.086842
++The Poetry configuration is invalid:
++  - data.classifiers must be array
++  - Additional properties are not allowed ('python' was unexpected)
+
+# 2023-12-24 20:31:06.321841
++The Poetry configuration is invalid:
++  - data.classifiers must be array
+
+# 2023-12-24 20:32:08.585702
++Invalid initial character for a key part (at line 23, column 2)
+
+# 2023-12-24 20:33:00.297508
++Expected '=' after a key in a key/value pair (at line 23, column 34)
+
+# 2023-12-24 20:33:36.467335
++Invalid initial character for a key part (at line 23, column 2)
+
+# 2023-12-24 21:05:36.164881
++/help
+
+# 2023-12-24 21:05:42.093229
++/drop
+
+# 2023-12-24 21:05:55.957293
++/add base64parser.py
+
+# 2023-12-24 21:07:47.467965
++read from stdin and write to stdout translating from clear text to base64 of called with argument -e/--encode or from base64 to cleartext if called with the argument -d/--decode
+
+# 2023-12-24 21:10:28.809611
++change the code to read from stdin till EOF.

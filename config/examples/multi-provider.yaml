@@ -1,0 +1,57 @@
+# Example configuration for using multiple providers
+# This setup allows easy switching between providers based on task requirements
+
+default_provider: ollama
+default_model: gpt-oss:20b
+
+providers:
+  # Fast responses for general tasks
+  openai:
+    api_key_env: OPENAI_API_KEY
+    allow_unknown_models: true
+    known_models:
+      - gpt-5-nano   # Fastest
+      - gpt-5-mini   # Balanced
+      - gpt-5        # Most capable
+      - gpt-4o       # Legacy support
+  
+  # High-quality responses for complex tasks
+  anthropic:
+    api_key_env: ANTHROPIC_API_KEY
+    api_base: https://api.anthropic.com/v1
+    allow_unknown_models: true
+    known_models:
+      - claude-3-haiku-20240307      # Fast
+      - claude-opus-4-1-20250805      # Most capable
+      - claude-sonnet-4-20250514      # Balanced
+  
+  # Local processing for sensitive data
+  ollama:
+    api_base: http://localhost:11434/v1
+    allow_unknown_models: true
+    discover_models: true
+    discovery_endpoint: /api/tags
+
+# Task-based aliases
+model_aliases:
+  # Quick tasks
+  fast: gpt-5-nano
+  quick: gpt-5-nano
+  
+  # Balanced performance
+  default: gpt-5-mini
+  standard: gpt-5-mini
+  
+  # Complex tasks
+  powerful: claude-opus-4-1-20250805
+  complex: claude-opus-4-1-20250805
+  
+  # Local/private
+  local: llama2:7b
+  private: llama2:7b
+  secure: llama2:7b
+
+# Optimize for multi-provider usage
+cache_enabled: true
+cache_ttl: 3600
+log_level: INFO
