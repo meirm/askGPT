@@ -56,7 +56,7 @@ venv.bak/
 
 # uv
 .python-version
-uv.lock
+# Note: uv.lock is typically committed for reproducible builds
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -67,7 +67,7 @@ profile_default/
 ipython_config.py
 
 # pyenv
-.python-version
+# (.python-version listed above under uv)
 
 # mypy
 .mypy_cache/
@@ -86,14 +86,37 @@ cython_debug/
 # Ruff
 .ruff_cache/
 
+# Operating System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*~
+.directory
 
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*.bak
+
+# Project-specific
 adws/
-
 deep_docs/
 deep_specs/
-
 ./agents/
-
 logs/
-
 .env
+.env.local
+.env.*.local
+
+# Temporary files
+*.log
+*.tmp
+temp/
+tmp/
