@@ -4,7 +4,7 @@ version = "1.0.0"
 description = "askGPT - Multi-provider AI agent CLI with offline-first support"
 readme = "README.md"
 authors = [
-    { name = "IndyDevDan", email = "agentic@indydevdan.com" }
+    { name = "Meir Michanie", email = "meirm@riunx.com" }
 ]
 requires-python = ">=3.12"
 dependencies = [
