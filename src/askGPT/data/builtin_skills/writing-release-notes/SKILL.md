@@ -1,7 +1,7 @@
 ---
 name: writing-release-notes
 description: Generate release notes and changelog entries from git history and project changes. Use when the user asks to write release notes, create changelog, document version changes, or generate release documentation.
-tools: ["read_file", "write_file"]
+allowed-tools: read_file, write_file
 ---
 
 # Write Release Notes

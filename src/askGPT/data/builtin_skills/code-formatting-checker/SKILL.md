@@ -1,7 +1,7 @@
 ---
 name: checking-code-formatting
 description: Check code formatting, detect style issues, and identify inconsistencies. Use when the user asks to check formatting, code style, linting, format issues, or code formatting problems.
-tools: ["read_file", "grep_search"]
+allowed-tools: read_file, grep_search
 ---
 
 # Code Formatting Checker

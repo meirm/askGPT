@@ -620,8 +620,13 @@ tools: ["read_file", "edit_file"]
                 if frontmatter_match:
                     yaml_content = frontmatter_match.group(1)
                     metadata = yaml.safe_load(yaml_content) or {}
-                    assert "tools" in metadata or "required_tools" in metadata
-                    tools = metadata.get("tools", metadata.get("required_tools", []))
+                    assert "allowed-tools" in metadata or "tools" in metadata or "required_tools" in metadata
+                    # Handle all three formats: allowed-tools (comma-separated string), tools (list), required_tools (list)
+                    tools_value = metadata.get("allowed-tools") or metadata.get("tools") or metadata.get("required_tools", [])
+                    if isinstance(tools_value, str):
+                        tools = [t.strip() for t in tools_value.split(",") if t.strip()]
+                    else:
+                        tools = tools_value if isinstance(tools_value, list) else []
                     assert len(tools) > 0
                     assert "read_file" in tools
 

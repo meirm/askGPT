@@ -1,7 +1,7 @@
 ---
 name: api-testing
 description: Generate comprehensive API tests including endpoint testing, request/response validation, and integration tests. Use when the user asks to test APIs, validate endpoints, create API tests, or verify API functionality.
-tools: ["read_file", "write_file", "grep_search"]
+allowed-tools: read_file, write_file, grep_search
 ---
 
 # API Testing Skill

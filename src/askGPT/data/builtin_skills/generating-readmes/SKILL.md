@@ -1,7 +1,7 @@
 ---
 name: generating-readmes
 description: Generate comprehensive README files for projects. Use when the user asks to create, generate, or write a README, readme file, or project documentation.
-tools: ["read_file", "write_file", "list_directory"]
+allowed-tools: read_file, write_file, list_directory
 ---
 
 # README Generator

@@ -1,7 +1,7 @@
 ---
 name: security-audit-example
 description: Example security audit skill demonstrating how to audit code for security vulnerabilities. Use when the user asks to perform security reviews, check for vulnerabilities, or audit code security.
-tools: ["read_file", "grep_search", "list_directory"]
+allowed-tools: read_file, grep_search, list_directory
 ---
 
 # Security Audit Example Skill

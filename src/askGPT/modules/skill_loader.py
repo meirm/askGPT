@@ -241,6 +241,26 @@ class SkillLoader:
 
         return skills
 
+    def _normalize_tool_name(self, tool_name: str) -> str:
+        """
+        Normalize tool names with alias support.
+        
+        Maps tool aliases to their canonical names. For example:
+        - "Bash" or "bash" -> "bash_command"
+        
+        Args:
+            tool_name: Tool name to normalize
+            
+        Returns:
+            Normalized tool name (lowercase)
+        """
+        tool_lower = tool_name.strip().lower()
+        # Alias mapping - case-insensitive
+        aliases = {
+            "bash": "bash_command",
+        }
+        return aliases.get(tool_lower, tool_name.strip().lower())
+
     def _parse_skill_metadata(
         self, name: str, skill_dir: Path, skill_file: Path, source: str
     ) -> Optional[Skill]:
@@ -312,21 +332,48 @@ class SkillLoader:
             description = f"Skill: {skill_name}"
 
         # Extract required tools from metadata
-        # Support both "tools:" and "required_tools:" for flexibility
+        # Priority: allowed-tools (with hyphen) > tools > required_tools
+        # Support comma-separated string format and apply normalization
         required_tools = []
-        if "tools" in metadata:
+        if "allowed-tools" in metadata:
+            tools_value = metadata.get("allowed-tools", "")
+            if isinstance(tools_value, str):
+                # Handle comma-separated string (primary format)
+                required_tools = [
+                    self._normalize_tool_name(t.strip()) 
+                    for t in tools_value.split(",") if t.strip()
+                ]
+            elif isinstance(tools_value, list):
+                # Also support list format for backward compatibility
+                required_tools = [
+                    self._normalize_tool_name(str(t).strip()) 
+                    for t in tools_value if t
+                ]
+        elif "tools" in metadata:
             tools_value = metadata.get("tools", [])
             if isinstance(tools_value, list):
-                required_tools = [str(t).strip() for t in tools_value if t]
+                required_tools = [
+                    self._normalize_tool_name(str(t).strip()) 
+                    for t in tools_value if t
+                ]
             elif isinstance(tools_value, str):
                 # Handle comma-separated string
-                required_tools = [t.strip() for t in tools_value.split(",") if t.strip()]
+                required_tools = [
+                    self._normalize_tool_name(t.strip()) 
+                    for t in tools_value.split(",") if t.strip()
+                ]
         elif "required_tools" in metadata:
             tools_value = metadata.get("required_tools", [])
             if isinstance(tools_value, list):
-                required_tools = [str(t).strip() for t in tools_value if t]
+                required_tools = [
+                    self._normalize_tool_name(str(t).strip()) 
+                    for t in tools_value if t
+                ]
             elif isinstance(tools_value, str):
-                required_tools = [t.strip() for t in tools_value.split(",") if t.strip()]
+                required_tools = [
+                    self._normalize_tool_name(t.strip()) 
+                    for t in tools_value.split(",") if t.strip()
+                ]
 
         # Discover resources (Level 3 - for on-demand loading)
         resources = []
@@ -393,8 +440,13 @@ class SkillLoader:
         if not skill.required_tools:
             return True, None
 
-        # Validate all required tools are in allowed_tools
-        missing_tools = [t for t in skill.required_tools if t not in self.allowed_tools]
+        # Normalize both required tools and allowed_tools for comparison
+        # This ensures aliases like "Bash" match "bash_command" in allowed_tools
+        normalized_required = [self._normalize_tool_name(t) for t in skill.required_tools]
+        normalized_allowed = [self._normalize_tool_name(t) for t in self.allowed_tools] if self.allowed_tools else []
+        
+        # Validate all required tools are in allowed_tools (both normalized)
+        missing_tools = [t for t in normalized_required if t not in normalized_allowed]
         if missing_tools:
             return False, f"Required tools not allowed: {', '.join(missing_tools)}"
 

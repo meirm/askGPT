@@ -1,7 +1,7 @@
 ---
 name: auditing-security
 description: Perform security audits on Agent Skills from a given path. Use when the user asks to audit, review, check security, or verify a skill for security issues.
-tools: ["read_file", "list_directory", "grep_search", "get_file_info"]
+allowed-tools: read_file, list_directory, grep_search, get_file_info
 ---
 
 # Security Audit Skill

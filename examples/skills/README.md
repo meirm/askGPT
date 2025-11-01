@@ -32,7 +32,7 @@ Skills must use YAML frontmatter with metadata:
 ---
 name: skill-name
 description: When and how to use this skill. Use when the user asks to [trigger keywords].
-tools: ["read_file", "write_file", "list_directory"]
+allowed-tools: read_file, write_file, list_directory
 ---
 
 # Skill Name
@@ -66,9 +66,10 @@ Detailed instructions for performing [skill task].
 
 - **name**: Skill identifier (must match directory name)
 - **description**: When to use this skill - include trigger keywords
-- **tools**: List of required tools for permission validation
-  - Use `[]` if no specific tools are needed
-  - Examples: `["read_file"]`, `["read_file", "write_file", "list_directory"]`
+- **allowed-tools**: Comma-separated list of required tools for permission validation
+  - Use comma-separated format: `read_file, write_file`
+  - Supports tool aliases (e.g., `Bash` maps to `bash_command`)
+  - Examples: `read_file`, `read_file, write_file, list_directory`, `Bash, read_file`
 
 **Important**: The description should include "Use when..." to help the matching system identify when to trigger the skill.
 
@@ -104,7 +105,7 @@ Generates comprehensive API tests including:
 - Authentication and authorization tests
 - Integration test scenarios
 
-**Tools**: `["read_file", "write_file", "grep_search"]`
+**Tools**: `read_file, write_file, grep_search`
 
 **Triggers**: "test API", "API tests", "endpoint testing", "validate API"
 
@@ -117,7 +118,7 @@ Performs data analysis tasks including:
 - Visualization generation
 - Insight extraction
 
-**Tools**: `["read_file", "write_file", "list_directory"]`
+**Tools**: `read_file, write_file, list_directory`
 
 **Triggers**: "analyze data", "data analysis", "statistical analysis", "create visualizations"
 
@@ -130,7 +131,7 @@ Audits code for security vulnerabilities:
 - Cryptography assessment
 - Vulnerability identification
 
-**Tools**: `["read_file", "grep_search", "list_directory"]`
+**Tools**: `read_file, grep_search, list_directory`
 
 **Triggers**: "security audit", "check vulnerabilities", "security review"
 
@@ -179,7 +180,7 @@ askgpt skills install-builtin
 ---
 name: my-skill
 description: Perform [task]. Use when the user asks to [trigger keywords].
-tools: ["read_file", "write_file"]
+allowed-tools: read_file, write_file
 ---
 
 # My Skill
@@ -245,14 +246,15 @@ Built-in skills are automatically installed on first run:
 
 ## Permission System
 
-Skills can specify required tools in their metadata. If `allowed_tools` is configured:
-- Skills without `tools:` metadata are allowed when Skills system is enabled
-- Skills with `tools:` require all listed tools to be in `allowed_tools`
+Skills can specify required tools in their metadata using `allowed-tools:` field. If `allowed_tools` is configured:
+- Skills without `allowed-tools:` metadata are allowed when Skills system is enabled
+- Skills with `allowed-tools:` require all listed tools to be in `allowed_tools`
 - Skills with missing tools will be disabled with a reason
+- Supports backward compatibility with `tools:` and `required_tools:` fields
 
 **Example**:
 ```yaml
-tools: ["read_file", "write_file"]
+allowed-tools: read_file, write_file
 ```
 
 The Skills system is enabled if `"skill"` is in `allowed_tools`.
