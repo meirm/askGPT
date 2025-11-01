@@ -1,0 +1,180 @@
+# Nano Agent Configuration File
+# This is a complete example configuration showing all available options.
+# You can create your own configuration by copying this file to:
+#   - Project level: .nano-agent.yaml (in your project directory)
+#   - User level: ~/.config/nano-agent/config.yaml
+#   - System level: /etc/nano-agent/config.yaml
+
+# Default provider and model to use when not specified
+default_provider: ollama
+default_model: gpt-oss:20b
+
+# Provider configurations
+providers:
+  # OpenAI Configuration
+  openai:
+    # Environment variable containing API key
+    api_key_env: OPENAI_API_KEY
+    
+    # API base URL (optional, uses default if not specified)
+    # api_base: https://api.openai.com/v1
+    
+    # Known models (used for validation and discovery)
+    known_models:
+      - gpt-5-nano
+      - gpt-5-mini
+      - gpt-5
+      - gpt-4o
+      - gpt-4o-mini
+      - o1-preview
+      - o1-mini
+    
+    # Allow using models not in the known_models list
+    allow_unknown_models: true
+    
+    # Enable automatic model discovery from API
+    discover_models: false
+    
+    # Request timeout in seconds
+    timeout: 30
+    
+    # Maximum number of retries for failed requests
+    max_retries: 3
+    
+    # Model-specific configurations (optional)
+    models:
+      gpt-5:
+        max_tokens: 8192
+        temperature: 1.0
+        description: "GPT-5 standard model"
+      
+      gpt-5-mini:
+        max_tokens: 4096
+        temperature: 1.0
+        description: "GPT-5 mini - faster and more cost-effective"
+      
+      gpt-5-nano:
+        max_tokens: 2048
+        temperature: 1.0
+        description: "GPT-5 nano - smallest and fastest"
+
+  # Anthropic Configuration
+  anthropic:
+    api_key_env: ANTHROPIC_API_KEY
+    api_base: https://api.anthropic.com/v1
+    
+    known_models:
+      - claude-3-haiku-20240307
+      - claude-3-sonnet-20240229
+      - claude-3-opus-20240229
+      - claude-opus-4-20250514
+      - claude-opus-4-1-20250805
+      - claude-sonnet-4-20250514
+    
+    allow_unknown_models: true
+    discover_models: false
+    timeout: 30
+    max_retries: 3
+    
+    models:
+      claude-3-haiku-20240307:
+        max_tokens: 4096
+        description: "Claude 3 Haiku - fast and efficient"
+      
+      claude-opus-4-1-20250805:
+        max_tokens: 8192
+        description: "Claude Opus 4.1 - most capable model"
+
+  # Ollama Configuration (Local Models)
+  ollama:
+    # Ollama doesn't use API keys
+    # api_key_env: 
+    
+    # Default Ollama API endpoint
+    api_base: http://localhost:11434/v1
+    
+    # Known models (these are examples, actual models depend on what's installed)
+    known_models:
+      - gpt-oss:20b
+      - gpt-oss:120b
+      - llama2:7b
+      - llama2:13b
+      - llama2:70b
+      - mistral:7b
+      - mixtral:8x7b
+      - codellama:7b
+      - codellama:13b
+      - codellama:34b
+    
+    # Allow any model name (recommended for Ollama)
+    allow_unknown_models: true
+    
+    # Enable automatic discovery of installed models
+    discover_models: true
+    discovery_endpoint: /api/tags
+    
+    timeout: 120  # Longer timeout for local models
+    max_retries: 2
+
+  # Custom Provider Example
+  custom:
+    api_key_env: CUSTOM_API_KEY
+    api_base: https://api.custom-provider.com/v1
+    
+    known_models:
+      - custom-model-1
+      - custom-model-2
+    
+    allow_unknown_models: false
+    discover_models: false
+    timeout: 60
+    max_retries: 3
+
+# Model aliases for convenience
+# Map short names to full model names
+model_aliases:
+  # OpenAI aliases
+  gpt5: gpt-5
+  gpt5mini: gpt-5-mini
+  gpt5nano: gpt-5-nano
+  gpt4: gpt-4o
+  
+  # Anthropic aliases
+  haiku: claude-3-haiku-20240307
+  sonnet: claude-3-sonnet-20240229
+  opus: claude-3-opus-20240229
+  opus4: claude-opus-4-20250514
+  opus41: claude-opus-4-1-20250805
+  sonnet4: claude-sonnet-4-20250514
+  claude3haiku: claude-3-haiku-20240307
+  
+  # Ollama aliases
+  llama: llama2:7b
+  llama7b: llama2:7b
+  llama13b: llama2:13b
+  llama70b: llama2:70b
+  mistral: mistral:7b
+  mixtral: mixtral:8x7b
+  codellama: codellama:7b
+
+# Logging configuration
+log_level: INFO  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+log_format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Performance settings
+cache_enabled: true
+cache_ttl: 3600  # Cache time-to-live in seconds
+
+# Security settings
+validate_ssl: true  # Validate SSL certificates
+allow_http: false   # Allow HTTP connections (not recommended)
+
+# Session settings
+max_turns: 20         # Maximum conversation turns
+session_timeout: 1800 # Session timeout in seconds (30 minutes)
+
+# Advanced settings (usually don't need to change)
+# request_timeout: 30  # Global request timeout
+# max_concurrent_requests: 5  # Maximum concurrent API requests
+# retry_backoff_factor: 2  # Exponential backoff factor for retries
+# retry_max_wait: 60  # Maximum wait time between retries in seconds

@@ -1,0 +1,25 @@
+# Example configuration for using only Ollama (local models)
+# Copy this to .nano-agent.yaml in your project or ~/.config/nano-agent/config.yaml
+
+default_provider: ollama
+default_model: llama2:7b
+
+providers:
+  ollama:
+    api_base: http://localhost:11434/v1
+    allow_unknown_models: true
+    discover_models: true
+    discovery_endpoint: /api/tags
+    timeout: 120
+
+# Convenient aliases for local models
+model_aliases:
+  llama: llama2:7b
+  codellama: codellama:7b
+  mistral: mistral:7b
+  mixtral: mixtral:8x7b
+
+# Adjust for local processing
+cache_enabled: true
+cache_ttl: 7200  # Longer cache for local models
+max_turns: 30    # Can handle more turns locally
