@@ -47,11 +47,17 @@ askGPT is a CLI tool that provides autonomous AI agents with file system capabil
 ### Install in 5 Minutes
 
 ```bash
-# macOS/Linux
-curl -fsSL https://raw.githubusercontent.com/meirm/askGPT/main/install.sh | bash
+# Preferred: Install from PyPI
+pip install askgpt
 
-# Or install from local repository
-./install.sh --local
+# Or install from repository
+git clone https://github.com/meirm/askGPT.git
+cd askGPT
+uv sync
+uv tool install --force .
+
+# Or use the installation script
+curl -fsSL https://raw.githubusercontent.com/meirm/askGPT/main/install.sh | bash
 ```
 
 ### Try It Out
@@ -216,13 +222,18 @@ askgpt -p "Check code formatting across all Python files"
 ### Quick Install
 
 ```bash
-# Install from GitHub
-curl -fsSL https://raw.githubusercontent.com/meirm/askGPT/main/install.sh | bash
+# Preferred: Install from PyPI
+pip install askgpt
 
-# Or install from local repository
+# Or install from repository
 git clone https://github.com/meirm/askGPT.git
 cd askGPT
-./install.sh --local
+uv sync
+uv tool install --force .
+
+# Or use the installation script
+curl -fsSL https://raw.githubusercontent.com/meirm/askGPT/main/install.sh | bash
+./install.sh --local  # For local repository
 ```
 
 ### Provider Setup
@@ -453,5 +464,5 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 ```bash
 # Get started now!
-curl -fsSL https://raw.githubusercontent.com/meirm/askGPT/main/install.sh | bash
+pip install askgpt
 ```
