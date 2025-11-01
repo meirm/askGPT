@@ -3,7 +3,7 @@ from .modules import typing_fix
 
 # Version information
 # This version should match the version in pyproject.toml
-__version__ = "1.0.3"
+__version__ = "1.0.4"
 
 # Enable flexible configuration if available
 try:
