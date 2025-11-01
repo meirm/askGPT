@@ -12,7 +12,7 @@ import logging
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 
 import yaml
 from rich.console import Console
@@ -66,6 +66,7 @@ class CascadeCommandLoader:
         working_dir: Optional[Path] = None,
         allowed_tools: Optional[List[str]] = None,
         blocked_tools: Optional[List[str]] = None,
+        skill_loader: Optional[Any] = None,
     ):
         """
         Initialize the cascade command loader.
@@ -74,6 +75,7 @@ class CascadeCommandLoader:
             working_dir: Working directory for project commands (defaults to current dir)
             allowed_tools: Optional list of allowed tools. Commands will validate against this.
             blocked_tools: Optional list of blocked tools or command names.
+            skill_loader: Optional SkillLoader instance for skill fallback when command not found.
         """
         self.working_dir = working_dir or Path.cwd()
         self.global_commands_dir = Path.home() / ".askgpt" / "commands"
@@ -82,6 +84,9 @@ class CascadeCommandLoader:
         # Permission configuration
         self.allowed_tools = allowed_tools
         self.blocked_tools = blocked_tools
+
+        # Skill loader for fallback when command not found
+        self.skill_loader = skill_loader
 
         self._commands_cache: Dict[str, Command] = {}
         self._cache_valid = False
@@ -447,42 +452,83 @@ class CascadeCommandLoader:
     def execute_command(self, command_name: str, arguments: str = "") -> Optional[str]:
         """
         Execute a command by substituting arguments.
+        Falls back to skills if command not found.
 
         Args:
             command_name: Name of the command to execute
             arguments: Arguments to substitute for $ARGUMENTS
 
         Returns:
-            Final prompt with substitutions, or None if command not found.
+            Final prompt with substitutions, or None if neither command nor skill found.
             Returns error string with [Error: prefix if command cannot be executed due to permissions.
         """
+        # First try to load as command
         command = self.get_command(command_name)
-        if not command:
-            return None
+        if command:
+            # Command found - validate permissions and execute
+            allowed, error_message = self._validate_command_permissions(command)
+            if not allowed:
+                return f"[Error: {error_message}]"
 
-        # Validate command permissions before execution
-        allowed, error_message = self._validate_command_permissions(command)
-        if not allowed:
-            return f"[Error: {error_message}]"
+            # Substitute arguments in the prompt template
+            prompt = command.prompt_template
 
-        # Substitute arguments in the prompt template
-        prompt = command.prompt_template
+            # Handle various argument syntaxes
+            substitutions = [
+                ("$ARGUMENTS", arguments),
+                ("${ARGUMENTS}", arguments),
+                ("$arguments", arguments),
+                ("${arguments}", arguments),
+            ]
 
-        # Handle various argument syntaxes
-        substitutions = [
-            ("$ARGUMENTS", arguments),
-            ("${ARGUMENTS}", arguments),
-            ("$arguments", arguments),
-            ("${arguments}", arguments),
-        ]
+            for pattern, replacement in substitutions:
+                prompt = prompt.replace(pattern, replacement)
 
-        for pattern, replacement in substitutions:
-            prompt = prompt.replace(pattern, replacement)
+            # Handle escaped dollar signs (restore them after substitution)
+            prompt = prompt.replace("\\$", "$")
 
-        # Handle escaped dollar signs (restore them after substitution)
-        prompt = prompt.replace("\\$", "$")
+            return prompt.strip()
 
-        return prompt.strip()
+        # Command not found - try skill fallback if skill_loader provided
+        if self.skill_loader is not None:
+            # Normalize skill name before lookup to match how skills are stored
+            # Skills are normalized to lowercase with hyphens in Skill.__post_init__()
+            normalized_skill_name = command_name.lower().replace("_", "-")
+            skill = self.skill_loader.get_skill(normalized_skill_name)
+            if skill and skill.enabled:
+                # Skill found and enabled - load instructions and format as command
+                instructions = self.skill_loader.load_skill_instructions(normalized_skill_name)
+                if instructions:
+                    # Format skill instructions as a command prompt
+                    # Support $ARGUMENTS substitution if present in instructions
+                    prompt = instructions
+                    
+                    # Check if skill instructions contain argument substitution patterns
+                    has_arg_substitution = any(
+                        pattern in prompt
+                        for pattern in ["$ARGUMENTS", "${ARGUMENTS}", "$arguments", "${arguments}"]
+                    )
+                    
+                    if has_arg_substitution:
+                        # Substitute arguments if pattern found
+                        substitutions = [
+                            ("$ARGUMENTS", arguments),
+                            ("${ARGUMENTS}", arguments),
+                            ("$arguments", arguments),
+                            ("${arguments}", arguments),
+                        ]
+                        for pattern, replacement in substitutions:
+                            prompt = prompt.replace(pattern, replacement)
+                        # Handle escaped dollar signs
+                        prompt = prompt.replace("\\$", "$")
+                    elif arguments:
+                        # No substitution pattern but arguments provided - append them
+                        prompt = f"{prompt}\n\nTask: {arguments}"
+                    
+                    return prompt.strip()
+
+        # Neither command nor skill found
+        return None
 
     def search_commands(self, query: str) -> List[Command]:
         """
@@ -704,6 +750,7 @@ class CommandLoader(CascadeCommandLoader):
         enable_command_eval: bool = None,
         allowed_tools: Optional[List[str]] = None,
         blocked_tools: Optional[List[str]] = None,
+        skill_loader: Optional[Any] = None,
     ):
         """Initialize with backward compatibility."""
         if commands_dir is not None:
@@ -713,12 +760,14 @@ class CommandLoader(CascadeCommandLoader):
                 working_dir=working_dir,
                 allowed_tools=allowed_tools,
                 blocked_tools=blocked_tools,
+                skill_loader=skill_loader,
             )
             self.global_commands_dir = commands_dir
         else:
             super().__init__(
                 allowed_tools=allowed_tools,
                 blocked_tools=blocked_tools,
+                skill_loader=skill_loader,
             )
         # Store enable_command_eval for shell evaluation (used by old CommandLoader)
         self.enable_command_eval = enable_command_eval

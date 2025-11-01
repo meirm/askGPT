@@ -452,6 +452,21 @@ class SkillLoader:
 
         return True, None
 
+    def _normalize_skill_name(self, skill_name: str) -> str:
+        """
+        Normalize skill name to match how skills are stored in cache.
+        
+        Skills are normalized to lowercase with hyphens in Skill.__post_init__().
+        This ensures consistent lookups regardless of input format.
+        
+        Args:
+            skill_name: Skill name to normalize
+            
+        Returns:
+            Normalized skill name (lowercase, underscores replaced with hyphens)
+        """
+        return skill_name.lower().replace("_", "-")
+
     def load_skill_instructions(self, skill_name: str) -> Optional[str]:
         """
         Load skill instructions (Level 2 - progressive disclosure).
@@ -465,12 +480,15 @@ class SkillLoader:
         Returns:
             Skill instructions content, or None if skill not found or failed to load
         """
+        # Normalize skill name for consistent cache lookup
+        normalized_name = self._normalize_skill_name(skill_name)
+        
         # Check cache first
-        if skill_name in self._skills_instructions_cache:
-            return self._skills_instructions_cache[skill_name]
+        if normalized_name in self._skills_instructions_cache:
+            return self._skills_instructions_cache[normalized_name]
 
         # Get skill metadata to find the skill file
-        skill = self.get_skill(skill_name)
+        skill = self.get_skill(normalized_name)
         if not skill:
             logger.warning(f"Skill '{skill_name}' not found for instruction loading")
             return None
@@ -489,14 +507,14 @@ class SkillLoader:
                 # No frontmatter, use entire content
                 instructions = content.strip()
 
-            # Cache the instructions
-            self._skills_instructions_cache[skill_name] = instructions
+            # Cache the instructions using normalized name
+            self._skills_instructions_cache[normalized_name] = instructions
 
-            logger.debug(f"Loaded Level 2 instructions for skill: {skill_name}")
+            logger.debug(f"Loaded Level 2 instructions for skill: {normalized_name}")
             return instructions
 
         except Exception as e:
-            logger.error(f"Failed to load instructions for skill '{skill_name}': {e}")
+            logger.error(f"Failed to load instructions for skill '{normalized_name}': {e}")
             return None
 
     def get_skill(self, skill_name: str) -> Optional[Skill]:
@@ -504,16 +522,20 @@ class SkillLoader:
         Get a skill by name (metadata only - Level 1).
 
         Args:
-            skill_name: Name of the skill
+            skill_name: Name of the skill (will be normalized to lowercase with hyphens)
 
         Returns:
             Skill object if found, None otherwise
         """
+        # Normalize skill name to match how skills are stored in cache
+        # Skills are normalized in Skill.__post_init__() to lowercase with hyphens
+        normalized_name = self._normalize_skill_name(skill_name)
+        
         # Load skills if cache is not valid
         if not self._cache_valid:
             self.load_skills_metadata()
 
-        return self._skills_metadata_cache.get(skill_name)
+        return self._skills_metadata_cache.get(normalized_name)
 
     def list_skills(self) -> List[Skill]:
         """
