@@ -138,7 +138,17 @@ install_askgpt() {
         fi
         
         uv sync
-        uv tool install --force .
+        # Build the package to ensure all source files are included
+        print_step "Building package..."
+        uv build
+        # Install from the built wheel to ensure all changes are included
+        WHEEL_FILE=$(ls -t dist/*.whl 2>/dev/null | head -1)
+        if [ -n "$WHEEL_FILE" ]; then
+            uv tool install --force "$WHEEL_FILE"
+        else
+            # Fallback to installing from source if wheel not found
+            uv tool install --force .
+        fi
         print_success "askgpt command installed to ~/.local/bin"
         
         # Create ~/.askgpt directory structure and copy builtins

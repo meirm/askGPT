@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Optional
 
 import typer
+import yaml
 from rich.console import Console
 from rich.panel import Panel
 from rich.syntax import Syntax
@@ -221,35 +222,39 @@ def _run_prompt(
     dev: bool = False,
 ):
     """Internal function to run a prompt (shared by main callback and run command)."""
-    # Determine provider first before checking API key
-    if provider is None:
-        config_file = Path.home() / ".askgpt" / "config.yaml"
-        if config_file.exists():
-            try:
-                with open(config_file, "r") as f:
-                    config = json.load(f)
-                    provider = config.get("default_provider", DEFAULT_PROVIDER)
-            except Exception:
-                provider = DEFAULT_PROVIDER
-        else:
-            provider = DEFAULT_PROVIDER
-
-    check_api_key(provider)
-
     # Load config defaults if not specified
-    config_file = Path.home() / ".askgpt" / "config.json"
-    if config_file.exists():
+    # Try config.yaml first (YAML format), then config.json (JSON format)
+    config_data = {}
+    config_file_yaml = Path.home() / ".askgpt" / "config.yaml"
+    config_file_json = Path.home() / ".askgpt" / "config.json"
+    
+    if config_file_yaml.exists():
         try:
-            with open(config_file, "r") as f:
-                config = json.load(f)
-                if model is None:
-                    model = config.get("default_model", DEFAULT_MODEL)
-                if provider is None:
-                    provider = config.get("default_provider", DEFAULT_PROVIDER)
-                if agent is None:
-                    agent = config.get("default_agent")
+            with open(config_file_yaml, "r") as f:
+                config_data = yaml.safe_load(f) or {}
         except Exception:
             pass
+    
+    if not config_data and config_file_json.exists():
+        try:
+            with open(config_file_json, "r") as f:
+                config_data = json.load(f)
+        except Exception:
+            pass
+    
+    # Apply config values if not explicitly provided
+    if provider is None:
+        provider = config_data.get("default_provider", DEFAULT_PROVIDER)
+    if model is None:
+        model = config_data.get("default_model", DEFAULT_MODEL)
+    if agent is None:
+        agent = config_data.get("default_agent")
+    
+    # Read max_tool_calls from config if not explicitly provided
+    if max_tool_calls is None and "max_tool_calls" in config_data:
+        max_tool_calls = config_data.get("max_tool_calls")
+
+    check_api_key(provider)
 
     # Final fallbacks
     if model is None:

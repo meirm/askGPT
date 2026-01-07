@@ -163,6 +163,10 @@ class GrepSearchRequest(BaseModel):
     pattern: str = Field(..., description="Regex pattern or literal string to search for")
     file_pattern: Optional[str] = Field(default=None, description="Glob pattern to filter files (e.g., '*.py')")
     context_lines: int = Field(default=3, description="Number of surrounding lines to include")
+    path: Optional[str] = Field(default=None, description="Directory or file path to search in (defaults to current working directory)")
+    context_before: Optional[int] = Field(default=None, description="Number of lines before match to include (overrides context_lines)")
+    context_after: Optional[int] = Field(default=None, description="Number of lines after match to include (overrides context_lines)")
+    output_mode: Optional[str] = Field(default=None, description="Output mode: 'content' (default) or 'files_with_matches'")
 
 class GrepSearchResponse(BaseModel):
     """Response model for grep_search agent tool."""
@@ -196,6 +200,31 @@ class BashCommandResponse(BaseModel):
     success: bool = Field(description="Whether command executed successfully")
     error: Optional[str] = Field(default=None, description="Error message if failed")
     execution_time: float = Field(description="Execution time in seconds")
+
+class FileMetadata(BaseModel):
+    """Metadata about a file."""
+    path: str = Field(..., description="File path")
+    size_bytes: int = Field(..., description="File size in bytes")
+    total_lines: int = Field(..., description="Total number of lines in file")
+    total_chars: int = Field(..., description="Total number of characters in file")
+
+class IncrementalReadRequest(BaseModel):
+    """Request model for partial_read_file (incremental read) agent tool."""
+    pattern: str = Field(..., description="Pattern to search for in files")
+    file_pattern: Optional[str] = Field(default=None, description="Glob pattern to filter files (e.g., '*.py')")
+    path: Optional[str] = Field(default=None, description="Directory path to search in")
+    context_before: int = Field(default=10, description="Number of lines to read before each match")
+    context_after: int = Field(default=20, description="Number of lines to read after each match")
+    max_files: int = Field(default=10, description="Maximum number of files to process")
+    max_sections_per_file: int = Field(default=5, description="Maximum number of sections to read per file")
+
+class IncrementalReadResponse(BaseModel):
+    """Response model for partial_read_file (incremental read) agent tool."""
+    content: str = Field(..., description="Formatted text with relevant code sections from matched files")
+    error: Optional[str] = Field(default=None, description="Error message if failed")
+    files_read: int = Field(default=0, description="Number of files that were read")
+    sections_read: int = Field(default=0, description="Number of code sections that were read")
+    file_metadata: List[FileMetadata] = Field(default_factory=list, description="Metadata for files that were read")
 
 class ChatMessage(BaseModel):
     """A single message in a chat conversation."""
@@ -298,6 +327,8 @@ class ReadFileRequest(BaseModel):
 
     file_path: str = Field(..., description="Path to the file to read", min_length=1)
     encoding: str = Field(default="utf-8", description="File encoding")
+    offset: Optional[int] = Field(default=None, description="1-based line number to start reading from (for partial reads)")
+    limit: Optional[int] = Field(default=None, description="Maximum number of lines to read (required when offset is specified)")
 
 
 class ReadFileResponse(BaseModel):

@@ -44,7 +44,8 @@ from .constants import (ERROR_DIR_NOT_FOUND, ERROR_FILE_NOT_FOUND,
                         ERROR_NOT_A_DIR, ERROR_NOT_A_FILE, SUCCESS_FILE_EDIT,
                         SUCCESS_FILE_WRITE)
 from .data_types import (CreateFileRequest, CreateFileResponse,
-                         ReadFileRequest, ReadFileResponse, GrepSearchRequest, GrepSearchResponse, 
+                         ReadFileRequest, ReadFileResponse, GrepSearchRequest, GrepSearchResponse,
+                         IncrementalReadRequest, IncrementalReadResponse, FileMetadata,
                          SearchFilesRequest, SearchFilesResponse, BashCommandRequest, BashCommandResponse)
 from .files import (ensure_parent_exists, format_path_for_display,
                     get_working_directory, resolve_path)
@@ -57,14 +58,47 @@ def _grep_search_impl(request: GrepSearchRequest) -> GrepSearchResponse:
     Internal implementation of grep_search tool.
     
     Args:
-        request: Validated request with pattern, file_pattern, and context_lines
+        request: Validated request with pattern, file_pattern, context_lines, and optional new parameters
     
     Returns:
         Response with formatted search results or error information
     """
     try:
-        # Get the working directory to search in
-        search_dir = get_working_directory()
+        # Determine search directory
+        if request.path:
+            # User specified a path - resolve it
+            path = resolve_path(request.path)
+            if path.is_file():
+                # Single file - search only in this file
+                search_dir = path.parent
+                file_pattern = path.name
+            elif path.is_dir():
+                # Directory - search in this directory
+                search_dir = path
+                file_pattern = request.file_pattern
+            else:
+                return GrepSearchResponse(
+                    content="",
+                    error=f"Path not found: {request.path}"
+                )
+        else:
+            # Use default working directory
+            search_dir = get_working_directory()
+            file_pattern = request.file_pattern
+        
+        # Determine context lines (support -B and -A style)
+        # If context_before or context_after are specified, use those
+        # Otherwise fall back to symmetric context_lines
+        context_before = request.context_before if request.context_before is not None else request.context_lines
+        context_after = request.context_after if request.context_after is not None else request.context_lines
+        
+        # Determine output mode
+        output_mode = (request.output_mode or "content").lower()
+        if output_mode not in ["content", "files_with_matches"]:
+            return GrepSearchResponse(
+                content="",
+                error=f"Invalid output_mode: {request.output_mode}. Must be 'content' or 'files_with_matches'"
+            )
         
         # Compile the regex pattern
         try:
@@ -80,15 +114,26 @@ def _grep_search_impl(request: GrepSearchRequest) -> GrepSearchResponse:
         total_matches = 0
         
         # Determine which files to search
-        if request.file_pattern:
-            # Use glob pattern to filter files
+        if file_pattern:
+            # Use glob pattern to filter files (or specific file if path was a file)
             try:
-                file_paths = list(search_dir.rglob(request.file_pattern))
+                # Check if we already have a specific file from path parameter
+                if request.path:
+                    path_resolved = resolve_path(request.path)
+                    if path_resolved.is_file():
+                        # Single file specified via path parameter
+                        file_paths = [path_resolved]
+                    else:
+                        # Directory with glob pattern
+                        file_paths = list(search_dir.rglob(file_pattern))
+                else:
+                    # Glob pattern
+                    file_paths = list(search_dir.rglob(file_pattern))
             except Exception as e:
-                logger.warning(f"Invalid file pattern '{request.file_pattern}': {e}")
+                logger.warning(f"Invalid file pattern '{file_pattern}': {e}")
                 return GrepSearchResponse(
                     content="",
-                    error=f"Invalid file pattern '{request.file_pattern}': {str(e)}"
+                    error=f"Invalid file pattern '{file_pattern}': {str(e)}"
                 )
         else:
             # Search all text files (exclude common binary and hidden files)
@@ -122,19 +167,22 @@ def _grep_search_impl(request: GrepSearchRequest) -> GrepSearchResponse:
             # Search for pattern in each line
             for line_num, line in enumerate(lines, 1):
                 if pattern.search(line):
-                    # Calculate context range
-                    start_line = max(1, line_num - request.context_lines)
-                    end_line = min(len(lines), line_num + request.context_lines)
+                    # Calculate context range using context_before and context_after
+                    start_line = max(1, line_num - context_before)
+                    end_line = min(len(lines), line_num + context_after)
                     
-                    # Get context lines
-                    context_lines = []
-                    for ctx_line_num in range(start_line, end_line + 1):
-                        ctx_line = lines[ctx_line_num - 1]  # Convert to 0-based index
-                        if ctx_line_num == line_num:
-                            # Mark the matching line
-                            context_lines.append(f"{ctx_line_num}:>{ctx_line}")
-                        else:
-                            context_lines.append(f"{ctx_line_num}: {ctx_line}")
+                    # Get context lines (only if output_mode is content)
+                    if output_mode == "content":
+                        context_lines = []
+                        for ctx_line_num in range(start_line, end_line + 1):
+                            ctx_line = lines[ctx_line_num - 1]  # Convert to 0-based index
+                            if ctx_line_num == line_num:
+                                # Mark the matching line
+                                context_lines.append(f"{ctx_line_num}:>{ctx_line}")
+                            else:
+                                context_lines.append(f"{ctx_line_num}: {ctx_line}")
+                    else:
+                        context_lines = []
                     
                     file_matches.append({
                         'line_number': line_num,
@@ -151,25 +199,35 @@ def _grep_search_impl(request: GrepSearchRequest) -> GrepSearchResponse:
                     'matches': file_matches
                 })
         
-        # Format the results
+        # Format the results based on output_mode
         if not results:
             content = f"No matches found for pattern: '{request.pattern}'"
-            if request.file_pattern:
-                content += f" in files matching: '{request.file_pattern}'"
+            if file_pattern:
+                content += f" in files matching: '{file_pattern}'"
         else:
-            formatted_lines = []
-            formatted_lines.append(f"Found {total_matches} matches for pattern: '{request.pattern}'")
-            if request.file_pattern:
-                formatted_lines.append(f"In files matching: '{request.file_pattern}'")
-            formatted_lines.append("")
-            
-            for result in results:
-                formatted_lines.append(f"=== {result['file']} ===")
-                for match in result['matches']:
-                    formatted_lines.extend(match['context'])
-                    formatted_lines.append("")  # Empty line between matches
-            
-            content = "\n".join(formatted_lines)
+            if output_mode == "files_with_matches":
+                # Just list file paths that contain matches
+                file_list = [result['file'] for result in results]
+                formatted_lines = [f"Found {total_matches} matches in {len(results)} file(s):"]
+                formatted_lines.append("")
+                for file_path in file_list:
+                    formatted_lines.append(file_path)
+                content = "\n".join(formatted_lines)
+            else:
+                # Full content mode with matches and context
+                formatted_lines = []
+                formatted_lines.append(f"Found {total_matches} matches for pattern: '{request.pattern}'")
+                if file_pattern:
+                    formatted_lines.append(f"In files matching: '{file_pattern}'")
+                formatted_lines.append("")
+                
+                for result in results:
+                    formatted_lines.append(f"=== {result['file']} ===")
+                    for match in result['matches']:
+                        formatted_lines.extend(match['context'])
+                        formatted_lines.append("")  # Empty line between matches
+                
+                content = "\n".join(formatted_lines)
         
         logger.info(f"Grep search completed: {total_matches} matches found")
         return GrepSearchResponse(content=content)
@@ -178,6 +236,256 @@ def _grep_search_impl(request: GrepSearchRequest) -> GrepSearchResponse:
         error_msg = f"Error during grep search: {str(e)}"
         logger.error(error_msg, exc_info=True)
         return GrepSearchResponse(content="", error=error_msg)
+
+def _partial_read_file_impl(request: IncrementalReadRequest) -> IncrementalReadResponse:
+    """
+    Internal implementation of partial_read_file tool.
+    
+    Performs multi-stage reading: first searches for pattern to locate matches,
+    then reads relevant code sections from matching files.
+    
+    Args:
+        request: Validated request with pattern and reading parameters
+    
+    Returns:
+        Response with formatted code sections from matched files
+    """
+    try:
+        # Stage 1: Find files containing the pattern
+        grep_files_request = GrepSearchRequest(
+            pattern=request.pattern,
+            file_pattern=request.file_pattern,
+            path=request.path,
+            output_mode="files_with_matches"
+        )
+        files_response = _grep_search_impl(grep_files_request)
+        
+        if files_response.error:
+            return IncrementalReadResponse(
+                content="",
+                error=f"Error finding files: {files_response.error}",
+                files_read=0,
+                sections_read=0,
+                file_metadata=[]
+            )
+        
+        # Parse file paths from the response
+        # Format: "Found X matches in Y file(s):\n\n/path/to/file1\n/path/to/file2"
+        file_paths = []
+        if files_response.content and "file(s):" in files_response.content:
+            # Extract file paths from the response
+            lines = files_response.content.split('\n')
+            in_file_list = False
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
+                if "file(s):" in line:
+                    in_file_list = True
+                    continue
+                if in_file_list:
+                    # Try to resolve the path
+                    try:
+                        resolved_path = resolve_path(line)
+                        if resolved_path.exists() and resolved_path.is_file():
+                            file_paths.append(resolved_path)
+                    except Exception:
+                        # Skip invalid paths
+                        continue
+        
+        if not file_paths:
+            return IncrementalReadResponse(
+                content=f"No files found matching pattern: '{request.pattern}'",
+                files_read=0,
+                sections_read=0,
+                file_metadata=[]
+            )
+        
+        # Limit number of files
+        file_paths = file_paths[:request.max_files]
+        
+        # Stage 2: For each file, find matches and read relevant sections
+        all_sections = []
+        files_processed = 0
+        total_sections = 0
+        file_metadata_list = []
+        
+        for file_path in file_paths:
+            # Collect file metadata (size, lines, chars) efficiently
+            try:
+                file_stat = file_path.stat()
+                size_bytes = file_stat.st_size
+                
+                # Efficiently count lines and chars without reading entire file into memory
+                # Use line-by-line iteration for memory efficiency
+                total_lines = 0
+                total_chars = 0
+                
+                try:
+                    with open(file_path, 'rb') as f:
+                        # Count lines efficiently using byte reading
+                        # This is much more memory efficient than reading entire file
+                        while True:
+                            chunk = f.read(8192)  # 8KB chunks
+                            if not chunk:
+                                break
+                            total_chars += len(chunk)
+                            total_lines += chunk.count(b'\n')
+                    
+                    # Convert bytes to approximate chars (may be slightly off for UTF-8)
+                    # For most text files, bytes ≈ chars
+                    total_chars = size_bytes  # Use actual file size
+                except Exception:
+                    # Fallback: estimate from file size if binary read fails
+                    total_chars = size_bytes
+                    # Rough estimate: assume average 80 chars per line
+                    total_lines = max(1, size_bytes // 80) if size_bytes > 0 else 0
+                
+                metadata = FileMetadata(
+                    path=str(format_path_for_display(file_path)),
+                    size_bytes=size_bytes,
+                    total_lines=max(total_lines, 0),  # Ensure non-negative
+                    total_chars=max(total_chars, 0)   # Ensure non-negative
+                )
+            except Exception as e:
+                logger.warning(f"Could not collect metadata for {file_path}: {e}")
+                # Create minimal metadata
+                metadata = FileMetadata(
+                    path=str(format_path_for_display(file_path)),
+                    size_bytes=0,
+                    total_lines=0,
+                    total_chars=0
+                )
+            
+            try:
+                # Find all matches in this file with minimal context to get line numbers
+                grep_content_request = GrepSearchRequest(
+                    pattern=request.pattern,
+                    path=str(file_path),
+                    context_before=0,
+                    context_after=0,
+                    output_mode="content"
+                )
+                matches_response = _grep_search_impl(grep_content_request)
+                
+                if matches_response.error or not matches_response.content:
+                    continue
+                
+                # Parse line numbers from grep output
+                # Format: "=== file ===\nline_num:>match\n..."
+                line_numbers = []
+                lines = matches_response.content.split('\n')
+                for line in lines:
+                    # Look for lines with format "line_num:>" or "line_num:"
+                    match = re.search(r'^(\d+):>', line)
+                    if match:
+                        line_num = int(match.group(1))
+                        line_numbers.append(line_num)
+                
+                if not line_numbers:
+                    continue
+                
+                # Limit sections per file
+                line_numbers = line_numbers[:request.max_sections_per_file]
+                
+                # Group nearby line numbers to avoid duplicate reads
+                # Sort and group lines that are close together
+                line_numbers.sort()
+                groups = []
+                current_group = [line_numbers[0]]
+                
+                for line_num in line_numbers[1:]:
+                    # Group lines within 50 lines of each other
+                    if line_num - current_group[-1] < 50:
+                        current_group.append(line_num)
+                    else:
+                        groups.append(current_group)
+                        current_group = [line_num]
+                groups.append(current_group)
+                
+                # Read each group of lines
+                file_sections = []
+                for group in groups:
+                    # Calculate range: start from first line - context_before, end at last line + context_after
+                    start_line = max(1, min(group) - request.context_before)
+                    end_line = max(group) + request.context_after
+                    limit = end_line - start_line + 1
+                    
+                    # Read the section
+                    read_request = ReadFileRequest(
+                        file_path=str(file_path),
+                        offset=start_line,
+                        limit=limit
+                    )
+                    read_response = _read_file_impl(read_request)
+                    
+                    if not read_response.error and read_response.content:
+                        file_sections.append({
+                            'start_line': start_line,
+                            'end_line': end_line,
+                            'content': read_response.content
+                        })
+                        total_sections += 1
+                
+                if file_sections:
+                    # Format sections for this file with metadata
+                    display_path = format_path_for_display(file_path)
+                    file_content = f"\n=== {display_path} ===\n"
+                    file_content += f"File metadata: {metadata.size_bytes} bytes, {metadata.total_lines} lines, {metadata.total_chars} characters\n"
+                    file_content += f"Found {len(file_sections)} relevant section(s):\n\n"
+                    
+                    for i, section in enumerate(file_sections, 1):
+                        file_content += f"--- Section {i}: Lines {section['start_line']}-{section['end_line']} ---\n"
+                        file_content += section['content']
+                        file_content += "\n"
+                    
+                    all_sections.append(file_content)
+                    file_metadata_list.append(metadata)
+                    files_processed += 1
+                    
+            except Exception as e:
+                logger.warning(f"Error processing file {file_path}: {e}")
+                continue
+        
+        # Format final output with metadata summary
+        if not all_sections:
+            return IncrementalReadResponse(
+                content=f"Pattern '{request.pattern}' found in files but could not read sections.",
+                files_read=0,
+                sections_read=0,
+                file_metadata=file_metadata_list
+            )
+        
+        content = f"Incremental read results for pattern: '{request.pattern}'\n"
+        content += f"Processed {files_processed} file(s), read {total_sections} section(s)\n"
+        
+        # Add metadata summary
+        if file_metadata_list:
+            content += "\nFile Metadata Summary:\n"
+            for meta in file_metadata_list:
+                content += f"  - {meta.path}: {meta.size_bytes:,} bytes, {meta.total_lines:,} lines, {meta.total_chars:,} chars\n"
+        
+        content += "=" * 60 + "\n\n"
+        content += "\n".join(all_sections)
+        
+        logger.info(f"Incremental read completed: {files_processed} files, {total_sections} sections")
+        return IncrementalReadResponse(
+            content=content,
+            files_read=files_processed,
+            sections_read=total_sections,
+            file_metadata=file_metadata_list
+        )
+        
+    except Exception as e:
+        error_msg = f"Error during incremental read: {str(e)}"
+        logger.error(error_msg, exc_info=True)
+        return IncrementalReadResponse(
+            content="",
+            error=error_msg,
+            files_read=0,
+            sections_read=0,
+            file_metadata=[]
+        )
 
 def _search_files_impl(request: SearchFilesRequest) -> SearchFilesResponse:
     """
@@ -451,11 +759,46 @@ def _read_file_impl(request: ReadFileRequest) -> ReadFileResponse:
         # Read file content
         try:
             with open(file_path, "r", encoding=request.encoding) as f:
-                content = f.read()
-
-            logger.info(
-                f"Successfully read file: {request.file_path} ({file_size} bytes)"
-            )
+                if request.offset is not None:
+                    # Reading specific line range
+                    if request.limit is None:
+                        return ReadFileResponse(
+                            error="limit parameter is required when offset is specified"
+                        )
+                    
+                    # Validate offset (1-based)
+                    if request.offset < 1:
+                        return ReadFileResponse(
+                            error=f"offset must be >= 1 (got {request.offset})"
+                        )
+                    
+                    # Read all lines
+                    all_lines = f.readlines()
+                    total_lines = len(all_lines)
+                    
+                    # Check if offset is beyond file
+                    if request.offset > total_lines:
+                        return ReadFileResponse(
+                            error=f"offset {request.offset} exceeds file length ({total_lines} lines)"
+                        )
+                    
+                    # Calculate range (1-based offset to 0-based index)
+                    start_idx = request.offset - 1
+                    end_idx = min(start_idx + request.limit, total_lines)
+                    
+                    # Extract the requested lines
+                    selected_lines = all_lines[start_idx:end_idx]
+                    content = "".join(selected_lines)
+                    
+                    logger.info(
+                        f"Successfully read lines {request.offset}-{end_idx} from file: {request.file_path} ({len(selected_lines)} lines)"
+                    )
+                else:
+                    # Read entire file
+                    content = f.read()
+                    logger.info(
+                        f"Successfully read file: {request.file_path} ({file_size} bytes)"
+                    )
 
             return ReadFileResponse(
                 content=content, file_size_bytes=file_size, last_modified=last_modified
@@ -549,7 +892,15 @@ def _create_file_impl(request: CreateFileRequest) -> CreateFileResponse:
 # Raw tool implementations (not rich)
 # Raw tool implementations for grep search and search files
 
-def grep_search_raw(pattern: str, file_pattern: Optional[str] = None, context_lines: int = 3) -> str:
+def grep_search_raw(
+    pattern: str, 
+    file_pattern: Optional[str] = None, 
+    context_lines: int = 3,
+    context_before: Optional[int] = None,
+    context_after: Optional[int] = None,
+    output_mode: Optional[str] = None,
+    path: Optional[str] = None
+) -> str:
     """
     Search for patterns in files using regex.
     
@@ -557,6 +908,10 @@ def grep_search_raw(pattern: str, file_pattern: Optional[str] = None, context_li
         pattern: Regex pattern or literal string to search for
         file_pattern: Optional glob pattern to filter files (e.g., '*.py')
         context_lines: Number of surrounding lines to include (default: 3)
+        context_before: Number of lines before match to include (like -B)
+        context_after: Number of lines after match to include (like -A)
+        output_mode: Output mode - 'content' or 'files_with_matches'
+        path: Specific file or directory path to search in
     
     Returns:
         Formatted string with search results or error message
@@ -565,7 +920,11 @@ def grep_search_raw(pattern: str, file_pattern: Optional[str] = None, context_li
         request = GrepSearchRequest(
             pattern=pattern,
             file_pattern=file_pattern,
-            context_lines=context_lines
+            context_lines=context_lines,
+            context_before=context_before,
+            context_after=context_after,
+            output_mode=output_mode,
+            path=path
         )
         response = _grep_search_impl(request)
         
@@ -576,6 +935,56 @@ def grep_search_raw(pattern: str, file_pattern: Optional[str] = None, context_li
         
     except Exception as e:
         error_msg = f"Error in grep_search_raw: {str(e)}"
+        logger.error(error_msg)
+        return error_msg
+
+def partial_read_file_raw(
+    pattern: str,
+    file_pattern: Optional[str] = None,
+    path: Optional[str] = None,
+    context_before: int = 10,
+    context_after: int = 20,
+    max_files: int = 10,
+    max_sections_per_file: int = 5
+) -> str:
+    """
+    Perform incremental reading: search for pattern, then read relevant code sections.
+    
+    This tool implements the multi-stage reading workflow:
+    1. Search for pattern to find matching files
+    2. Read relevant code sections from matched files with context
+    
+    Args:
+        pattern: Regex pattern or literal string to search for
+        file_pattern: Optional glob pattern to filter files (e.g., '*.py')
+        path: Specific file or directory path to search in
+        context_before: Number of lines before match to include (default: 10)
+        context_after: Number of lines after match to include (default: 20)
+        max_files: Maximum number of files to read sections from (default: 10)
+        max_sections_per_file: Maximum number of sections to read per file (default: 5)
+    
+    Returns:
+        Formatted string with relevant code sections from matched files
+    """
+    try:
+        request = IncrementalReadRequest(
+            pattern=pattern,
+            file_pattern=file_pattern,
+            path=path,
+            context_before=context_before,
+            context_after=context_after,
+            max_files=max_files,
+            max_sections_per_file=max_sections_per_file
+        )
+        response = _partial_read_file_impl(request)
+        
+        if response.error:
+            return f"Error: {response.error}"
+        
+        return response.content
+        
+    except Exception as e:
+        error_msg = f"Error in partial_read_file_raw: {str(e)}"
         logger.error(error_msg)
         return error_msg
 
@@ -664,34 +1073,30 @@ def bash_command_raw(
         return f"=== ERROR ===\n{error_msg}"
 
 
-def read_file_raw(file_path: str) -> str:
+def read_file_raw(file_path: str, offset: Optional[int] = None, limit: Optional[int] = None) -> str:
     """
-    Read the contents of a file.
+    Read the contents of a file, optionally with line range support.
 
     Args:
         file_path: Path to the file to read (relative or absolute)
+        offset: Line number to start reading from (1-based). If not set, reads entire file.
+        limit: Number of lines to read. Required if offset is set.
 
     Returns:
         File contents as string, or error message if failed
     """
     try:
-        # Resolve to absolute path
-        path = resolve_path(file_path)
-
-        if not path.exists():
-            return ERROR_FILE_NOT_FOUND.format(file_path)
-        if not path.is_file():
-            return ERROR_NOT_A_FILE.format(file_path)
-
-        with open(path, "r", encoding="utf-8") as f:
-            content = f.read()
-
-        # Log with both display path and absolute path for clarity
-        display_path = format_path_for_display(path)
-        logger.info(
-            f"Successfully read file: {display_path} ({len(content)} chars) [absolute: {path}]"
+        request = ReadFileRequest(
+            file_path=file_path,
+            offset=offset,
+            limit=limit
         )
-        return content
+        response = _read_file_impl(request)
+        
+        if response.error:
+            return f"Error: {response.error}"
+        
+        return response.content or ""
     except Exception as e:
         error_msg = f"Error reading file {file_path}: {str(e)}"
         logger.error(error_msg)
@@ -1087,16 +1492,27 @@ def run_async(coro):
 
 # Decorated tool functions for OpenAI Agent SDK
 @function_tool
-def read_file(file_path: str) -> str:
-    """Read the contents of a file."""
-    capture_args("read_file", file_path=file_path)
+def read_file(file_path: str, offset: Optional[int] = None, limit: Optional[int] = None) -> str:
+    """Read the contents of a file, optionally with line range support.
+    
+    Args:
+        file_path: Path to the file to read (relative or absolute)
+        offset: Line number to start reading from (1-based). If not set, reads entire file.
+        limit: Number of lines to read. Required if offset is set.
+    
+    Returns:
+        File contents as string, or error message if failed
+    """
+    capture_args("read_file", file_path=file_path, offset=offset, limit=limit)
     if HOOKS_AVAILABLE:
         return run_async(
             _execute_tool_with_hooks(
-                "read_file", lambda: read_file_raw(file_path), {"file_path": file_path}
+                "read_file", 
+                lambda: read_file_raw(file_path, offset, limit), 
+                {"file_path": file_path, "offset": offset, "limit": limit}
             )
         )
-    return read_file_raw(file_path)
+    return read_file_raw(file_path, offset, limit)
 
 
 @function_tool
@@ -1150,27 +1566,113 @@ def get_file_info(file_path: str) -> str:
 
 
 @function_tool
-def grep_search(pattern: str, file_pattern: Optional[str] = None, context_lines: int = 3) -> str:
+def grep_search(
+    pattern: str, 
+    file_pattern: Optional[str] = None, 
+    context_lines: int = 3,
+    context_before: Optional[int] = None,
+    context_after: Optional[int] = None,
+    output_mode: Optional[str] = None,
+    path: Optional[str] = None
+) -> str:
     """Search for patterns in files using regex.
     
     Args:
         pattern: Regex pattern or literal string to search for
         file_pattern: Optional glob pattern to filter files (e.g., '*.py')
-        context_lines: Number of surrounding lines to include (default: 3)
+        context_lines: Number of surrounding lines to include (default: 3, symmetric like -C)
+        context_before: Number of lines before match to include (like -B). Overrides context_lines if set.
+        context_after: Number of lines after match to include (like -A). Overrides context_lines if set.
+        output_mode: Output mode - 'content' (show matches with context) or 'files_with_matches' (list only file paths)
+        path: Specific file or directory path to search in (overrides default search directory)
     
     Returns:
-        Formatted string with search results, showing matching lines with context
+        Formatted string with search results, showing matching lines with context or just file paths
     """
-    capture_args("grep_search", pattern=pattern, file_pattern=file_pattern, context_lines=context_lines)
+    request = GrepSearchRequest(
+        pattern=pattern,
+        file_pattern=file_pattern,
+        context_lines=context_lines,
+        context_before=context_before,
+        context_after=context_after,
+        output_mode=output_mode,
+        path=path
+    )
+    capture_args("grep_search", pattern=pattern, file_pattern=file_pattern, context_lines=context_lines,
+                 context_before=context_before, context_after=context_after, output_mode=output_mode, path=path)
     if HOOKS_AVAILABLE:
         return run_async(
             _execute_tool_with_hooks(
                 "grep_search",
-                lambda: grep_search_raw(pattern, file_pattern, context_lines),
-                {"pattern": pattern, "file_pattern": file_pattern, "context_lines": context_lines},
+                lambda: _grep_search_impl(request).content,
+                {"pattern": pattern, "file_pattern": file_pattern, "context_lines": context_lines,
+                 "context_before": context_before, "context_after": context_after, "output_mode": output_mode, "path": path},
             )
         )
-    return grep_search_raw(pattern, file_pattern, context_lines)
+    response = _grep_search_impl(request)
+    if response.error:
+        return f"Error: {response.error}"
+    return response.content
+
+
+@function_tool
+def partial_read_file(
+    pattern: str,
+    file_pattern: Optional[str] = None,
+    path: Optional[str] = None,
+    context_before: int = 10,
+    context_after: int = 20,
+    max_files: int = 10,
+    max_sections_per_file: int = 5
+) -> str:
+    """Perform incremental reading: search for pattern, then read relevant code sections.
+    
+    This tool implements the multi-stage reading workflow to efficiently read only
+    relevant portions of files:
+    1. Search for pattern to locate matching files
+    2. Read relevant code sections from matched files with context
+    
+    This is especially useful for:
+    - Reading large codebases without loading entire files
+    - Finding and understanding specific functions, classes, or patterns
+    - Analyzing code across multiple files efficiently
+    
+    Args:
+        pattern: Regex pattern or literal string to search for
+        file_pattern: Optional glob pattern to filter files (e.g., '*.py')
+        path: Specific file or directory path to search in
+        context_before: Number of lines before match to include (default: 10)
+        context_after: Number of lines after match to include (default: 20)
+        max_files: Maximum number of files to read sections from (default: 10)
+        max_sections_per_file: Maximum number of sections to read per file (default: 5)
+    
+    Returns:
+        Formatted string with relevant code sections from matched files,
+        showing file paths, line ranges, and code content with context
+    
+    Example:
+        # Find all user authentication functions
+        partial_read_file(pattern="def.*auth", file_pattern="*.py")
+        
+        # Read class definitions in a specific directory
+        partial_read_file(pattern="class.*Handler", path="src/handlers")
+    """
+    capture_args("partial_read_file", pattern=pattern, file_pattern=file_pattern, path=path,
+                 context_before=context_before, context_after=context_after,
+                 max_files=max_files, max_sections_per_file=max_sections_per_file)
+    if HOOKS_AVAILABLE:
+        return run_async(
+            _execute_tool_with_hooks(
+                "partial_read_file",
+                lambda: partial_read_file_raw(pattern, file_pattern, path, context_before,
+                                           context_after, max_files, max_sections_per_file),
+                {"pattern": pattern, "file_pattern": file_pattern, "path": path,
+                 "context_before": context_before, "context_after": context_after,
+                 "max_files": max_files, "max_sections_per_file": max_sections_per_file},
+            )
+        )
+    return partial_read_file_raw(pattern, file_pattern, path, context_before,
+                                context_after, max_files, max_sections_per_file)
 
 
 @function_tool
@@ -1311,7 +1813,7 @@ def get_nano_agent_tools(permissions=None):
     """
     if permissions is None:
         # No restrictions - return all tools
-        return [read_file, write_file, list_directory, get_file_info, edit_file, grep_search, search_files, bash_command]
+        return [read_file, write_file, list_directory, get_file_info, edit_file, grep_search, partial_read_file, search_files, bash_command]
 
     # Create permission-aware wrapper functions
     tools = []
@@ -1324,6 +1826,7 @@ def get_nano_agent_tools(permissions=None):
         "get_file_info": get_file_info,
         "edit_file": edit_file,
         "grep_search": grep_search,
+        "partial_read_file": partial_read_file,
         "search_files": search_files,
         "bash_command": bash_command,
     }
@@ -1352,24 +1855,27 @@ def _create_permission_wrapper(tool_name: str, original_tool, permissions):
         Wrapped tool function with permission checks
     """
     # Create specific wrappers for each tool type to avoid OpenAI SDK issues
+    # IMPORTANT: Function names must match tool names so @function_tool generates correct tool names
     if tool_name == "read_file":
-
+        # Function name must match tool name so @function_tool generates correct tool name
         @function_tool
-        def read_file_permission_wrapper(file_path: str) -> str:
+        def read_file(
+            file_path: str, offset: Optional[int] = None, limit: Optional[int] = None
+        ) -> str:
             """Read the contents of a file (with permission checks)."""
             allowed, reason = permissions.check_tool_permission(
                 "read_file", {"file_path": file_path}
             )
             if not allowed:
                 return f"Permission denied: {reason}"
-            return read_file_raw(file_path)
+            return read_file_raw(file_path, offset, limit)
 
-        return read_file_permission_wrapper
+        return read_file
 
     elif tool_name == "write_file":
-
+        # Function name must match tool name so @function_tool generates correct tool name
         @function_tool
-        def write_file_permission_wrapper(file_path: str, content: str) -> str:
+        def write_file(file_path: str, content: str) -> str:
             """Write content to a file (with permission checks)."""
             allowed, reason = permissions.check_tool_permission(
                 "write_file", {"file_path": file_path}
@@ -1378,12 +1884,12 @@ def _create_permission_wrapper(tool_name: str, original_tool, permissions):
                 return f"Permission denied: {reason}"
             return write_file_raw(file_path, content)
 
-        return write_file_permission_wrapper
+        return write_file
 
     elif tool_name == "list_directory":
-
+        # Function name must match tool name so @function_tool generates correct tool name
         @function_tool
-        def list_directory_permission_wrapper(
+        def list_directory(
             directory_path: Optional[str] = None,
         ) -> str:
             """List contents of a directory (with permission checks)."""
@@ -1395,12 +1901,12 @@ def _create_permission_wrapper(tool_name: str, original_tool, permissions):
                 return f"Permission denied: {reason}"
             return list_directory_raw(directory_path)
 
-        return list_directory_permission_wrapper
+        return list_directory
 
     elif tool_name == "get_file_info":
-
+        # Function name must match tool name so @function_tool generates correct tool name
         @function_tool
-        def get_file_info_permission_wrapper(file_path: str) -> str:
+        def get_file_info(file_path: str) -> str:
             """Get detailed information about a file (with permission checks)."""
             allowed, reason = permissions.check_tool_permission(
                 "get_file_info", {"file_path": file_path}
@@ -1409,12 +1915,12 @@ def _create_permission_wrapper(tool_name: str, original_tool, permissions):
                 return f"Permission denied: {reason}"
             return get_file_info_raw(file_path)
 
-        return get_file_info_permission_wrapper
+        return get_file_info
 
     elif tool_name == "edit_file":
-
+        # Function name must match tool name so @function_tool generates correct tool name
         @function_tool
-        def edit_file_permission_wrapper(
+        def edit_file(
             file_path: str, old_str: str, new_str: str
         ) -> str:
             """Edit a file by replacing exact text (with permission checks)."""
@@ -1425,13 +1931,19 @@ def _create_permission_wrapper(tool_name: str, original_tool, permissions):
                 return f"Permission denied: {reason}"
             return edit_file_raw(file_path, old_str, new_str)
 
-        return edit_file_permission_wrapper
+        return edit_file
 
     elif tool_name == "grep_search":
-
+        # Function name must match tool name so @function_tool generates correct tool name
         @function_tool
-        def grep_search_permission_wrapper(
-            pattern: str, file_pattern: Optional[str] = None, context_lines: int = 3
+        def grep_search(
+            pattern: str,
+            file_pattern: Optional[str] = None,
+            context_lines: int = 3,
+            context_before: Optional[int] = None,
+            context_after: Optional[int] = None,
+            output_mode: Optional[str] = None,
+            path: Optional[str] = None
         ) -> str:
             """Search for patterns in files (with permission checks)."""
             allowed, reason = permissions.check_tool_permission(
@@ -1439,14 +1951,51 @@ def _create_permission_wrapper(tool_name: str, original_tool, permissions):
             )
             if not allowed:
                 return f"Permission denied: {reason}"
-            return grep_search_raw(pattern, file_pattern, context_lines)
+            return grep_search_raw(pattern, file_pattern, context_lines,
+                                  context_before, context_after, output_mode, path)
 
-        return grep_search_permission_wrapper
+        return grep_search
+
+    elif tool_name == "partial_read_file":
+        # Function name must match tool name so @function_tool generates correct tool name
+        @function_tool
+        def partial_read_file(
+            pattern: str,
+            file_pattern: Optional[str] = None,
+            path: Optional[str] = None,
+            context_before: int = 10,
+            context_after: int = 20,
+            max_files: int = 10,
+            max_sections_per_file: int = 5
+        ) -> str:
+            """Perform incremental reading (with permission checks).
+            
+            NOTE: This tool requires 'grep_search' or 'grep_files' permission,
+            not 'read_file' permission, as it uses grep to locate patterns and
+            only reads specific sections based on search results.
+            """
+            # Check for grep permission (grep_search or grep_files)
+            allowed_grep, reason_grep = permissions.check_tool_permission(
+                "grep_search", {"pattern": pattern}
+            )
+            # Also allow if explicitly granted partial_read_file permission
+            allowed_inc, reason_inc = permissions.check_tool_permission(
+                "partial_read_file", {"pattern": pattern}
+            )
+            
+            if not (allowed_grep or allowed_inc):
+                return f"Permission denied: partial_read_file requires 'grep_search' or 'grep_files' permission. {reason_grep}"
+            return partial_read_file_raw(
+                pattern, file_pattern, path, context_before,
+                context_after, max_files, max_sections_per_file
+            )
+
+        return partial_read_file
 
     elif tool_name == "search_files":
-
+        # Function name must match tool name so @function_tool generates correct tool name
         @function_tool
-        def search_files_permission_wrapper(
+        def search_files(
             name_query: str, max_results: int = 20
         ) -> str:
             """Search for files by name (with permission checks)."""
@@ -1457,12 +2006,12 @@ def _create_permission_wrapper(tool_name: str, original_tool, permissions):
                 return f"Permission denied: {reason}"
             return search_files_raw(name_query, max_results)
 
-        return search_files_permission_wrapper
+        return search_files
 
     elif tool_name == "bash_command":
-
+        # Function name must match tool name so @function_tool generates correct tool name
         @function_tool(strict_mode=False)
-        def bash_command_permission_wrapper(
+        def bash_command(
             command: str,
             stdin: Optional[str] = None,
             working_dir: Optional[str] = None,
@@ -1478,7 +2027,7 @@ def _create_permission_wrapper(tool_name: str, original_tool, permissions):
                 return f"Permission denied: {reason}"
             return bash_command_raw(command, stdin, working_dir, timeout, shell, env)
 
-        return bash_command_permission_wrapper
+        return bash_command
 
     else:
         # Fallback - should not happen
