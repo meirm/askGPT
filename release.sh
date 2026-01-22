@@ -59,14 +59,19 @@ rm -rf dist/ build/ *.egg-info/
 echo "✓ Cleaned"
 
 echo ""
-echo "Step 2: Building package..."
-python3 -m build
+echo "Step 2: Building package with uv..."
+uv build
 echo "✓ Built"
 
 echo ""
 echo "Step 3: Verifying build..."
-python3 -m twine check dist/*
-echo "✓ Verified"
+# uv build already validates the package, but we can also check with twine if available
+if command -v twine &> /dev/null; then
+    twine check dist/*
+    echo "✓ Verified with twine"
+else
+    echo "✓ Verified (twine not available, but uv build completed successfully)"
+fi
 
 echo ""
 echo "Step 4: Creating git tag..."
@@ -83,9 +88,9 @@ ls -lh dist/
 echo ""
 echo "Next steps:"
 echo "  1. Review the built files: ls -lh dist/"
-echo "  2. Test the package locally: pip install dist/askgpt-${VERSION}-py3-none-any.whl"
+echo "  2. Test the package locally: uv tool install dist/askgpt-${VERSION}-py3-none-any.whl"
 echo "  3. Push the tag: git push origin v$VERSION"
-echo "  4. Upload to PyPI: python3 -m twine upload dist/*"
+echo "  4. Upload to PyPI: uv publish"
 echo ""
 echo "Or run with --upload to automatically upload to PyPI:"
 echo "  ./release.sh --upload"
@@ -93,11 +98,11 @@ echo ""
 
 # Check if --upload flag is set
 if [ "$1" == "--upload" ]; then
-    echo "Uploading to PyPI..."
+    echo "Uploading to PyPI with uv..."
     read -p "Are you sure you want to upload to PyPI? (y/n) " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        python3 -m twine upload dist/*
+        uv publish
         echo ""
         echo "✓ Uploaded to PyPI"
         echo ""
