@@ -1,0 +1,87 @@
+# Docker Compose configuration for askGPT API service
+# This file demonstrates how to run askGPT as a web service with Docker Compose
+
+version: '3.8'
+
+services:
+  askgpt-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: askgpt-api
+    ports:
+      - "8000:8000"
+    environment:
+      # Server configuration
+      - ASKGPT_HOST=0.0.0.0
+      - ASKGPT_PORT=8000
+      - ASKGPT_WORKERS=1
+      - ASKGPT_RELOAD=false
+      
+      # Default provider/model
+      - DEFAULT_PROVIDER=ollama
+      - DEFAULT_MODEL=gpt-oss:20b
+      
+      # Ollama configuration (if using local Ollama)
+      # For Podman: use host.containers.internal
+      # For Docker: use host.docker.internal
+      - OLLAMA_API_BASE=http://host.containers.internal:11434/v1
+      
+      # Optional: OpenAI configuration
+      # - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # - OPENAI_API_BASE=https://api.openai.com/v1
+      
+      # Optional: Anthropic configuration
+      # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      # - ANTHROPIC_API_BASE=https://api.anthropic.com/v1
+      
+    volumes:
+      # Mount custom config file (optional)
+      # Example: Mount config_sample.yaml to provide model configurations
+      # - ./config_sample.yaml:/root/.askgpt/config.yaml:ro
+      # Alternative location:
+      # - ./config_sample.yaml:/app/config/config.yaml:ro
+      
+      # Mount sessions directory for persistence
+      - askgpt-sessions:/app/sessions
+      
+      # Mount config directory (optional)
+      - askgpt-config:/app/config
+      
+    # If using local Ollama, connect to it
+    # Uncomment if you have Ollama running in another container
+    # depends_on:
+    #   - ollama
+    # networks:
+    #   - askgpt-network
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/api/v1/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Optional: Ollama service (if you want to run Ollama in Docker)
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: ollama
+  #   volumes:
+  #     - ollama-data:/root/.ollama
+  #   ports:
+  #     - "11434:11434"
+  #   restart: unless-stopped
+
+volumes:
+  askgpt-sessions:
+    driver: local
+  askgpt-config:
+    driver: local
+  # ollama-data:
+  #   driver: local
+
+# networks:
+#   askgpt-network:
+#     driver: bridge

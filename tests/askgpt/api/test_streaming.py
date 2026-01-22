@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 
 from askgpt.modules.data_types import PromptNanoAgentResponse
 from askgpt.web_server import app
-from tests.askgpt.api.helpers import capture_streaming
+from .helpers import capture_streaming
 
 
 class TestWebSocketStreaming:
@@ -228,7 +228,8 @@ class TestSSEStreaming:
             )
             
             assert response.status_code == 200
-            assert response.headers["content-type"] == "text/event-stream"
+            # Content-type may include charset
+            assert "text/event-stream" in response.headers["content-type"]
             # Should have content
             content = response.text
             assert len(content) > 0

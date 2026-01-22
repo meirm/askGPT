@@ -192,8 +192,15 @@ class TestRegressionSuite:
             mock_get_client.return_value = client
             
             start_time = time.time()
+            # Extract path from endpoint (format: "POST /api/v1/sessions" -> "/api/v1/sessions")
+            endpoint_str = case["request"]["endpoint"]
+            if " " in endpoint_str:
+                # Extract path part after method
+                endpoint = endpoint_str.split(" ", 1)[1]
+            else:
+                endpoint = endpoint_str
             response = test_client.post(
-                case["request"]["endpoint"].replace("/api/v1", ""),
+                endpoint,
                 json=case["request"]["body"],
             )
             response_time = time.time() - start_time
@@ -271,7 +278,13 @@ class TestRegressionSuite:
         """Regression test: Health check."""
         case = next(c for c in regression_cases["test_cases"] if c["id"] == "regression_008")
         
-        response = test_client.get(case["request"]["endpoint"].replace("/api/v1", ""))
+        # Extract path from endpoint (format: "GET /api/v1/health" -> "/api/v1/health")
+        endpoint_str = case["request"]["endpoint"]
+        if " " in endpoint_str:
+            endpoint = endpoint_str.split(" ", 1)[1]
+        else:
+            endpoint = endpoint_str
+        response = test_client.get(endpoint)
         
         expected = case["expected"]
         assert response.status_code == expected["status_code"]
@@ -304,7 +317,13 @@ class TestRegressionSuite:
             )
             mock_get_client.return_value = client
             
-            response = test_client.get(case["request"]["endpoint"].replace("/api/v1", ""))
+            # Extract path from endpoint (format: "GET /api/v1/models" -> "/api/v1/models")
+            endpoint_str = case["request"]["endpoint"]
+            if " " in endpoint_str:
+                endpoint = endpoint_str.split(" ", 1)[1]
+            else:
+                endpoint = endpoint_str
+            response = test_client.get(endpoint)
             
         expected = case["expected"]
         assert response.status_code == expected["status_code"]
@@ -342,15 +361,25 @@ class TestRegressionSuite:
             )
             mock_get_client.return_value = client
             
-            response = test_client.post("/api/v1/chat", json=case["request"])
-            
-            # Read-only mode should be respected
-            # The agent should not be able to write files
-            expected = case["expected"]
-            assert response.status_code == 200
-            data = response.json()
-            assert data["success"] == expected["success"]
-            # Note: Actual write blocking is tested in agent execution tests
+            # Mock agent execution to avoid actual LLM calls in unit tests
+            with patch("askgpt.api._execute_nano_agent_async") as mock_exec:
+                from askgpt.modules.data_types import PromptNanoAgentResponse
+                mock_exec.return_value = PromptNanoAgentResponse(
+                    success=True,
+                    result="Test response",
+                    metadata={},
+                    execution_time_seconds=1.0,
+                )
+                
+                response = test_client.post("/api/v1/chat", json=case["request"])
+                
+                # Read-only mode should be respected
+                # The agent should not be able to write files
+                expected = case["expected"]
+                assert response.status_code == 200
+                data = response.json()
+                assert data["success"] == expected["success"]
+                # Note: Actual write blocking is tested in agent execution tests
 
 
 class TestPerformanceBaselines:
@@ -366,6 +395,7 @@ class TestPerformanceBaselines:
         with patch("askgpt.web_server.get_client") as mock_get_client:
             from askgpt.api import AskGPTClient
             from askgpt.modules.session_manager import SessionManager
+            from askgpt.modules.data_types import PromptNanoAgentResponse
             import tempfile
             from pathlib import Path
             
@@ -378,13 +408,22 @@ class TestPerformanceBaselines:
             )
             mock_get_client.return_value = client
             
-            start_time = time.time()
-            response = test_client.post(
-                "/api/v1/chat",
-                json={"message": "Test performance", "provider": "ollama", "model": "gpt-oss:20b"},
-            )
-            response_time = time.time() - start_time
-            
-            # Allow 2x baseline for test environment
-            assert response_time <= baseline * 2, \
-                f"Response time {response_time}s exceeds baseline {baseline}s"
+            # Mock agent execution to avoid actual LLM calls
+            with patch("askgpt.api._execute_nano_agent_async") as mock_exec:
+                mock_exec.return_value = PromptNanoAgentResponse(
+                    success=True,
+                    result="Test response",
+                    metadata={},
+                    execution_time_seconds=0.1,  # Fast mock response
+                )
+                
+                start_time = time.time()
+                response = test_client.post(
+                    "/api/v1/chat",
+                    json={"message": "Test performance", "provider": "ollama", "model": "gpt-oss:20b"},
+                )
+                response_time = time.time() - start_time
+                
+                # Allow 2x baseline for test environment
+                assert response_time <= baseline * 2, \
+                    f"Response time {response_time}s exceeds baseline {baseline}s"

@@ -1,0 +1,194 @@
+# Multi-stage Dockerfile for askGPT REST API service
+# This Dockerfile creates a production-ready container for running askGPT as a web service
+
+# ============================================================================
+# Stage 1: Builder
+# ============================================================================
+# This stage installs dependencies and builds the package
+FROM python:3.12-slim as builder
+
+# Set working directory
+WORKDIR /build
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy dependency files first (for better layer caching)
+COPY pyproject.toml MANIFEST.in ./
+COPY uv.lock* ./
+
+# Install build tools
+RUN pip install --no-cache-dir build wheel
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy source code (need src/ directory for package installation)
+COPY src/ ./src/
+COPY config/ ./config/
+COPY README.md LICENSE ./
+
+# Install askgpt package and dependencies
+# Install normally (not editable) so it works when copied to runner stage
+# This installs the package into the venv, making it portable
+RUN pip install --no-cache-dir ".[web]"
+
+# ============================================================================
+# Stage 2: Runner
+# ============================================================================
+# This stage creates the final minimal runtime image
+FROM python:3.12-slim as runner
+
+# Set working directory
+WORKDIR /app
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+
+# Set PATH to use virtual environment
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Create directory for config and sessions
+RUN mkdir -p /app/config /app/sessions /root/.askgpt
+
+# Environment variables for configuration
+# These can be overridden at runtime
+ENV ASKGPT_CONFIG_PATH=/app/config/config.yaml
+ENV ASKGPT_SESSION_DIR=/app/sessions
+ENV ASKGPT_HOST=0.0.0.0
+ENV ASKGPT_PORT=8000
+ENV ASKGPT_WORKERS=1
+ENV ASKGPT_RELOAD=false
+
+# Web server configuration via environment variables
+# Provider settings
+ENV DEFAULT_PROVIDER=ollama
+ENV DEFAULT_MODEL=gpt-oss:20b
+
+# Ollama configuration (if using local Ollama)
+# For Podman: use host.containers.internal
+# For Docker: use host.docker.internal or localhost
+ENV OLLAMA_API_BASE=http://host.containers.internal:11434/v1
+
+# OpenAI configuration (optional, set if using OpenAI)
+# ENV OPENAI_API_KEY=""
+# ENV OPENAI_API_BASE="https://api.openai.com/v1"
+
+# Anthropic configuration (optional, set if using Anthropic)
+# ENV ANTHROPIC_API_KEY=""
+# ENV ANTHROPIC_API_BASE="https://api.anthropic.com/v1"
+
+# Copy default config file if it doesn't exist
+# Users can mount their own config.yaml or use environment variables
+COPY config/examples/web_server.yaml /app/config/config.yaml.default
+
+# Create entrypoint script that runs askgpt serve
+# This script sets up the config and starts the web server
+RUN echo '#!/bin/bash\n\
+set -e\n\
+\n\
+# Create config directory if it does not exist\n\
+mkdir -p /app/config /root/.askgpt\n\
+\n\
+# Check for mounted config files in order of priority:\n\
+# 1. ASKGPT_CONFIG_PATH environment variable\n\
+# 2. /root/.askgpt/config_orig.yaml (mounted config - recommended)\n\
+# 3. /root/.askgpt/config.yaml (standard location, may be read-only mount)\n\
+# 4. /app/config/config.yaml (alternative location)\n\
+# 5. /app/config/config_orig.yaml (mounted config alternative)\n\
+# 6. Default config file\n\
+\n\
+CONFIG_SET=false\n\
+CONFIG_SOURCE=""\n\
+\n\
+if [ -n "$ASKGPT_CONFIG_PATH" ] && [ -f "$ASKGPT_CONFIG_PATH" ]; then\n\
+    echo "Using config from ASKGPT_CONFIG_PATH: $ASKGPT_CONFIG_PATH"\n\
+    CONFIG_SOURCE="$ASKGPT_CONFIG_PATH"\n\
+    CONFIG_SET=true\n\
+elif [ -f "/root/.askgpt/config_orig.yaml" ]; then\n\
+    echo "Using mounted config from /root/.askgpt/config_orig.yaml"\n\
+    CONFIG_SOURCE="/root/.askgpt/config_orig.yaml"\n\
+    CONFIG_SET=true\n\
+elif [ -f "/app/config/config_orig.yaml" ]; then\n\
+    echo "Using mounted config from /app/config/config_orig.yaml"\n\
+    CONFIG_SOURCE="/app/config/config_orig.yaml"\n\
+    CONFIG_SET=true\n\
+elif [ -f "/root/.askgpt/config.yaml" ] && [ -w "/root/.askgpt/config.yaml" ]; then\n\
+    echo "Using writable config from /root/.askgpt/config.yaml"\n\
+    CONFIG_SOURCE="/root/.askgpt/config.yaml"\n\
+    CONFIG_SET=true\n\
+elif [ -f "/app/config/config.yaml" ]; then\n\
+    echo "Using mounted config from /app/config/config.yaml"\n\
+    CONFIG_SOURCE="/app/config/config.yaml"\n\
+    CONFIG_SET=true\n\
+fi\n\
+\n\
+# Copy config to writable location (handles read-only mounts)\n\
+# If source is different from destination, copy it\n\
+if [ "$CONFIG_SET" = "true" ] && [ -n "$CONFIG_SOURCE" ]; then\n\
+    if [ "$CONFIG_SOURCE" != "/root/.askgpt/config.yaml" ]; then\n\
+        echo "Copying config from $CONFIG_SOURCE to /root/.askgpt/config.yaml..."\n\
+        cp "$CONFIG_SOURCE" /root/.askgpt/config.yaml\n\
+    else\n\
+        echo "Config already at /root/.askgpt/config.yaml (writable)"\n\
+    fi\n\
+elif [ "$CONFIG_SET" = "false" ]; then\n\
+    echo "No custom config found, using default config..."\n\
+    cp /app/config/config.yaml.default /root/.askgpt/config.yaml\n\
+fi\n\
+\n\
+# Update Ollama API base URL in config if it points to localhost\n\
+# This is needed for Podman/Docker containers to access host Ollama\n\
+# The config is now in a writable location, so we can modify it\n\
+# If OLLAMA_API_BASE is not set, detect network mode:\n\
+# - host network: use localhost\n\
+# - bridge network: use host.containers.internal (Podman) or host.docker.internal (Docker)\n\
+if [ -n "$OLLAMA_API_BASE" ]; then\n\
+    echo "Updating Ollama API base to: $OLLAMA_API_BASE"\n\
+    # Use sed to update the api_base in the config file\n\
+    sed -i "s|api_base: http://localhost:11434/v1|api_base: $OLLAMA_API_BASE|g" /root/.askgpt/config.yaml\n\
+    sed -i "s|api_base: http://127.0.0.1:11434/v1|api_base: $OLLAMA_API_BASE|g" /root/.askgpt/config.yaml\n\
+    sed -i "s|api_base: http://host.containers.internal:11434/v1|api_base: $OLLAMA_API_BASE|g" /root/.askgpt/config.yaml\n\
+    sed -i "s|api_base: http://host.docker.internal:11434/v1|api_base: $OLLAMA_API_BASE|g" /root/.askgpt/config.yaml\n\
+elif [ -f /sys/class/net/eth0 ] && ! ip addr show eth0 | grep -q "inet 127.0.0.1"; then\n\
+    # Bridge network detected - use host.containers.internal for Podman\n\
+    echo "Bridge network detected, updating Ollama API base to: http://host.containers.internal:11434/v1"\n\
+    sed -i "s|api_base: http://localhost:11434/v1|api_base: http://host.containers.internal:11434/v1|g" /root/.askgpt/config.yaml\n\
+    sed -i "s|api_base: http://127.0.0.1:11434/v1|api_base: http://host.containers.internal:11434/v1|g" /root/.askgpt/config.yaml\n\
+else\n\
+    # Host network or OLLAMA_API_BASE not set - keep localhost\n\
+    echo "Using localhost for Ollama (host network or default)"\n\
+fi\n\
+\n\
+# Print configuration info\n\
+echo "Starting askGPT web server..."\n\
+echo "Host: ${ASKGPT_HOST}"\n\
+echo "Port: ${ASKGPT_PORT}"\n\
+echo "Workers: ${ASKGPT_WORKERS}"\n\
+echo "Reload: ${ASKGPT_RELOAD}"\n\
+echo "Config: /root/.askgpt/config.yaml"\n\
+\n\
+# Run askgpt serve with configuration from environment variables\n\
+exec askgpt serve \\\n\
+    --host "${ASKGPT_HOST}" \\\n\
+    --port "${ASKGPT_PORT}" \\\n\
+    --workers "${ASKGPT_WORKERS}" \\\n\
+    $(if [ "$ASKGPT_RELOAD" = "true" ]; then echo "--reload"; fi)\n\
+' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+
+# Expose the web server port
+EXPOSE 8000
+
+# Health check (uses default port 8000)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:8000/api/v1/health')" || exit 1
+
+# Use entrypoint script
+ENTRYPOINT ["/app/entrypoint.sh"]
+
+# Default command (can be overridden)
+CMD []

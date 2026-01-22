@@ -134,6 +134,15 @@ class AskGPTClient:
         model = model or self.default_model
         provider = provider or self.default_provider
 
+        # Get api_base from config if not provided in kwargs
+        api_base = kwargs.get("api_base")
+        if not api_base and provider in self.config.providers:
+            provider_config = self.config.providers[provider]
+            # ProviderConfig has api_base attribute
+            if provider_config.api_base:
+                api_base = provider_config.api_base
+                kwargs["api_base"] = api_base
+
         # Create request
         request = PromptNanoAgentRequest(
             agentic_prompt=message,

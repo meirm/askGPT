@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from askgpt.api import AskGPTClient
 from askgpt.modules.data_types import PromptNanoAgentResponse
-from tests.askgpt.api.helpers import assert_response_format, capture_streaming
+from .helpers import assert_response_format, capture_streaming
 
 
 class TestAskGPTClient:

@@ -1,0 +1,78 @@
+# .dockerignore for API Dockerfile
+# This file excludes unnecessary files from the Docker build context
+
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Test files and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Examples (not needed in container)
+examples/
+
+# Test files
+tests/
+test_*.py
+
+# Docker files (except the one we're using)
+Dockerfile
+Dockerfile.dev
+docker-compose.yml
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Cache and temporary files
+.cache/
+*.log
+*.tmp
+*.bak
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Aider files
+.aider.*
+*.chat.history.md
+*.input.history
+
+# Lock files (we copy pyproject.toml and uv.lock explicitly)
+# uv.lock is needed for dependency resolution
