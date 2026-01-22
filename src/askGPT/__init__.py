@@ -13,6 +13,24 @@ try:
 except ImportError:
     pass
 
+# Export public API
+from .api import AskGPTClient
+
+# Export web server app (lazy import to avoid requiring web dependencies)
+def get_app():
+    """Get the FastAPI application instance."""
+    from .web_server import app
+    return app
+
+__all__ = ["AskGPTClient", "get_app", "__version__"]
+
+# For convenience, try to export app directly (may fail if web deps not installed)
+try:
+    from .web_server import app
+    __all__.append("app")
+except ImportError:
+    pass
+
 
 def hello() -> str:
     return "Hello from askGPT!"

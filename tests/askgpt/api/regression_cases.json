@@ -1,0 +1,169 @@
+{
+  "test_cases": [
+    {
+      "id": "regression_001",
+      "name": "Basic chat response",
+      "description": "Test that basic chat requests return successful responses",
+      "request": {
+        "message": "Hello, how are you?",
+        "provider": "ollama",
+        "model": "gpt-oss:20b"
+      },
+      "expected": {
+        "success": true,
+        "contains": ["hello", "how"],
+        "max_response_time": 10.0,
+        "has_session_id": true
+      }
+    },
+    {
+      "id": "regression_002",
+      "name": "Session persistence",
+      "description": "Test that sessions persist across multiple requests",
+      "request": {
+        "message": "My name is Alice",
+        "provider": "ollama",
+        "model": "gpt-oss:20b"
+      },
+      "follow_up": {
+        "message": "What is my name?",
+        "use_same_session": true
+      },
+      "expected": {
+        "success": true,
+        "follow_up_contains": ["alice", "name"],
+        "session_persists": true
+      }
+    },
+    {
+      "id": "regression_003",
+      "name": "Error handling",
+      "description": "Test that errors are handled gracefully",
+      "request": {
+        "message": "",
+        "provider": "ollama",
+        "model": "gpt-oss:20b"
+      },
+      "expected": {
+        "success": false,
+        "has_error": true,
+        "error_not_empty": true
+      }
+    },
+    {
+      "id": "regression_004",
+      "name": "Parameter validation",
+      "description": "Test that invalid parameters are rejected",
+      "request": {
+        "message": "Test message",
+        "temperature": 3.0,
+        "provider": "ollama",
+        "model": "gpt-oss:20b"
+      },
+      "expected": {
+        "validates": false,
+        "has_validation_error": true
+      }
+    },
+    {
+      "id": "regression_005",
+      "name": "Multi-turn conversation",
+      "description": "Test conversation context across multiple turns",
+      "request": {
+        "message": "Count to 3",
+        "provider": "ollama",
+        "model": "gpt-oss:20b"
+      },
+      "follow_up": {
+        "message": "Now count to 5",
+        "use_same_session": true
+      },
+      "expected": {
+        "success": true,
+        "context_preserved": true
+      }
+    },
+    {
+      "id": "regression_006",
+      "name": "Session creation",
+      "description": "Test creating sessions via API",
+      "request": {
+        "endpoint": "POST /api/v1/sessions",
+        "body": {
+          "provider": "ollama",
+          "model": "gpt-oss:20b"
+        }
+      },
+      "expected": {
+        "status_code": 200,
+        "has_session_id": true,
+        "provider_matches": true,
+        "model_matches": true
+      }
+    },
+    {
+      "id": "regression_007",
+      "name": "Session retrieval",
+      "description": "Test retrieving session by ID",
+      "setup": {
+        "create_session": true
+      },
+      "request": {
+        "endpoint": "GET /api/v1/sessions/{session_id}"
+      },
+      "expected": {
+        "status_code": 200,
+        "has_session_data": true,
+        "has_conversation": true
+      }
+    },
+    {
+      "id": "regression_008",
+      "name": "Health check",
+      "description": "Test health check endpoint",
+      "request": {
+        "endpoint": "GET /api/v1/health"
+      },
+      "expected": {
+        "status_code": 200,
+        "status": "healthy",
+        "has_version": true
+      }
+    },
+    {
+      "id": "regression_009",
+      "name": "Models listing",
+      "description": "Test listing available models",
+      "request": {
+        "endpoint": "GET /api/v1/models"
+      },
+      "expected": {
+        "status_code": 200,
+        "has_default_provider": true,
+        "has_default_model": true,
+        "has_providers": true
+      }
+    },
+    {
+      "id": "regression_010",
+      "name": "Read-only mode",
+      "description": "Test read-only mode prevents write operations",
+      "request": {
+        "message": "Create a test file",
+        "read_only": true,
+        "provider": "ollama",
+        "model": "gpt-oss:20b"
+      },
+      "expected": {
+        "success": true,
+        "write_operations_blocked": true
+      }
+    }
+  ],
+  "performance_baselines": {
+    "chat_response_time": 10.0,
+    "session_creation_time": 0.1,
+    "session_retrieval_time": 0.05
+  },
+  "known_issues": []
+}

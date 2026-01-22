@@ -1958,6 +1958,48 @@ def run_user_tool_cmd(
         raise typer.Exit(code=4)
 
 
+@app.command("serve")
+def serve(
+    host: str = typer.Option("0.0.0.0", "--host", "-h", help="Host to bind to"),
+    port: int = typer.Option(8000, "--port", "-p", help="Port to bind to"),
+    workers: int = typer.Option(1, "--workers", "-w", help="Number of worker processes"),
+    reload: bool = typer.Option(False, "--reload", "-r", help="Enable auto-reload for development"),
+):
+    """
+    Start the askGPT web server.
+    
+    This command starts a FastAPI web server that provides REST API, WebSocket,
+    and SSE endpoints for integrating askGPT into web applications.
+    
+    Example:
+        askgpt serve --host 0.0.0.0 --port 8000
+    """
+    try:
+        import uvicorn
+        from .web_server import app
+        
+        console.print(f"[green]Starting askGPT web server on {host}:{port}[/green]")
+        if reload:
+            console.print("[yellow]Auto-reload enabled (development mode)[/yellow]")
+        
+        uvicorn.run(
+            app,
+            host=host,
+            port=port,
+            workers=workers if not reload else 1,  # Reload doesn't work with multiple workers
+            reload=reload,
+        )
+    except ImportError:
+        console_stderr.print(
+            "[red]Error: Web dependencies not installed.[/red]\n"
+            "[yellow]Install with: pip install 'askgpt[web]' or uv pip install 'askgpt[web]'[/yellow]"
+        )
+        raise typer.Exit(code=1)
+    except Exception as e:
+        console_stderr.print(f"[red]Error starting web server:[/red] {e}")
+        raise typer.Exit(code=1)
+
+
 def main():
     """Main entry point for the CLI."""
     app()

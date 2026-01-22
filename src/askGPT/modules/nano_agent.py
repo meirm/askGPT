@@ -667,6 +667,54 @@ async def _execute_nano_agent_async(
             logger.debug(f"Error during client cleanup in async function: {e}")
 
 
+async def _execute_nano_agent_streaming(
+    request: PromptNanoAgentRequest,
+    enable_rich_logging: bool = True,
+    verbose: bool = False,
+) -> AsyncIterator[str]:
+    """
+    Execute the nano agent with streaming support.
+    
+    This function yields response chunks as they are generated.
+    Currently, this is a basic implementation that executes the agent
+    and yields the result in chunks. Future enhancements will support
+    true streaming from the agent execution.
+    
+    Args:
+        request: The validated request containing prompt and configuration
+        enable_rich_logging: Whether to enable rich console logging for tool calls
+        verbose: Whether to enable verbose logging
+        
+    Yields:
+        Response chunks as strings
+        
+    Note:
+        This is a placeholder implementation. True streaming support requires
+        enhancements to the OpenAI Agent SDK integration. The current implementation
+        executes the agent and yields the final result in chunks.
+    """
+    from typing import AsyncIterator
+    
+    try:
+        # Execute the agent (non-streaming for now)
+        response = await _execute_nano_agent_async(
+            request, enable_rich_logging=enable_rich_logging, verbose=verbose
+        )
+        
+        if response.success and response.result:
+            # Yield the result in chunks
+            # TODO: Enhance to stream directly from agent execution when SDK supports it
+            chunk_size = 50  # Characters per chunk
+            result = response.result
+            for i in range(0, len(result), chunk_size):
+                yield result[i : i + chunk_size]
+        elif response.error:
+            yield f"Error: {response.error}"
+    except Exception as e:
+        logger.error(f"Error in streaming execution: {e}", exc_info=True)
+        yield f"Error: {str(e)}"
+
+
 def _execute_nano_agent(
     request: PromptNanoAgentRequest,
     enable_rich_logging: bool = True,
