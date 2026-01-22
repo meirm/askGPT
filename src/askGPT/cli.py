@@ -43,7 +43,7 @@ from .modules.user_tools import list_user_tools, run_user_tool
 try:
     from . import __version__
 except ImportError:
-    __version__ = "1.0.0"  # Fallback version
+    __version__ = "2.0.0"  # Fallback version
 
 app = typer.Typer()
 console = Console()

@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="askGPT Chatbot API",
     description="REST API and WebSocket interface for askGPT AI agent",
-    version="1.0.4",
+    version="2.0.0",
 )
 
 # CORS middleware configuration
@@ -100,7 +100,7 @@ class HealthResponse(BaseModel):
     """Response model for health check."""
 
     status: str = "healthy"
-    version: str = "1.0.4"
+    version: str = "2.0.0"
 
 
 # REST Endpoints

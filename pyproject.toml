@@ -1,6 +1,6 @@
 [project]
 name = "askgpt"
-version = "1.0.4"
+version = "2.0.0"
 description = "askGPT - Multi-provider AI agent CLI with offline-first support"
 readme = "README.md"
 authors = [

@@ -26,7 +26,7 @@ Check if the API server is running.
 ```json
 {
   "status": "healthy",
-  "version": "1.0.4"
+  "version": "2.0.0"
 }
 ```
 

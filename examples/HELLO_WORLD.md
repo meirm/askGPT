@@ -22,7 +22,7 @@ Expected response:
 ```json
 {
   "status": "healthy",
-  "version": "1.0.4"
+  "version": "2.0.0"
 }
 ```
 
